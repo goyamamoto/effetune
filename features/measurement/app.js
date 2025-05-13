@@ -264,80 +264,134 @@ function copyPEQToClipboard() {
     // Get the EQ band count
     const bandCount = parseInt(document.getElementById('eqBandCount').value);
     
-    // Prepare PEQ JSON structure
-    const peqJSON = [{
-        "nm": "5Band PEQ",
-        "en": true
-    }];
-    
-    // Add channel information if needed
-    if (measurement.outputChannel === 'left') {
-        peqJSON[0].ch = "L";
-    } else if (measurement.outputChannel === 'right') {
-        peqJSON[0].ch = "R";
-    }
-    
     // Sort PEQ parameters by frequency
     const sortedParams = [...measurement.peqParameters].sort((a, b) => a.frequency - b.frequency);
     
-    // Add parameters for each band
-    const maxBands = 5;
-    for (let i = 0; i < maxBands; i++) {
-        const param = i < sortedParams.length && i < bandCount ? sortedParams[i] : null;
-        
-        peqJSON[0][`f${i}`] = param ? param.frequency : [100, 316, 1000, 3160, 10000][i];
-        peqJSON[0][`g${i}`] = param ? param.gain : 0;
-        peqJSON[0][`q${i}`] = param ? param.Q : 1;
-        peqJSON[0][`t${i}`] = "pk";
-        peqJSON[0][`e${i}`] = i < sortedParams.length && i < bandCount;
-    }
+    // Define default frequencies for 15Band PEQ
+    const fifteenBandFreqs = [
+        25, 40, 63, 100, 160, 250, 400, 630, 1000, 
+        1600, 2500, 4000, 6300, 10000, 16000
+    ];
     
-    // Handle more than 5 bands if needed
-    if (bandCount > 5 && sortedParams.length > 5) {
-        // Create additional 5-band PEQ objects for the remaining bands
-        const additionalBands = Math.min(sortedParams.length, bandCount) - 5;
-        const additionalSets = Math.ceil(additionalBands / 5);
+    // For 6 or more bands, use 15Band PEQ
+    if (bandCount >= 6) {
+        // Prepare 15Band PEQ JSON structure
+        const peqJSON = [{
+            "nm": "15Band PEQ",
+            "en": true
+        }];
         
-        for (let setIndex = 0; setIndex < additionalSets; setIndex++) {
-            const setObj = {
-                "nm": "5Band PEQ",
-                "en": true
-            };
-            
-            // Add channel information if needed
-            if (measurement.outputChannel === 'left') {
-                setObj.ch = "L";
-            } else if (measurement.outputChannel === 'right') {
-                setObj.ch = "R";
-            }
-            
-            // Add parameters for each band in this set
-            for (let i = 0; i < maxBands; i++) {
-                const paramIndex = 5 + (setIndex * 5) + i;
-                const param = paramIndex < sortedParams.length && paramIndex < bandCount ? sortedParams[paramIndex] : null;
-                
-                setObj[`f${i}`] = param ? param.frequency : [100, 316, 1000, 3160, 10000][i];
-                setObj[`g${i}`] = param ? param.gain : 0;
-                setObj[`q${i}`] = param ? param.Q : 1;
-                setObj[`t${i}`] = "pk";
-                setObj[`e${i}`] = param ? true : false;
-            }
-            
-            peqJSON.push(setObj);
+        // Add channel information if needed
+        if (measurement.outputChannel === 'left') {
+            peqJSON[0].ch = "L";
+        } else if (measurement.outputChannel === 'right') {
+            peqJSON[0].ch = "R";
         }
+        
+        // Band activation patterns for different band counts
+        const bandPatterns = {
+            6: "001010101010100",
+            7: "010101010101010",
+            8: "101010101010101",
+            9: "101011010110101",
+            10: "101101101101101",
+            11: "101110111011101",
+            12: "110111101111011",
+            13: "111011111110111",
+            14: "111111101111111",
+            15: "111111111111111"
+        };
+        
+        // Get the appropriate pattern for the band count (or default to all enabled if not specified)
+        const pattern = bandPatterns[bandCount] || "111111111111111";
+        
+        // Map sortedParams to match the pattern
+        let paramIndex = 0;
+        
+        // Add parameters for each band (15 total)
+        for (let i = 0; i < 15; i++) {
+            // Check if this band should be enabled based on the pattern
+            const shouldBeEnabled = pattern.charAt(i) === '1';
+            
+            // Only use a parameter if the band should be enabled
+            const param = shouldBeEnabled && paramIndex < sortedParams.length && paramIndex < bandCount ? 
+                sortedParams[paramIndex++] : null;
+            
+            peqJSON[0][`f${i}`] = param ? param.frequency : fifteenBandFreqs[i];
+            peqJSON[0][`g${i}`] = param ? param.gain : 0;
+            peqJSON[0][`q${i}`] = param ? param.Q : 1;
+            peqJSON[0][`t${i}`] = "pk";
+            peqJSON[0][`e${i}`] = shouldBeEnabled;
+        }
+        
+        // Convert to JSON string
+        const jsonString = JSON.stringify(peqJSON, null, 2);
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(jsonString).then(() => {
+            // Log success but don't show alert
+            console.log('PEQ parameters copied to clipboard.');
+        }).catch(err => {
+            console.error('Failed to copy PEQ parameters: ', err);
+            alert('Failed to copy PEQ parameters: ' + err);
+        });
+    } else {
+        // Use 5Band PEQ for 5 bands or fewer
+        // Prepare PEQ JSON structure
+        const peqJSON = [{
+            "nm": "5Band PEQ",
+            "en": true
+        }];
+        
+        // Add channel information if needed
+        if (measurement.outputChannel === 'left') {
+            peqJSON[0].ch = "L";
+        } else if (measurement.outputChannel === 'right') {
+            peqJSON[0].ch = "R";
+        }
+        
+        // Band activation patterns for different band counts
+        const bandPatterns = {
+            3: "10101",
+            4: "11011",
+            5: "11111"
+        };
+        
+        // Get the appropriate pattern for the band count (or default to all enabled if not specified)
+        const pattern = bandPatterns[bandCount] || "11111";
+        
+        // Map sortedParams to match the pattern
+        let paramIndex = 0;
+        
+        // Add parameters for each band
+        const maxBands = 5;
+        for (let i = 0; i < maxBands; i++) {
+            // Check if this band should be enabled based on the pattern
+            const shouldBeEnabled = pattern.charAt(i) === '1';
+            
+            // Only use a parameter if the band should be enabled
+            const param = shouldBeEnabled && paramIndex < sortedParams.length && paramIndex < bandCount ? 
+                sortedParams[paramIndex++] : null;
+                
+            peqJSON[0][`f${i}`] = param ? param.frequency : [100, 316, 1000, 3160, 10000][i];
+            peqJSON[0][`g${i}`] = param ? param.gain : 0;
+            peqJSON[0][`q${i}`] = param ? param.Q : 1;
+            peqJSON[0][`t${i}`] = "pk";
+            peqJSON[0][`e${i}`] = shouldBeEnabled;
+        }
+        
+        // Convert to JSON string
+        const jsonString = JSON.stringify(peqJSON, null, 2);
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(jsonString).then(() => {
+            // Log success but don't show alert
+            console.log('PEQ parameters copied to clipboard.');
+        }).catch(err => {
+            console.error('Failed to copy PEQ parameters: ', err);
+            alert('Failed to copy PEQ parameters: ' + err);
+        });
     }
-    
-    // Convert to JSON string
-    const jsonString = JSON.stringify(peqJSON, null, 2);
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(jsonString).then(() => {
-        // Log success but don't show alert
-        console.log('PEQ parameters copied to clipboard.');
-    }).catch(err => {
-        console.error('Failed to copy PEQ parameters: ', err);
-        alert('Failed to copy PEQ parameters: ' + err);
-    });
 }
 
 /**

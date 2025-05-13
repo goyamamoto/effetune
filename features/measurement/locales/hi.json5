@@ -68,6 +68,7 @@
 "unit:band": "बैंड", // Unit for band
 "help:eqBandCount": "सुधार के लिए पैरामीट्रिक इक्वलाइज़र के बैंड की संख्या। जितने अधिक बैंड होंगे, फ्रीक्वेंसी सुधार उतना ही विस्तृत होगा, लेकिन प्रोसेसिंग लोड बढ़ जाएगा।", // Help text for EQ band count
 "button:copyPEQ": "EffeTune PEQ सेटिंग्स क्लिपबोर्ड पर कॉपी करें", // Button to copy PEQ settings
+"button:exportTxt": "सुधार पैरामीटर निर्यात करें (TXT)", // Button to export txt
 "button:exportCSV": "सुधार पैरामीटर निर्यात करें (CSV)", // Button to export CSV
 "help:exportOptions": "कॉपी की गई फ्रीक्वेंसी सुधार सेटिंग्स को Ctrl+V द्वारा EffeTune के इफेक्ट पाइपलाइन में चिपकाया जा सकता है।", // Help text for export options
 "title:measurementDetails": "माप विवरण", // Title for measurement details section

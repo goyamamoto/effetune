@@ -274,8 +274,9 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Dynamics  | Gate | शोर नियंत्रण के लिए थ्रेशोल्ड, अनुपात, और नी नियंत्रण के साथ नॉइज़ गेट | [विवरण](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FM रेडियो-शैली ध्वनि आकार देने के साथ प्रोफेशनल 5-बैंड डायनेमिक्स प्रोसेसर | [विवरण](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | 15-बैंड ग्राफिक इक्वलाइज़र | [विवरण](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | 15 पूर्णतः कॉन्फ़िगर करने योग्य बैंड्स के साथ प्रोफेशनल पैरामीट्रिक इक्वलाइज़र | [विवरण](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | थ्रेशोल्ड-आधारित फ़्रीक्वेंसी समायोजन के साथ 5-बैंड डायनेमिक इक्वलाइज़र | [विवरण](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5 पूर्णतः कॉन्फ़िगर करने योग्य बैंड्स के साथ प्रोफेशनल पैरामीट्रिक इक्वलाइज़र | [विवरण](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | थ्रेशोल्ड-आधारित फ़्रीक्वेंसी समायोजन के साथ 5-बैंड डायनेमिक इक्वलाइज़र | [विवरण](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | सटीकता के साथ अवांछित निम्न आवृत्तियों को हटाता है | [विवरण](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | सटीकता के साथ अवांछित उच्च आवृत्तियों को हटाता है | [विवरण](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | कम वॉल्यूम सुनने के लिए आवृत्ति संतुलन सुधार | [विवरण](plugins/eq.md#loudness-equalizer) |

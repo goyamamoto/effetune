@@ -289,7 +289,28 @@ export class PresetManager {
             }
             
             // Save state for undo/redo after loading preset
-            this.pipelineManager.historyManager.saveState();
+            // Set isUndoRedoOperation flag to prevent multiple save states from plugin automatic updates
+            const historyManager = this.pipelineManager.historyManager;
+            
+            // Clear any existing timeout
+            if (historyManager.undoRedoTimeoutId) {
+                clearTimeout(historyManager.undoRedoTimeoutId);
+            }
+            
+            // Set the flag to true to prevent automatic updates from triggering saveState
+            historyManager.isUndoRedoOperation = true;
+            
+            // Set special override to allow one save despite the isUndoRedoOperation flag
+            historyManager.specialSaveOverride = true;
+            
+            // Save the current state
+            historyManager.saveState();
+            
+            // Keep the flag true for a short period to prevent multiple saves
+            historyManager.undoRedoTimeoutId = setTimeout(() => {
+                historyManager.isUndoRedoOperation = false;
+                historyManager.undoRedoTimeoutId = null;
+            }, 1000);
             
             // Display message only when loading from preset combo box (string name)
             if (window.uiManager && typeof nameOrPreset === 'string') {

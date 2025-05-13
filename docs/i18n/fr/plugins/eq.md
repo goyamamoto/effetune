@@ -4,6 +4,7 @@ Une collection de plugins qui vous permet d'ajuster différents aspects du son d
 ## Liste des Plugins
 
 - [15Band GEQ](#15band-geq) - Réglage détaillé du son avec 15 contrôles précis
+- [15Band PEQ](#15band-peq) - Égaliseur paramétrique professionnel à 15 bandes offrant une flexibilité maximale
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Égaliseur dynamique qui réagit à votre musique
 - [5Band PEQ](#5band-peq) - Égaliseur paramétrique professionnel avec des contrôles flexibles
 - [Hi Pass Filter](#hi-pass-filter) - Éliminez avec précision les basses fréquences indésirables
@@ -60,6 +61,60 @@ Un outil de réglage du son détaillé avec 15 contrôles distincts, chacun affe
 - Graphique en temps réel montrant vos ajustements sonores
 - Curseurs faciles à utiliser avec un contrôle précis
 - Réinitialisation en un clic aux paramètres par défaut
+
+## 15Band PEQ
+
+Un égaliseur paramétrique professionnel avec un contrôle étendu sur 15 bandes, offrant des ajustements de fréquence précis. Parfait tant pour le raffinement subtil du son que pour le traitement audio correctif avec une flexibilité maximale.
+
+### Guide d'Amélioration Sonore
+- Clarté des Voix et des Instruments:
+  - Utilisez la bande 3.2kHz avec un Q modéré (1.0-2.0) pour une présence naturelle
+  - Appliquez des coupes avec un Q étroit (4.0-8.0) pour éliminer les résonances
+  - Ajoutez une légère sensation d'air avec une étagère haute 10kHz (+2 à +4dB)
+- Contrôle de la Qualité des Basses:
+  - Façonnez les fondamentaux avec un filtre en cloche à 100Hz
+  - Éliminez la résonance de la pièce en utilisant un Q étroit à des fréquences spécifiques
+  - Créez une extension de basse fluide avec une étagère basse
+- Réglage Scientifique du Son:
+  - Ciblez des fréquences spécifiques avec précision
+  - Utilisez des analyseurs pour identifier les zones problématiques
+  - Appliquez des corrections mesurées avec un impact de phase minimal
+
+### Paramètres Techniques
+- **Bandes de Précision**
+  - 15 bandes de fréquence entièrement configurables
+  - Configuration de fréquence initiale:
+    - 25Hz, 40Hz, 63Hz, 100Hz, 160Hz (Basses profondes)
+    - 250Hz, 400Hz, 630Hz (Sons bas)
+    - 1kHz, 1.6kHz, 2.5kHz (Sons médiums)
+    - 4kHz, 6.3kHz, 10kHz, 16kHz (Sons aigus)
+- **Contrôles Professionnels par Bande**
+  - Fréquence Centrale: Espacée logarithmiquement pour une couverture optimale
+  - Plage de Gain: Réglage précis de ±20dB
+  - Facteur Q: De 0.1 (large) à 10.0 (précis)
+  - Types de Filtres Multiples:
+    - En cloche : Réglage symétrique des fréquences
+    - Passe Bas/Haut : Pente de 12dB/octave
+    - Étagère Bas/Haut : Modelage spectral doux
+    - Passe Bande : Isolation ciblée des fréquences
+    - Notch: Suppression précise de fréquence
+    - AllPass: Alignement fréquentiel focalisé sur la phase
+- **Gestion des Préréglages**
+  - Importation: Chargement des réglages d'égalisation à partir de fichiers texte au format standard
+    - Exemple de format:
+      ```
+      Preamp: -6.0 dB
+      Filter 1: ON PK Fc 50 Hz Gain -3.0 dB Q 2.00
+      Filter 2: ON HS Fc 12000 Hz Gain 4.0 dB Q 0.70
+      ...
+      ```
+
+### Affichage Technique
+- Visualisation de la réponse en fréquence en haute résolution
+- Points de contrôle interactifs avec affichage précis des paramètres
+- Calcul en temps réel de la fonction de transfert
+- Grille de fréquences et de gains calibrée
+- Affichages numériques précis pour tous les paramètres
 
 ## 5Band Dynamic EQ
 
@@ -136,7 +191,7 @@ Un égaliseur paramétrique de qualité professionnelle basé sur des principes 
   - Bande 5: 10kHz (Extension des Hautes Fréquences)
 - **Contrôles Professionnels par Bande**
   - Fréquence Centrale: Espacée logarithmiquement pour une couverture optimale
-  - Plage de Gain: Réglage précis de ±18dB
+  - Plage de Gain: Réglage précis de ±20dB
   - Facteur Q: De 0.1 (large) à 10.0 (précis)
   - Types de Filtres Multiples:
     - En cloche : Réglage symétrique des fréquences

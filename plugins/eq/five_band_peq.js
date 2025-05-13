@@ -193,6 +193,11 @@ class FiveBandPEQPlugin extends PluginBase {
     super('5Band PEQ', '5-band parametric equalizer');
     this._sampleRate = 96000;
     this.uiCreated = false; // Initialize uiCreated flag
+    
+    // Store event listener functions and bind references at instance level
+    this.boundMouseMoveHandler = null;
+    this.boundMouseUpHandler = null;
+    this.activeDragMarker = null;
 
     this.onMessage = (message) => {
       if (message.sampleRate !== undefined && message.sampleRate !== this._sampleRate) {
@@ -301,9 +306,11 @@ class FiveBandPEQPlugin extends PluginBase {
   createUI() {
     const container = document.createElement('div');
     container.className = 'five-band-peq-plugin-ui plugin-parameter-ui';
+    container.id = `five-band-peq-container-${this.id}`;
 
     const graphContainer = document.createElement('div');
     graphContainer.className = 'five-band-peq-graph';
+    graphContainer.id = `five-band-peq-graph-${this.id}`;
 
     const gridSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     gridSvg.setAttribute('class', 'five-band-peq-grid');
@@ -346,57 +353,79 @@ class FiveBandPEQPlugin extends PluginBase {
     const markers = [];
     for (let i = 0; i < 5; i++) {
       const marker = document.createElement('div');
-      marker.className = 'five-band-peq-marker'; marker.textContent = i + 1;
+      marker.className = 'five-band-peq-marker'; 
+      marker.textContent = i + 1;
+      marker.id = `five-band-peq-marker-${this.id}-${i}`;
+      marker.dataset.pluginId = this.id;
+      marker.dataset.band = i;
+      
       const markerText = document.createElement('div');
       markerText.className = 'five-band-peq-marker-text';
-      marker.appendChild(markerText); graphContainer.appendChild(marker);
+      marker.appendChild(markerText); 
+      graphContainer.appendChild(marker);
       markers.push(marker);
-      let isDragging = false;
-
-      const handleDragStart = (clientX, clientY) => {
-        isDragging = true;
-        marker.classList.add('active');
-        const bandUI = document.querySelector(`.five-band-peq-band[data-band="${i}"]`);
-        if (bandUI) bandUI.classList.add('active');
-        // Initial position update if needed, though move handles it
-        handleDragMove(clientX, clientY); 
-      };
-
-      const handleDragMove = (clientX, clientY) => {
-        if (!isDragging) return;
-        const rect = graphContainer.getBoundingClientRect();
-        const margin = 20;
-        let x = (clientX - rect.left - margin) / (rect.width - 2 * margin);
-        x = Math.max(0, Math.min(1, x));
-        let y = (clientY - rect.top - margin) / (rect.height - 2 * margin);
-        y = Math.max(0, Math.min(1, y));
-        const freq = this.xToFreq(x * 100); // Clamping is in xToFreq/yToGain or setBand
-        const gain = this.yToGain(y * 100);
-        this.setBand(i, freq, gain);
-        this.updateMarkers();
-        this.updateResponse();
-        if (this.uiCreated) this.setUIBandValues(i);
-      };
-
-      const handleDragEnd = () => {
-        if (isDragging) {
-          isDragging = false;
-          marker.classList.remove('active');
-          const bandUI = document.querySelector(`.five-band-peq-band[data-band="${i}"]`);
-          if (bandUI) bandUI.classList.remove('active');
-        }
-      };
-
-      marker.addEventListener('mousedown', (e) => { handleDragStart(e.clientX, e.clientY); e.preventDefault(); });
-      document.addEventListener('mousemove', (e) => { if(isDragging) handleDragMove(e.clientX, e.clientY); });
-      document.addEventListener('mouseup', handleDragEnd);
       
-      marker.addEventListener('touchstart', (e) => { const touch = e.touches[0]; handleDragStart(touch.clientX, touch.clientY); e.preventDefault(); }, { passive: false });
-      marker.addEventListener('touchmove', (e) => { if(isDragging) { const touch = e.touches[0]; handleDragMove(touch.clientX, touch.clientY); e.preventDefault();}}, { passive: false });
-      marker.addEventListener('touchend', handleDragEnd);
-      marker.addEventListener('touchcancel', handleDragEnd);
+      // Improved drag and drop implementation with simplification
+      const handleDragStart = (clientX, clientY) => {
+        this.activeDragMarker = i;
+        marker.classList.add('active');
+        const bandUI = container.querySelector(`.five-band-peq-band[data-band="${i}"][data-plugin-id="${this.id}"]`);
+        if (bandUI) bandUI.classList.add('active');
+        
+        // Add event listeners only if they don't already exist
+        if (!this.boundMouseMoveHandler) {
+          this.boundMouseMoveHandler = this.handleDragMove.bind(this);
+          this.boundMouseUpHandler = this.handleDragEnd.bind(this);
+          document.addEventListener('mousemove', this.boundMouseMoveHandler);
+          document.addEventListener('mouseup', this.boundMouseUpHandler);
+        }
+        
+        // Store initial position but don't update marker position on mousedown
+        this.initialDragX = clientX;
+        this.initialDragY = clientY;
+        this.hasMoved = false;
+      };
 
-      marker.addEventListener('contextmenu', (e) => { e.preventDefault(); this.toggleBandEnabled(i); });
+      marker.addEventListener('mousedown', (e) => { 
+        handleDragStart(e.clientX, e.clientY); 
+        e.preventDefault(); 
+      });
+      
+      marker.addEventListener('touchstart', (e) => { 
+        const touch = e.touches[0]; 
+        handleDragStart(touch.clientX, touch.clientY);
+        e.preventDefault(); 
+      }, { passive: false });
+      
+      marker.addEventListener('touchmove', (e) => { 
+        if (this.activeDragMarker === i) { 
+          const touch = e.touches[0]; 
+          this.handleDragMove({
+            clientX: touch.clientX, 
+            clientY: touch.clientY, 
+            targetContainer: graphContainer,
+            targetBand: i
+          });
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      marker.addEventListener('touchend', () => {
+        if (this.activeDragMarker === i) {
+          this.handleDragEnd();
+        }
+      });
+      
+      marker.addEventListener('touchcancel', () => {
+        if (this.activeDragMarker === i) {
+          this.handleDragEnd();
+        }
+      });
+
+      marker.addEventListener('contextmenu', (e) => { 
+        e.preventDefault(); 
+        this.toggleBandEnabled(i); 
+      });
     }
 
     const controlsContainer = document.createElement('div');
@@ -404,13 +433,20 @@ class FiveBandPEQPlugin extends PluginBase {
 
     for (let i = 0; i < 5; i++) {
       const bandControls = document.createElement('div');
-      bandControls.className = 'five-band-peq-band'; bandControls.dataset.band = i;
+      bandControls.className = 'five-band-peq-band'; 
+      bandControls.dataset.band = i;
+      bandControls.dataset.pluginId = this.id;
+      bandControls.id = `five-band-peq-band-${this.id}-${i}`;
 
       const labelContainer = document.createElement('label');
       labelContainer.className = 'five-band-peq-band-label';
       const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox'; checkbox.className = 'five-band-peq-band-checkbox';
-      checkbox.checked = this['e' + i]; checkbox.autocomplete = "off";
+      checkbox.type = 'checkbox'; 
+      checkbox.className = 'five-band-peq-band-checkbox';
+      checkbox.id = `${this.id}-five-band-peq-band-${i}-checkbox`;
+      checkbox.name = `${this.id}-five-band-peq-band-${i}-checkbox`;
+      checkbox.checked = this['e' + i]; 
+      checkbox.autocomplete = "off";
       this.bandCheckboxes[i] = checkbox;
       checkbox.addEventListener('change', () => {
         this.setBand(i, undefined, undefined, undefined, undefined, checkbox.checked); // Use setBand for consistency
@@ -418,28 +454,43 @@ class FiveBandPEQPlugin extends PluginBase {
       });
       labelContainer.appendChild(checkbox); labelContainer.appendChild(document.createTextNode(`Band ${i + 1}`));
 
-      const typeRow = document.createElement('div'); typeRow.className = 'five-band-peq-type-row';
-      const typeSelectId = `${this.id || 'peq'}-${this.name || 'plugin'}-band${i}-type`;
+      const typeRow = document.createElement('div'); 
+      typeRow.className = 'five-band-peq-type-row';
+      const typeSelectId = `${this.id}-five-band-peq-band-${i}-type`;
       const typeLabel = document.createElement('label');
-      typeLabel.className = 'five-band-peq-type-label'; typeLabel.textContent = 'Type:'; typeLabel.htmlFor = typeSelectId;
+      typeLabel.className = 'five-band-peq-type-label'; 
+      typeLabel.textContent = 'Type:'; 
+      typeLabel.htmlFor = typeSelectId;
       const typeSelect = document.createElement('select');
-      typeSelect.className = 'five-band-peq-filter-type'; typeSelect.id = typeSelectId; typeSelect.name = typeSelectId; typeSelect.autocomplete = "off";
+      typeSelect.className = 'five-band-peq-filter-type'; 
+      typeSelect.id = typeSelectId; 
+      typeSelect.name = typeSelectId; 
+      typeSelect.autocomplete = "off";
       FiveBandPEQPlugin.FILTER_TYPES.forEach(type => {
         const option = document.createElement('option'); option.value = type.id; option.textContent = type.name; typeSelect.appendChild(option);
       });
       typeSelect.value = this['t' + i];
       typeRow.appendChild(typeLabel); typeRow.appendChild(typeSelect);
 
-      const qRow = document.createElement('div'); qRow.className = 'five-band-peq-q-row';
-      const qSliderId = `${this.id || 'peq'}-${this.name || 'plugin'}-band${i}-q-slider`;
-      const qTextId = `${this.id || 'peq'}-${this.name || 'plugin'}-band${i}-q-text`;
+      const qRow = document.createElement('div'); 
+      qRow.className = 'five-band-peq-q-row';
+      const qSliderId = `${this.id}-five-band-peq-band-${i}-q-slider`;
+      const qTextId = `${this.id}-five-band-peq-band-${i}-q-text`;
       const qLabel = document.createElement('div');
-      qLabel.className = 'five-band-peq-q-label'; qLabel.textContent = 'Q:'; qLabel.htmlFor = qSliderId; // Use same class for width consistency
+      qLabel.className = 'five-band-peq-q-label'; 
+      qLabel.textContent = 'Q:'; 
+      qLabel.htmlFor = qSliderId;
       const qSlider = document.createElement('input');
-      qSlider.type = 'range'; qSlider.className = 'five-band-peq-q-slider'; qSlider.id = qSliderId; qSlider.name = qSliderId;
+      qSlider.type = 'range'; 
+      qSlider.className = 'five-band-peq-q-slider'; 
+      qSlider.id = qSliderId; 
+      qSlider.name = qSliderId;
       qSlider.min = 0.1; qSlider.step = 0.01; qSlider.value = this['q' + i]; qSlider.autocomplete = "off";
       const qText = document.createElement('input');
-      qText.type = 'number'; qText.className = 'five-band-peq-q-text'; qText.id = qTextId; qText.name = qTextId;
+      qText.type = 'number'; 
+      qText.className = 'five-band-peq-q-text'; 
+      qText.id = qTextId; 
+      qText.name = qTextId;
       qText.min = 0.1; qText.step = 0.01; qText.value = this['q' + i]; qText.autocomplete = "off";
       qRow.appendChild(qLabel); qRow.appendChild(qSlider); qRow.appendChild(qText);
 
@@ -474,12 +525,18 @@ class FiveBandPEQPlugin extends PluginBase {
       qText.addEventListener('change', () => { qText.value = parseFloat(this['q' + i]).toFixed(2); });
 
 
-      const freqRow = document.createElement('div'); freqRow.className = 'five-band-peq-freq-row';
+      const freqRow = document.createElement('div'); 
+      freqRow.className = 'five-band-peq-freq-row';
       const freqLabel = document.createElement('label');
-      freqLabel.className = 'five-band-peq-freq-label'; freqLabel.textContent = 'Freq:';
-      const freqTextId = `${this.id || 'peq'}-${this.name || 'plugin'}-band${i}-freq`; freqLabel.htmlFor = freqTextId;
+      freqLabel.className = 'five-band-peq-freq-label'; 
+      freqLabel.textContent = 'Freq (Hz):';
+      const freqTextId = `${this.id}-five-band-peq-band-${i}-freq`; 
+      freqLabel.htmlFor = freqTextId;
       const freqText = document.createElement('input');
-      freqText.type = 'number'; freqText.className = 'five-band-peq-freq-text'; freqText.id = freqTextId; freqText.name = freqTextId;
+      freqText.type = 'number'; 
+      freqText.className = 'five-band-peq-freq-text'; 
+      freqText.id = freqTextId; 
+      freqText.name = freqTextId;
       freqText.min = 20; freqText.max = 20000; freqText.step = 1; freqText.value = parseFloat(this['f' + i]).toFixed(0); freqText.autocomplete = "off";
       freqText.addEventListener('input', () => {
           this.setBand(i, parseFloat(freqText.value), undefined, undefined, undefined);
@@ -488,12 +545,18 @@ class FiveBandPEQPlugin extends PluginBase {
       freqText.addEventListener('change', () => { freqText.value = parseFloat(this['f' + i]).toFixed(0); this.updateResponse(); this.updateMarkers(); });
       freqRow.appendChild(freqLabel); freqRow.appendChild(freqText);
 
-      const gainRow = document.createElement('div'); gainRow.className = 'five-band-peq-gain-row';
+      const gainRow = document.createElement('div'); 
+      gainRow.className = 'five-band-peq-gain-row';
       const gainLabel = document.createElement('label');
-      gainLabel.className = 'five-band-peq-gain-label'; gainLabel.textContent = 'Gain:';
-      const gainTextId = `${this.id || 'peq'}-${this.name || 'plugin'}-band${i}-gain`; gainLabel.htmlFor = gainTextId;
+      gainLabel.className = 'five-band-peq-gain-label'; 
+      gainLabel.textContent = 'Gain (dB):';
+      const gainTextId = `${this.id}-five-band-peq-band-${i}-gain`; 
+      gainLabel.htmlFor = gainTextId;
       const gainText = document.createElement('input');
-      gainText.type = 'number'; gainText.className = 'five-band-peq-gain-text'; gainText.id = gainTextId; gainText.name = gainTextId;
+      gainText.type = 'number'; 
+      gainText.className = 'five-band-peq-gain-text'; 
+      gainText.id = gainTextId; 
+      gainText.name = gainTextId;
       gainText.min = -20; gainText.max = 20; gainText.step = 0.1; gainText.value = parseFloat(this['g' + i]).toFixed(1); gainText.autocomplete = "off";
       gainText.addEventListener('input', () => {
           this.setBand(i, undefined, parseFloat(gainText.value), undefined, undefined);
@@ -509,6 +572,7 @@ class FiveBandPEQPlugin extends PluginBase {
 
     container.appendChild(graphContainer); container.appendChild(controlsContainer);
     this.graphContainer = graphContainer; this.responseSvg = responseSvg; this.markers = markers;
+    this.uiContainer = container;
 
     this._uiCreated(); // Set uiCreated = true and call setUIValues
 
@@ -524,9 +588,9 @@ class FiveBandPEQPlugin extends PluginBase {
   }
 
   setUIValues() {
-    if (!this.uiCreated) return;
+    if (!this.uiCreated || !this.graphContainer) return;
     for (let i = 0; i < 5; i++) {
-        const bandControl = document.querySelector(`.five-band-peq-band[data-band="${i}"]`);
+        const bandControl = this.graphContainer.parentElement.querySelector(`.five-band-peq-band[data-band="${i}"][data-plugin-id="${this.id}"]`);
         if (!bandControl) continue;
         const checkbox = bandControl.querySelector('.five-band-peq-band-checkbox');
         const typeSelect = bandControl.querySelector('.five-band-peq-filter-type');
@@ -551,8 +615,8 @@ class FiveBandPEQPlugin extends PluginBase {
   }
   
   setUIBandValues(bandIndex) {
-    if (!this.uiCreated) return;
-    const bandControl = document.querySelector(`.five-band-peq-band[data-band="${bandIndex}"]`);
+    if (!this.uiCreated || !this.graphContainer) return;
+    const bandControl = this.graphContainer.parentElement.querySelector(`.five-band-peq-band[data-band="${bandIndex}"][data-plugin-id="${this.id}"]`);
     if (!bandControl) return;
 
     const freqText = bandControl.querySelector('.five-band-peq-freq-text');
@@ -581,11 +645,11 @@ class FiveBandPEQPlugin extends PluginBase {
 
   freqToX(freq) { return (Math.log10(Math.max(10, Math.min(freq, 40000))) - Math.log10(10)) / (Math.log10(40000) - Math.log10(10)) * 100; }
   xToFreq(xPercent) { return Math.pow(10, Math.log10(10) + (xPercent / 100) * (Math.log10(40000) - Math.log10(10))); }
-  gainToY(gain) { return 50 - (Math.max(-20, Math.min(gain, 20)) / 20.0) * 50; } // Clamp gain for Y calculation
+  gainToY(gain) { return 50 - (gain / 20.0) * 50; } // NEVER Clamp gain
   yToGain(yPercent) { return -(yPercent - 50) / 50.0 * 20.0; }
 
   updateMarkers() {
-    if (!this.markers || !this.graphContainer || !this.uiCreated) return; // Added uiCreated check
+    if (!this.markers || !this.graphContainer || !this.uiCreated) return;
     for (let i = 0; i < 5; i++) {
       const marker = this.markers[i]; if (!marker) continue;
       const freq = this['f' + i]; const gain = this['g' + i]; const enabled = this['e' + i];
@@ -597,6 +661,7 @@ class FiveBandPEQPlugin extends PluginBase {
       const yPos = (y / 100) * (graphHeight - 2 * margin) + margin;
       marker.style.left = `${xPos}px`; marker.style.top = `${yPos}px`;
       marker.classList.toggle('disabled', !enabled);
+      marker.dataset.pluginId = this.id;
       const markerTextEl = marker.querySelector('.five-band-peq-marker-text'); if (!markerTextEl) continue;
       const centerX = graphWidth / 2; const isLeft = xPos < centerX;
       markerTextEl.className = `five-band-peq-marker-text ${isLeft ? 'left' : 'right'}`;
@@ -643,11 +708,17 @@ class FiveBandPEQPlugin extends PluginBase {
   }
 
   updateResponse() {
-    if (!this.responseSvg || !this.responseSvg.clientWidth || !this.uiCreated) return; // Added uiCreated check
-    const width = this.responseSvg.clientWidth; const height = this.responseSvg.clientHeight;
-    const freqPoints = []; const numPoints = Math.max(200, width / 2);
-    const minFreq = 10; const maxFreq = 40000; 
-    for (let i=0; i<=numPoints; i++) { freqPoints.push(minFreq * Math.pow(maxFreq/minFreq, i/numPoints)); }
+    if (!this.responseSvg || !this.responseSvg.clientWidth || !this.uiCreated) return;
+    const width = this.responseSvg.clientWidth; 
+    const height = this.responseSvg.clientHeight;
+    const freqPoints = []; 
+    const numPoints = Math.max(200, width / 2);
+    const minFreq = 10; 
+    const maxFreq = 40000; 
+    
+    for (let i=0; i<=numPoints; i++) { 
+      freqPoints.push(minFreq * Math.pow(maxFreq/minFreq, i/numPoints)); 
+    }
     
     const responseDataPoints = freqPoints.map(freq => {
       let totalGainDb = 0;
@@ -663,18 +734,115 @@ class FiveBandPEQPlugin extends PluginBase {
     const pathPoints = [];
     for (let i = 0; i < freqPoints.length; i++) {
       const x = this.freqToX(freqPoints[i]) * width / 100; // freqToX returns %, convert to px
-      const gainForGraph = Math.max(-22, Math.min(22, responseDataPoints[i])); // Clamp display gain
-      const y = this.gainToY(gainForGraph) * height / 100; // gainToY returns %, convert to px
-      pathPoints.push(i === 0 ? `M ${x.toFixed(2)},${Math.max(0, Math.min(height, y)).toFixed(2)}` : `L ${x.toFixed(2)},${Math.max(0, Math.min(height, y)).toFixed(2)}`);
+      const y = this.gainToY(responseDataPoints[i]) * height / 100;  // NEVER Clamp gain
+      pathPoints.push(i === 0 ? `M ${x.toFixed(2)},${y.toFixed(2)}` : `L ${x.toFixed(2)},${y.toFixed(2)}`);
     }
     
-    while (this.responseSvg.firstChild) { this.responseSvg.removeChild(this.responseSvg.firstChild); }
-    if (pathPoints.length > 0) {
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', pathPoints.join(' ')); path.setAttribute('stroke', '#00ff00');
-        path.setAttribute('stroke-width', '2'); path.setAttribute('fill', 'none');
-        this.responseSvg.appendChild(path);
+    // Clear existing SVG elements
+    while (this.responseSvg.firstChild) { 
+      this.responseSvg.removeChild(this.responseSvg.firstChild); 
     }
+    
+    // Create new path
+    if (pathPoints.length > 0) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathPoints.join(' ')); 
+      path.setAttribute('stroke', '#00ff00');
+      path.setAttribute('stroke-width', '2'); 
+      path.setAttribute('fill', 'none');
+      path.id = `five-band-peq-response-path-${this.id}`;
+      this.responseSvg.appendChild(path);
+    }
+  }
+
+  // Implement drag move handler as class method
+  handleDragMove(e) {
+    const { clientX, clientY, targetContainer, targetBand } = e;
+    if (this.activeDragMarker === null) return;
+    
+    // Check if this is the first movement
+    if (!this.hasMoved) {
+      // Determine if there's been enough movement to consider it a drag
+      const moveThreshold = 3; // 3 pixels threshold
+      const xDiff = Math.abs(clientX - this.initialDragX);
+      const yDiff = Math.abs(clientY - this.initialDragY);
+      
+      if (xDiff < moveThreshold && yDiff < moveThreshold) {
+        // Movement is too small, don't do anything yet
+        return;
+      }
+      
+      // Now we've determined it's a real drag
+      this.hasMoved = true;
+    }
+    
+    const bandIndex = targetBand !== undefined ? targetBand : this.activeDragMarker;
+    const container = targetContainer || this.graphContainer;
+    
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const margin = 20;
+    let x = (clientX - rect.left - margin) / (rect.width - 2 * margin);
+    x = Math.max(0, Math.min(1, x));
+    let y = (clientY - rect.top - margin) / (rect.height - 2 * margin);
+    y = Math.max(0, Math.min(1, y));
+    
+    const freq = this.xToFreq(x * 100);
+    const gain = this.yToGain(y * 100);
+    
+    this.setBand(bandIndex, freq, gain);
+    this.updateMarkers();
+    this.updateResponse();
+    
+    if (this.uiCreated) {
+      this.setUIBandValues(bandIndex);
+    }
+  }
+  
+  // Implement drag end handler as class method
+  handleDragEnd() {
+    if (this.activeDragMarker === null) return;
+    
+    const marker = this.markers ? this.markers[this.activeDragMarker] : null;
+    if (marker) {
+      marker.classList.remove('active');
+    }
+    
+    if (this.uiContainer) {
+      const bandUI = this.uiContainer.querySelector(`.five-band-peq-band[data-band="${this.activeDragMarker}"][data-plugin-id="${this.id}"]`);
+      if (bandUI) {
+        bandUI.classList.remove('active');
+      }
+    }
+    
+    this.activeDragMarker = null;
+    this.hasMoved = false; // Reset movement state
+    
+    // Remove event listeners
+    if (this.boundMouseMoveHandler) {
+      document.removeEventListener('mousemove', this.boundMouseMoveHandler);
+      document.removeEventListener('mouseup', this.boundMouseUpHandler);
+      this.boundMouseMoveHandler = null;
+      this.boundMouseUpHandler = null;
+    }
+  }
+  
+  // Add plugin cleanup method
+  cleanup() {
+    // Clean up event listeners
+    if (this.boundMouseMoveHandler) {
+      document.removeEventListener('mousemove', this.boundMouseMoveHandler);
+      document.removeEventListener('mouseup', this.boundMouseUpHandler);
+      this.boundMouseMoveHandler = null;
+      this.boundMouseUpHandler = null;
+    }
+    
+    // Reset active state
+    this.activeDragMarker = null;
+    
+    // Clean up other resources
+    this.uiCreated = false;
   }
 }
 

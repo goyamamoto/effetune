@@ -281,8 +281,9 @@ Aqui estão algumas combinações populares de efeitos para aprimorar sua experi
 | Dynamics  | Gate | Portão de ruído com controle de limiar, razão e knee para redução de ruído | [Detalhes](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Processador de dinâmica profissional de 5 bandas com modelagem sonora estilo rádio FM | [Detalhes](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | Equalizador gráfico de 15 bandas | [Detalhes](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | Equalizador paramétrico profissional com 15 bandas totalmente configuráveis | [Detalhes](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | Equalizador dinâmico de 5 bandas com ajuste de frequência baseado em limiar | [Detalhes](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Equalizador paramétrico profissional com 5 bandas totalmente configuráveis | [Detalhes](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | Equalizador dinâmico de 5 bandas com ajuste de frequência baseado em limiar | [Detalhes](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | Remove frequências baixas indesejadas com precisão | [Detalhes](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Remove frequências altas indesejadas com precisão | [Detalhes](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Correção de balanço de frequência para audição em baixo volume | [Detalhes](plugins/eq.md#loudness-equalizer) |

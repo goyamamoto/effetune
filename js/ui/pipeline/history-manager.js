@@ -17,16 +17,22 @@ export class HistoryManager {
         this.historyIndex = -1;
         this.maxHistorySize = 100;
         this.isUndoRedoOperation = false;
+        this.undoRedoTimeoutId = null;
+        this.specialSaveOverride = false;
     }
     
     /**
      * Save current pipeline state to history
      */
     saveState() {
-        // console.trace("HistoryManager.saveState() called from:");
         // Skip if this is an undo/redo operation
         if (this.isUndoRedoOperation) {
-            return;
+            // Special case: Preset loading needs to save state even with flag set
+            if (this.specialSaveOverride) {
+                this.specialSaveOverride = false;
+            } else {
+                return;
+            }
         }
         
         // Create a deep copy of the current pipeline state
@@ -84,7 +90,9 @@ export class HistoryManager {
      * Undo the last operation
      */
     undo() {
-        if (this.historyIndex <= 0) return; // Nothing to undo
+        if (this.historyIndex <= 0) {
+            return; // Nothing to undo
+        }
         
         this.historyIndex--;
         this.loadStateFromHistory();
@@ -94,7 +102,14 @@ export class HistoryManager {
      * Redo the last undone operation
      */
     redo() {
-        if (this.historyIndex >= this.history.length - 1) return; // Nothing to redo
+        if (this.historyIndex >= this.history.length - 1) {
+            return; // Nothing to redo
+        }
+        
+        // State must exist to perform redo
+        if (!this.history[this.historyIndex + 1]) {
+            return;
+        }
         
         this.historyIndex++;
         this.loadStateFromHistory();
@@ -106,8 +121,16 @@ export class HistoryManager {
     loadStateFromHistory() {
         this.isUndoRedoOperation = true;
         
+        // Clear any existing undo/redo timeout
+        if (this.undoRedoTimeoutId) {
+            clearTimeout(this.undoRedoTimeoutId);
+        }
+        
         try {
             const state = this.history[this.historyIndex];
+            if (!state) {
+                return;
+            }
             
             // Clean up existing plugins before removing them
             this.audioManager.pipeline.forEach(plugin => {
@@ -148,7 +171,12 @@ export class HistoryManager {
             }
             
         } finally {
-            this.isUndoRedoOperation = false;
+            // Instead of immediate reset, use a timeout to keep the flag active
+            // This prevents saveState being called from updateParameters right after undo/redo
+            this.undoRedoTimeoutId = setTimeout(() => {
+                this.isUndoRedoOperation = false;
+                this.undoRedoTimeoutId = null;
+            }, 1000);
         }
     }
 }

@@ -5,7 +5,7 @@
 import { smoothLog } from './smoothing.js';
 import { findPeaksDips } from './peak-detection.js';
 import { peqResponse } from './filter-response.js';
-import { fitPEQ, errorFunctionLogSpace } from './optimization.js';
+import { fitPEQ, errorFunctionLogSpace, DEFAULT_REGULARIZATION } from './optimization.js';
 import { processCollisions, designPEQ, createDefaultBands } from './design-utils.js';
 
 class PEQCalculator {
@@ -18,9 +18,13 @@ class PEQCalculator {
    * @param {number} [bandCount=5] - Desired number of PEQ bands (1-15 supported).
    * @param {number} [fs=96000] - Sampling frequency in Hz for digital filter calculations.
    * @param {number} [binsPerOct=6] - Bins per octave for smoothing (1-24, higher values = less smoothing).
+   * @param {Object} [options={}] - Additional calculation options.
+   * @param {Object} [options.regularization] - Regularization parameters to control optimization.
+   * @param {number} [options.regularization.gainWeight] - Weight for gain regularization (uses DEFAULT_REGULARIZATION if not specified).
+   * @param {number} [options.regularization.qWeight] - Weight for Q regularization (uses DEFAULT_REGULARIZATION if not specified).
    * @returns {Array<{frequency: number, gain: number, Q: number, type: string}>} Array of calculated PEQ parameters.
    */
-  calculatePEQParameters(fr, lowFreq = 20, highFreq = 20000, bandCount = 5, fs = 96000, binsPerOct = 6) {
+  calculatePEQParameters(fr, lowFreq = 20, highFreq = 20000, bandCount = 5, fs = 96000, binsPerOct = 6, options = {}) {
     this.fs = fs;
     // Clamp frequency limits to sensible values
     this.lowFreq = Math.max(10, Math.min(lowFreq, 1000));
@@ -29,6 +33,12 @@ class PEQCalculator {
     bandCount = Math.max(1, Math.min(15, bandCount));
     // Clamp binsPerOct
     binsPerOct = Math.max(1, Math.min(24, binsPerOct));
+
+    // Setup regularization parameters with recommended defaults
+    const regularization = {
+      gainWeight: options.regularization?.gainWeight ?? DEFAULT_REGULARIZATION.gainWeight,
+      qWeight: options.regularization?.qWeight ?? DEFAULT_REGULARIZATION.qWeight
+    };
 
     // --- 1. Pre-filter and de-mean the input data ---
     // Filter data to be within slightly wider bounds than the target range
@@ -56,8 +66,8 @@ class PEQCalculator {
 
     // --- 2. Design PEQ parameters using the core algorithm ---
     try {
-      // Call the main design function
-      const peqParams = designPEQ(freq, magN, bandCount, binsPerOct, this.lowFreq, this.highFreq, this.fs);
+      // Call the main design function with regularization options
+      const peqParams = designPEQ(freq, magN, bandCount, binsPerOct, this.lowFreq, this.highFreq, this.fs, { regularization });
 
       // --- 3. Format and clamp the final parameters ---
       return peqParams.map(b => ({

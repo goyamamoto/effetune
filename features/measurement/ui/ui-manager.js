@@ -191,6 +191,7 @@ class UIManager {
         });
         
         document.getElementById('exportCSVBtn').addEventListener('click', () => this.exportCSV());
+        document.getElementById('exportTxtBtn').addEventListener('click', () => this.exportTXT());
         
         // Edit actions
         document.getElementById('saveChangesBtn').addEventListener('click', () => this.saveChanges());
@@ -354,6 +355,19 @@ class UIManager {
         const filename = `${measurement.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_peq_${new Date().toISOString().split('T')[0]}.csv`;
         
         this.downloadFile(csvContent, filename, 'text/csv');
+    }
+    
+    /**
+     * Export current PEQ settings as txt format text file
+     */
+    exportTXT() {
+        const measurement = dataStorage.getMeasurementById(this.selectedMeasurementId);
+        if (!measurement || !measurement.peqParameters) return;
+        
+        const txtContent = dataStorage.exportPEQtoTXT(measurement.peqParameters);
+        const filename = `${measurement.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_peq_${new Date().toISOString().split('T')[0]}.txt`;
+        
+        this.downloadFile(txtContent, filename, 'text/plain');
     }
 
     /**

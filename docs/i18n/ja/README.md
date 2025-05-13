@@ -287,8 +287,9 @@ A. はい、EffeTuneは、ストリーミングサービス、ローカルファ
 | Dynamics  | Gate | ノイズリダクションのためのしきい値、レシオ、ニーコントロール付きノイズゲート | [詳細](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FMラジオ風のサウンドシェイピングを備えたプロフェッショナルな5バンドダイナミクスプロセッサ | [詳細](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | 15バンドグラフィックイコライザー | [詳細](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | 15の完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | しきい値に基づく周波数調整が可能な5バンドダイナミックイコライザー | [詳細](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5つの完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | しきい値に基づく周波数調整が可能な5バンドダイナミックイコライザー | [詳細](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | 不要な低域を精密に除去 | [詳細](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | 不要な高域を精密に除去 | [詳細](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | 低音量リスニング向けの周波数バランス補正 | [詳細](plugins/eq.md#loudness-equalizer) |

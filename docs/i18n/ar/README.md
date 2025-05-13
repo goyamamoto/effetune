@@ -273,8 +273,9 @@
 | Dynamics  | Gate | بوابة ضوضاء مع التحكم في العتبة والنسبة والمنحدر لتقليل الضوضاء | [تفاصيل](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | معالج ديناميكيات احترافي خماسي النطاق بتشكيل صوت يشبه راديو FM | [تفاصيل](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | معادل رسومي 15-نطاق | [تفاصيل](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | معادل بارامتري احترافي مع 15 نطاق قابل للتكوين بالكامل | [تفاصيل](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | معادل ديناميكي خماسي النطاق مع تعديل تردد بناءً على العتبة | [تفاصيل](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | معادل بارامتري احترافي بخمسة نطاقات قابلة للتكوين بالكامل | [تفاصيل](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | معادل ديناميكي خماسي النطاق مع تعديل تردد بناءً على العتبة | [تفاصيل](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | إزالة الترددات المنخفضة غير المرغوب فيها بدقة | [تفاصيل](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | إزالة الترددات العالية غير المرغوب فيها بدقة | [تفاصيل](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | تصحيح توازن التردد للاستماع بمستويات منخفضة | [تفاصيل](plugins/eq.md#loudness-equalizer) |

@@ -540,6 +540,29 @@ class DataStorage {
     }
 
     /**
+     * Export PEQ parameters to txt format
+     * @param {Array} peqParams - Array of PEQ parameters
+     * @returns {string} txt format content
+     */
+    exportPEQtoTXT(peqParams) {
+        if (!peqParams || !Array.isArray(peqParams) || peqParams.length === 0) {
+            return 'Preamp: -6.0 dB\n';
+        }
+        
+        // Sort by frequency ascending
+        const sortedParams = [...peqParams].sort((a, b) => a.frequency - b.frequency);
+        
+        let txt = 'Preamp: -6.0 dB\n';
+        
+        sortedParams.forEach((param, index) => {
+            let filterType = 'PK'; // Default is peaking (PK)
+            txt += `Filter ${index + 1}: ON ${filterType} Fc ${param.frequency} Hz Gain ${param.gain.toFixed(1)} dB Q ${param.Q.toFixed(2)}\n`;
+        });
+        
+        return txt;
+    }
+
+    /**
      * Import a measurement from JSON data
      * @param {string} jsonString - JSON string of measurement data
      * @returns {string|null} ID of imported measurement or null on error

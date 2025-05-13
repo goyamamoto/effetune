@@ -5,6 +5,7 @@
 ## 플러그인 목록
 
 - [15Band GEQ](#15band-geq) - 15개의 정밀한 컨트롤로 세밀한 사운드 조정
+- [15Band PEQ](#15band-peq) - 최대 유연성을 갖춘 전문 15밴드 파라메트릭 이퀄라이저
 - [5Band Dynamic EQ](#5band-dynamic-eq) - 음악에 반응하는 다이내믹 기반 이퀄라이저
 - [5Band PEQ](#5band-peq) - 유연한 컨트롤을 갖춘 전문 파라메트릭 이퀄라이저
 - [Hi Pass Filter](#hi-pass-filter) - 불필요한 저주파를 정밀하게 제거
@@ -62,6 +63,60 @@
 - 실시간 그래프로 사운드 조정을 보여줍니다.
 - 정밀한 제어가 가능한 사용하기 쉬운 슬라이더
 - 한 번의 클릭으로 기본 설정으로 재설정
+
+## 15Band PEQ
+
+광범위한 15밴드 컨트롤을 갖춘 전문 등급의 파라메트릭 이퀄라이저로, 정밀한 주파수 조정을 제공합니다. 미묘한 사운드 정제부터 최대 유연성을 갖춘 교정 오디오 처리까지 모두에 완벽합니다.
+
+### 사운드 향상 가이드
+- 보컬 및 악기 명료도:
+  - 자연스러운 존재감을 위해 3.2kHz 밴드를 중간 Q (1.0-2.0)로 사용합니다.
+  - 공명을 제거하기 위해 좁은 Q (4.0-8.0) 컷을 적용합니다.
+  - 10kHz high shelf (+2 to +4dB)로 부드러운 공기감을 추가합니다.
+- 베이스 품질 제어:
+  - 100Hz peaking filter로 기본 베이스를 형성합니다.
+  - 특정 주파수에서 좁은 Q를 사용하여 룸 공명을 제거합니다.
+  - low shelf로 부드러운 베이스 확장을 만듭니다.
+- 과학적 사운드 조정:
+  - 정밀하게 특정 주파수를 타겟팅합니다.
+  - 애널라이저를 사용하여 문제 영역을 식별합니다.
+  - 최소한의 위상 영향으로 정밀한 보정을 적용합니다.
+
+### 기술적 파라미터
+- **Precision-Engineered Bands**
+  - 15개의 완전히 구성 가능한 주파수 밴드
+  - 초기 주파수 설정:
+    - 25Hz, 40Hz, 63Hz, 100Hz, 160Hz (깊은 베이스)
+    - 250Hz, 400Hz, 630Hz (낮은 소리)
+    - 1kHz, 1.6kHz, 2.5kHz (중간 소리)
+    - 4kHz, 6.3kHz, 10kHz, 16kHz (높은 소리)
+- **Professional Controls Per Band**
+  - Center Frequency: 최적의 커버리지를 위해 로그 스케일로 배치됨
+  - Gain Range: 정밀한 ±20dB 조정
+  - Q Factor: 0.1에서 10.0까지의 넓은 범위
+  - Multiple Filter Types:
+    - Peaking: 대칭적인 주파수 조정
+    - Low/High Pass: 12dB/octave slope
+    - Low/High Shelf: 부드러운 스펙트럼 쉐이핑
+    - Band Pass: 특정 주파수 격리를 집중적으로 수행
+    - Notch: 정밀한 주파수 제거
+    - AllPass: 위상 중심 주파수 정렬
+- **프리셋 관리**
+  - 가져오기: 표준 형식의 텍스트 파일에서 EQ 설정 로드
+    - 예시 형식:
+      ```
+      Preamp: -6.0 dB
+      Filter 1: ON PK Fc 50 Hz Gain -3.0 dB Q 2.00
+      Filter 2: ON HS Fc 12000 Hz Gain 4.0 dB Q 0.70
+      ...
+      ```
+
+### 기술적 디스플레이
+- 고해상도 주파수 응답 시각화
+- 정밀한 파라미터 디스플레이가 있는 인터랙티브 컨트롤 포인트
+- 실시간 전달 함수 계산
+- 보정된 주파수 및 게인 그리드
+- 모든 파라미터에 대한 정확한 수치 출력
 
 ## 5Band Dynamic EQ
 
@@ -139,7 +194,7 @@
   - Band 5: 10kHz (High Frequency Extension)
 - **Professional Controls Per Band**
   - Center Frequency: 최적의 커버리지를 위해 로그 스케일로 배치됨
-  - Gain Range: 정밀한 ±18dB 조정
+  - Gain Range: 정밀한 ±20dB 조정
   - Q Factor: 0.1에서 10.0까지의 넓은 범위
   - Multiple Filter Types:
     - Peaking: 대칭적인 주파수 조정

@@ -139,6 +139,7 @@
 }
 
 .five-band-peq-plugin-ui .five-band-peq-type-label {
+    min-width: 78px;
     color: #ccc;
     font-size: 12px;
     white-space: nowrap;
@@ -146,10 +147,10 @@
 
 .five-band-peq-plugin-ui .five-band-peq-freq-label,
 .five-band-peq-plugin-ui .five-band-peq-gain-label {
+    min-width: 78px;
     color: #ccc;
     font-size: 12px;
     white-space: nowrap;
-    padding-right: 3px;
 }
 
 .five-band-peq-plugin-ui .five-band-peq-band.active {

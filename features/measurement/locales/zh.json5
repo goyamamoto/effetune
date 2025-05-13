@@ -45,10 +45,10 @@
 "button:redo": "重新测量", // Button to redo measurement
 "button:saveAndContinue": "保存并测量另一个点", // Button to save and continue measuring
 "button:saveAndFinish": "保存并完成", // Button to save and finish measurement
-"help:measurementActions": "单击“重新测量”可放弃本次测量并重新测量。\n单击“保存并测量另一个点”可保存本次测量并测量另一个点，以提高校正精度（点击按钮后立即开始测量）。\n单击“保存并完成”可接受本次测量并完成测量。", // Help text for measurement actions
+"help:measurementActions": "单击"重新测量"可放弃本次测量并重新测量。\n单击"保存并测量另一个点"可保存本次测量并测量另一个点，以提高校正精度（点击按钮后立即开始测量）。\n单击"保存并完成"可接受本次测量并完成测量。", // Help text for measurement actions
 
 // Results Display Screen
-"message:noMeasurement": "没有可用的测量。点击“新测量”开始。", // Message when no measurements are available
+"message:noMeasurement": "没有可用的测量。点击"新测量"开始。", // Message when no measurements are available
 "title:measurementResults": "测量结果", // Title for measurement results
 "button:saveChanges": "保存更改", // Button to save changes
 "button:discardChanges": "放弃更改", // Button to discard changes
@@ -68,6 +68,7 @@
 "unit:band": "波段", // Unit for band
 "help:eqBandCount": "参数均衡器的波段数。波段越多，频率校正越精细，但处理负载也会增加。", // Help text for EQ band count
 "button:copyPEQ": "将 EffeTune PEQ 设置复制到剪贴板", // Button to copy PEQ settings
+"button:exportTxt": "导出校正参数（TXT）", // Button to export txt
 "button:exportCSV": "导出校正参数（CSV）", // Button to export CSV
 "help:exportOptions": "复制的频率校正设置可通过 Ctrl+V 粘贴到 EffeTune 的效果管道中。", // Help text for export options
 "title:measurementDetails": "测量详情", // Title for measurement details section

@@ -283,8 +283,9 @@ Sí, EffeTune puede procesar cualquier audio que se reproduzca a través del dis
 | Dynamics  | Gate | Puerta de ruido con control de umbral, relación y curvatura para reducción de ruido | [Detalles](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Procesador dinámico profesional de 5 bandas con modelado de sonido al estilo radio FM | [Detalles](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | Ecualizador gráfico de 15 bandas | [Detalles](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | Ecualizador paramétrico profesional con 15 bandas totalmente configurables | [Detalles](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | Ecualizador dinámico de 5 bandas con ajuste de frecuencia basado en umbral | [Detalles](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Ecualizador paramétrico profesional con 5 bandas totalmente configurables | [Detalles](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | Ecualizador dinámico de 5 bandas con ajuste de frecuencia basado en umbral | [Detalles](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | Elimina con precisión las frecuencias bajas no deseadas | [Detalles](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Elimina con precisión las frecuencias altas no deseadas | [Detalles](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Corrección del equilibrio de frecuencias para escucha a bajo volumen | [Detalles](plugins/eq.md#loudness-equalizer) |

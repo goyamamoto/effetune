@@ -276,8 +276,9 @@ A. 예, EffeTune은 선택한 입력 장치를 통해 재생되는 스트리밍 
 | Dynamics  | Gate | 노이즈 감소를 위한 임계값, 비율 및 니 제어 기능의 노이즈 게이트 | [세부 정보](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FM 라디오 스타일 사운드 셰이핑을 갖춘 전문 5밴드 다이내믹 프로세서 | [세부 정보](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | 15밴드 그래픽 이퀄라이저 | [세부 정보](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | 15개의 완전 구성 가능 밴드를 갖춘 전문 파라메트릭 이퀄라이저 | [세부 정보](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | 임계값 기반 주파수 조정이 가능한 5밴드 다이내믹 이퀄라이저 | [세부 정보](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5개의 완전 구성 가능 밴드를 갖춘 전문 파라메트릭 이퀄라이저 | [세부 정보](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | 임계값 기반 주파수 조정이 가능한 5밴드 다이내믹 이퀄라이저 | [세부 정보](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | 원치 않는 저주파를 정밀하게 제거 | [세부 정보](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | 원치 않는 고주파를 정밀하게 제거 | [세부 정보](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | 저음량 청취를 위한 주파수 밸런스 보정 | [세부 정보](plugins/eq.md#loudness-equalizer) |

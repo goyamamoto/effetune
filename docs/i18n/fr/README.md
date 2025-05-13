@@ -280,8 +280,9 @@ Voici quelques combinaisons d'effets populaires pour améliorer votre expérienc
 | Dynamics  | Gate | Gate de bruit avec réglages du seuil, du ratio et de la zone de transition pour la réduction du bruit | [Détails](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Processeur dynamique professionnel 5 bandes offrant une coloration sonore façon radio FM | [Détails](plugins/dynamics.md#multiband-compressor) |
 | EQ        | 15Band GEQ | Égaliseur graphique 15 bandes | [Détails](plugins/eq.md#15band-geq) |
+| EQ        | 15Band PEQ | Égaliseur paramétrique professionnel avec 15 bandes entièrement configurables | [Détails](plugins/eq.md#15band-peq) |
+| EQ        | 5Band Dynamic EQ | Égaliseur dynamique 5 bandes avec ajustement des fréquences basé sur un seuil | [Détails](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Égaliseur paramétrique professionnel avec 5 bandes entièrement configurables | [Détails](plugins/eq.md#5band-peq) |
-| EQ        | Five Band Dynamic EQ | Égaliseur dynamique 5 bandes avec ajustement des fréquences basé sur un seuil | [Détails](plugins/eq.md#five-band-dynamic-eq) |
 | EQ        | Hi Pass Filter | Élimine avec précision les basses indésirables | [Détails](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Élimine avec précision les hautes fréquences indésirables | [Détails](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Correction de l'équilibre fréquentiel pour l'écoute à faible volume | [Détails](plugins/eq.md#loudness-equalizer) |

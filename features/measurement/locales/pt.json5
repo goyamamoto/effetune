@@ -68,6 +68,7 @@
   "unit:band": "Banda",
   "help:eqBandCount": "O número de bandas do equalizador paramétrico para correção. Quanto mais bandas, mais detalhada será a correção de frequência, mas aumentará a carga de processamento.",
   "button:copyPEQ": "Copiar configurações PEQ do EffeTune para a área de transferência",
+  "button:exportTxt": "Exportar Parâmetros de Correção (TXT)",
   "button:exportCSV": "Exportar Parâmetros de Correção (CSV)",
   "help:exportOptions": "As configurações de correção de frequência copiadas podem ser coladas no Pipeline de Efeitos do EffeTune com Ctrl+V.",
   "title:measurementDetails": "Detalhes da Medição",

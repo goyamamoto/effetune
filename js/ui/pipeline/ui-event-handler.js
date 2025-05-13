@@ -685,8 +685,7 @@ export class UIEventHandler {
         }
         
         // --- Perform Reordering ---
-        // Record state before modification for undo
-        this.historyManager.saveState(); 
+        // Reordering operation starts - no need to save state here
 
         // Remove the plugin from its original position
         pipeline.splice(sourceIndex, 1);
@@ -713,8 +712,9 @@ export class UIEventHandler {
                 console.error("Missing core or updatePipelineUI in handlePluginReordering's rAF callback");
             }
         });
-        // Note: historyManager.saveState() was moved before the splice actions
-        // to capture the state *before* the reorder occurs.
+        
+        // Save state after the operation is complete
+        this.historyManager.saveState();
     }
     
     /**

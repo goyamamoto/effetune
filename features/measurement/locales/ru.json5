@@ -68,6 +68,7 @@
   "unit:band": "Полоса", // Unit for band
   "help:eqBandCount": "Количество полос параметрического эквалайзера для коррекции. Чем больше полос, тем детальнее коррекция частот, но выше нагрузка на обработку.", // Help text for EQ band count
   "button:copyPEQ": "Скопировать настройки PEQ EffeTune в буфер обмена", // Button to copy PEQ settings
+  "button:exportTxt": "Экспорт параметров коррекции (TXT)", // Button to export txt
   "button:exportCSV": "Экспорт параметров коррекции (CSV)", // Button to export CSV
   "help:exportOptions": "Скопированные настройки коррекции частоты можно вставить в Effect Pipeline EffeTune с помощью Ctrl+V.", // Help text for export options
   "title:measurementDetails": "Детали измерения", // Title for measurement details section

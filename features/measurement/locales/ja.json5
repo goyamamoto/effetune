@@ -68,6 +68,7 @@
   "unit:band": "バンド", // バンドの単位
   "help:eqBandCount": "補正用パラメトリックイコライザーのバンド数。バンド数が多いほど詳細な補正が可能ですが、処理負荷が増加します。", // EQバンド数のヘルプ
   "button:copyPEQ": "EffeTune PEQ設定をクリップボードにコピー", // PEQ設定コピー
+  "button:exportTxt": "補正パラメータをtxtでエクスポート", // txtエクスポート
   "button:exportCSV": "補正パラメータをCSVでエクスポート", // CSVエクスポート
   "help:exportOptions": "コピーした設定はEffeTuneのエフェクトパイプラインにCtrl+Vで貼り付けられます。", // エクスポートオプションのヘルプ
   "title:measurementDetails": "測定詳細", // 測定詳細のタイトル

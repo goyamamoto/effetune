@@ -4,6 +4,24 @@
 import { peqResponse } from './filter-response.js';
 
 /**
+ * Default regularization parameters for all optimization functions.
+ * These control how strongly to penalize large gain values and high Q factors.
+ */
+export const DEFAULT_REGULARIZATION = {
+  /**
+   * Default weight for gain regularization (0-1 recommended).
+   * Higher values promote smaller gain adjustments.
+   */
+  gainWeight: 0.0,
+  
+  /**
+   * Default weight for Q regularization (0-1 recommended).
+   * Higher values promote wider bandwidth filters.
+   */
+  qWeight: 1.0
+};
+
+/**
  * Compute the error vector for least squares optimization (log-space parameters).
  * Error = target_linear * combined_response_linear - 1.0
  * @param {number[]} logParams - Filter parameters [g1, logQ1, logFc1, ...].
@@ -12,14 +30,17 @@ import { peqResponse } from './filter-response.js';
  * @param {number} lowFreq - Low frequency limit.
  * @param {number} highFreq - High frequency limit.
  * @param {number} fs - Sampling frequency.
+ * @param {Object} [regularization] - Regularization parameters. 
+ * @param {number} [regularization.gainWeight=0.05] - Weight for gain regularization.
+ * @param {number} [regularization.qWeight=0.1] - Weight for Q regularization.
  * @returns {number[]} Array of error values at each frequency.
  */
-export function errorFunctionLogSpace(logParams, freq, targetDb, lowFreq, highFreq, fs) {
+export function errorFunctionLogSpace(logParams, freq, targetDb, lowFreq, highFreq, fs, regularization = DEFAULT_REGULARIZATION) {
   const nFreq = freq.length;
   const combinedRespDb = new Array(nFreq).fill(0);
+  const numFilters = Math.floor(logParams.length / 3);
 
   // Calculate the combined response of all PEQ filters
-  const numFilters = Math.floor(logParams.length / 3);
   for (let i = 0; i < numFilters; i++) {
     const baseIdx = i * 3;
     const gain = logParams[baseIdx];
@@ -59,6 +80,38 @@ export function errorFunctionLogSpace(logParams, freq, targetDb, lowFreq, highFr
            errors[k] = 0; // Set to 0 to avoid disrupting optimization
        }
   }
+
+  // Add regularization errors if regularization is enabled
+  if (regularization && (regularization.gainWeight > 0 || regularization.qWeight > 0)) {
+    // Calculate regularization scale factor based on response errors
+    // This helps balance regularization terms with frequency response errors
+    const responseErrorMagnitude = Math.sqrt(
+      errors.reduce((sum, err) => sum + err * err, 0) / errors.length
+    );
+    
+    // Add gain regularization errors (for each filter)
+    if (regularization.gainWeight > 0) {
+      for (let i = 0; i < numFilters; i++) {
+        const gain = logParams[i * 3];
+        // Use absolute value of gain to penalize large gains in either direction
+        const gainRegError = regularization.gainWeight * Math.abs(gain);
+        errors.push(gainRegError);
+      }
+    }
+    
+    // Add Q regularization errors (for each filter)
+    if (regularization.qWeight > 0) {
+      for (let i = 0; i < numFilters; i++) {
+        const logQ = logParams[i * 3 + 1];
+        const Q = 10**logQ; // Convert to actual Q
+        // Only penalize Q > 1 (narrow filters)
+        const qPenalty = Math.max(0, Q - 1.0);
+        const qRegError = regularization.qWeight * qPenalty;
+        errors.push(qRegError);
+      }
+    }
+  }
+  
   return errors;
 }
 
@@ -73,13 +126,17 @@ export function errorFunctionLogSpace(logParams, freq, targetDb, lowFreq, highFr
  * @param {number} lowFreq - Low frequency limit.
  * @param {number} highFreq - High frequency limit.
  * @param {number} fs - Sampling frequency.
- * @returns {Array<Array<number>>} Jacobian matrix (numParams x numFreqs).
+ * @param {Object} [regularization] - Regularization parameters.
+ * @returns {Array<Array<number>>} Jacobian matrix (numParams x numErrorTerms).
  */
-function calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFreq, highFreq, fs) {
-  const baseErrors = errorFunctionLogSpace(params, freq, targetDb, lowFreq, highFreq, fs);
+function calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFreq, highFreq, fs, regularization = DEFAULT_REGULARIZATION) {
+  const baseErrors = errorFunctionLogSpace(params, freq, targetDb, lowFreq, highFreq, fs, regularization);
   const numParams = params.length;
-  const numFreqs = freq.length;
-  const jacobian = Array(numParams).fill(null).map(() => new Array(numFreqs));
+  const numErrorTerms = baseErrors.length; // Include regularization terms
+  const numFilters = Math.floor(params.length / 3);
+  
+  // Initialize Jacobian matrix with the correct size
+  const jacobian = Array(numParams).fill(null).map(() => new Array(numErrorTerms).fill(0));
 
   // Optimal step size 'h' for numerical differentiation
   const eps = 2.22e-16; // Machine epsilon
@@ -104,74 +161,170 @@ function calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFre
       // Central difference
       paramsPlus[i] = currentParam + h;
       paramsMinus[i] = currentParam - h;
-      errorsPlus = errorFunctionLogSpace(paramsPlus, freq, targetDb, lowFreq, highFreq, fs);
-      errorsMinus = errorFunctionLogSpace(paramsMinus, freq, targetDb, lowFreq, highFreq, fs);
-      for (let j = 0; j < numFreqs; j++) {
-         const derivative = (errorsPlus[j] - errorsMinus[j]) / (2 * h);
-         jacobian[i][j] = isFinite(derivative) ? derivative : 0;
+      errorsPlus = errorFunctionLogSpace(paramsPlus, freq, targetDb, lowFreq, highFreq, fs, regularization);
+      errorsMinus = errorFunctionLogSpace(paramsMinus, freq, targetDb, lowFreq, highFreq, fs, regularization);
+      
+      // Ensure we're using the full error vector (including regularization terms)
+      for (let j = 0; j < numErrorTerms; j++) {
+        const derivative = (errorsPlus[j] - errorsMinus[j]) / (2 * h);
+        jacobian[i][j] = isFinite(derivative) ? derivative : 0;
       }
     } else if (canStepUp) {
       // Forward difference (at lower bound)
-       // Try a smaller step first if central diff failed due to bound
-       h = Math.min(h, (boundsHigh[i] - currentParam) * 0.5);
-       if (h < eps * 100) { // If step becomes too small, assume zero derivative
-          for(let j=0; j<numFreqs; ++j) jacobian[i][j] = 0;
-       } else {
-          paramsPlus[i] = currentParam + h;
-          errorsPlus = errorFunctionLogSpace(paramsPlus, freq, targetDb, lowFreq, highFreq, fs);
-          for (let j = 0; j < numFreqs; j++) {
-             const derivative = (errorsPlus[j] - baseErrors[j]) / h;
-             jacobian[i][j] = isFinite(derivative) ? derivative : 0;
-          }
-       }
+      // Try a smaller step first if central diff failed due to bound
+      h = Math.min(h, (boundsHigh[i] - currentParam) * 0.5);
+      if (h < eps * 100) { // If step becomes too small, assume zero derivative
+        for(let j = 0; j < numErrorTerms; j++) {
+          jacobian[i][j] = 0;
+        }
+      } else {
+        paramsPlus[i] = currentParam + h;
+        errorsPlus = errorFunctionLogSpace(paramsPlus, freq, targetDb, lowFreq, highFreq, fs, regularization);
+        for (let j = 0; j < numErrorTerms; j++) {
+          const derivative = (errorsPlus[j] - baseErrors[j]) / h;
+          jacobian[i][j] = isFinite(derivative) ? derivative : 0;
+        }
+      }
     } else if (canStepDown) {
       // Backward difference (at upper bound)
       h = Math.min(h, (currentParam - boundsLow[i]) * 0.5);
-       if (h < eps * 100) {
-          for(let j=0; j<numFreqs; ++j) jacobian[i][j] = 0;
-       } else {
-          paramsMinus[i] = currentParam - h;
-          errorsMinus = errorFunctionLogSpace(paramsMinus, freq, targetDb, lowFreq, highFreq, fs);
-          for (let j = 0; j < numFreqs; j++) {
-              const derivative = (baseErrors[j] - errorsMinus[j]) / h;
-              jacobian[i][j] = isFinite(derivative) ? derivative : 0;
-          }
+      if (h < eps * 100) {
+        for(let j = 0; j < numErrorTerms; j++) {
+          jacobian[i][j] = 0;
+        }
+      } else {
+        paramsMinus[i] = currentParam - h;
+        errorsMinus = errorFunctionLogSpace(paramsMinus, freq, targetDb, lowFreq, highFreq, fs, regularization);
+        for (let j = 0; j < numErrorTerms; j++) {
+          const derivative = (baseErrors[j] - errorsMinus[j]) / h;
+          jacobian[i][j] = isFinite(derivative) ? derivative : 0;
+        }
       }
     } else {
       // Cannot step in either direction (parameter likely fixed at bound)
-      for (let j = 0; j < numFreqs; j++) {
+      for (let j = 0; j < numErrorTerms; j++) {
         jacobian[i][j] = 0;
       }
     }
+    
+    // Special handling for direct regularization derivatives where we know the analytical form
+    // This avoids numerical differentiation imprecision for regularization terms
+    if (regularization && (regularization.gainWeight > 0 || regularization.qWeight > 0)) {
+      const freqLength = freq.length; // Number of frequency response error terms
+      let regTermIdx = freqLength; // Index where regularization terms start in error vector
+      
+      // Calculate which parameter type this is (gain, Q, or fc)
+      const paramType = i % 3; // 0=gain, 1=logQ, 2=logFc
+      const filterIdx = Math.floor(i / 3); // Which filter this parameter belongs to
+      
+      // Handle gain regularization term (|gain|)
+      if (regularization.gainWeight > 0) {
+        // For each filter, add the gain regularization derivative
+        for (let k = 0; k < numFilters; k++) {
+          // 各フィルターの正則化に対する微分を初期化
+          jacobian[i][regTermIdx + k] = 0;
+          
+          if (paramType === 0 && k === filterIdx) { // Only affects the specific gain parameter
+            const gain = params[k * 3]; 
+            // d(gainWeight * |gain|)/d(gain) = gainWeight * sign(gain)
+            const derivative = regularization.gainWeight * (gain >= 0 ? 1.0 : -1.0);
+            jacobian[i][regTermIdx + k] = derivative;
+          }
+        }
+        regTermIdx += numFilters; // Move to next block of regularization terms
+      }
+      
+      // Handle Q regularization term (qWeight * (Q - 1))
+      if (regularization.qWeight > 0) {
+        // For each filter, add the Q regularization derivative
+        for (let k = 0; k < numFilters; k++) {
+          // 各フィルターのQ正則化に対する微分を初期化
+          jacobian[i][regTermIdx + k] = 0;
+          
+          if (paramType === 1 && k === filterIdx) { // Only affects this specific Q parameter
+            const logQ = params[k * 3 + 1];
+            const Q = 10**logQ;
+            // Only apply regularization for Q > 1
+            if (Q > 1.0) {
+              // d(qWeight * (Q - 1))/d(logQ) = qWeight * Q * ln(10)
+              const derivative = regularization.qWeight * Q * Math.log(10);
+              jacobian[i][regTermIdx + k] = derivative;
+            }
+          }
+        }
+      }
+    }
   }
+  
   return jacobian;
 }
 
 /**
  * Calculate the JᵀJ matrix and Jᵀe vector.
- * @param {Array<Array<number>>} jacobian - Jacobian matrix (numParams x numFreqs).
- * @param {number[]} errors - Error vector (numFreqs).
+ * @param {Array<Array<number>>} jacobian - Jacobian matrix (numParams x numErrorTerms).
+ * @param {number[]} errors - Error vector (numErrorTerms).
  * @returns {[Array<Array<number>>, Array<number>]} [JᵀJ matrix (numParams x numParams), Jᵀe vector (numParams)].
  */
 function calculateJtJandJte(jacobian, errors) {
   const numParams = jacobian.length;
   if (numParams === 0) return [[], []]; // Handle empty jacobian
-  const numFreqs = errors.length;
+  
+  // Use actual error vector length (including regularization terms)
+  const numErrorTerms = errors.length;
+  
+  // Check if jacobian has correct dimensions
+  if (jacobian[0].length !== numErrorTerms) {
+    console.error(`Jacobian columns (${jacobian[0].length}) don't match error vector length (${numErrorTerms})`);
+    // Attempt to resolve dimension mismatch safely
+    const usableSize = Math.min(jacobian[0].length, numErrorTerms);
+    console.warn(`Using only first ${usableSize} error terms for optimization`);
+    
+    // Create properly sized arrays for calculations
+    const JtJ = Array(numParams).fill(0).map(() => Array(numParams).fill(0));
+    const Jte = Array(numParams).fill(0);
+    
+    // Calculate JᵀJ and Jᵀe with truncated dimensions
+    for (let i = 0; i < numParams; i++) {
+      for (let j = i; j < numParams; j++) {
+        let sum = 0;
+        for (let k = 0; k < usableSize; k++) {
+          const val_i = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
+          const val_j = isFinite(jacobian[j][k]) ? jacobian[j][k] : 0;
+          sum += val_i * val_j;
+        }
+        JtJ[i][j] = isFinite(sum) ? sum : 0;
+        if (i !== j) {
+          JtJ[j][i] = JtJ[i][j]; // Symmetric matrix
+        }
+      }
+      
+      let sum = 0;
+      for (let k = 0; k < usableSize; k++) {
+        const val_jac = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
+        const val_err = isFinite(errors[k]) ? errors[k] : 0;
+        sum += val_jac * val_err;
+      }
+      Jte[i] = isFinite(sum) ? sum : 0;
+    }
+    
+    return [JtJ, Jte];
+  }
 
-  const JtJ = Array(numParams).fill(0).map(() => Array(numParams).fill(0));
+  // Initialize JᵀJ and Jᵀe arrays
+  const JtJ = Array(numParams).fill(null).map(() => Array(numParams).fill(0));
   const Jte = Array(numParams).fill(0);
 
   // Calculate JᵀJ = Jacobianᵀ * Jacobian
   for (let i = 0; i < numParams; i++) {
     for (let j = i; j < numParams; j++) { // Calculate only upper triangle + diagonal
       let sum = 0;
-      for (let k = 0; k < numFreqs; k++) {
-         // Ensure values are finite before multiplication
-         const val_i = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
-         const val_j = isFinite(jacobian[j][k]) ? jacobian[j][k] : 0;
-         sum += val_i * val_j;
+      for (let k = 0; k < numErrorTerms; k++) {
+        // Ensure values are finite before multiplication
+        const val_i = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
+        const val_j = isFinite(jacobian[j][k]) ? jacobian[j][k] : 0;
+        sum += val_i * val_j;
       }
-       JtJ[i][j] = isFinite(sum) ? sum : 0;
+      JtJ[i][j] = isFinite(sum) ? sum : 0;
       if (i !== j) {
         JtJ[j][i] = JtJ[i][j]; // Symmetric matrix
       }
@@ -181,12 +334,12 @@ function calculateJtJandJte(jacobian, errors) {
   // Calculate Jᵀe = Jacobianᵀ * errors
   for (let i = 0; i < numParams; i++) {
     let sum = 0;
-    for (let k = 0; k < numFreqs; k++) {
-         const val_jac = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
-         const val_err = isFinite(errors[k]) ? errors[k] : 0;
-         sum += val_jac * val_err;
+    for (let k = 0; k < numErrorTerms; k++) {
+      const val_jac = isFinite(jacobian[i][k]) ? jacobian[i][k] : 0;
+      const val_err = isFinite(errors[k]) ? errors[k] : 0;
+      sum += val_jac * val_err;
     }
-     Jte[i] = isFinite(sum) ? sum : 0;
+    Jte[i] = isFinite(sum) ? sum : 0;
   }
 
   return [JtJ, Jte];
@@ -295,11 +448,19 @@ function solveEquation(A, b) {
  * @param {number} lowFreq - Low frequency limit.
  * @param {number} highFreq - High frequency limit.
  * @param {number} fs - Sampling frequency.
+ * @param {Object} [options] - Additional options.
+ * @param {Object} [options.regularization] - Regularization parameters.
  * @returns {number[]} Optimized parameters [g1, Q1, fc1, ...].
  */
-export function fitPEQ(freq, targetDb, initParams, lowFreq, highFreq, fs) {
+export function fitPEQ(freq, targetDb, initParams, lowFreq, highFreq, fs, options = {}) {
   const numFilters = Math.floor(initParams.length / 3);
   if (numFilters === 0) return [];
+
+  // Setup regularization parameters with recommended defaults
+  const regularization = {
+    gainWeight: options.regularization?.gainWeight ?? DEFAULT_REGULARIZATION.gainWeight,
+    qWeight: options.regularization?.qWeight ?? DEFAULT_REGULARIZATION.qWeight
+  };
 
   // Convert initial parameters to log-space for optimization
   // [gain, log10(Q), log10(fc)]
@@ -341,7 +502,7 @@ export function fitPEQ(freq, targetDb, initParams, lowFreq, highFreq, fs) {
   const gradEpsilon = 1e-9; // Stricter tolerance for gradient
   const paramEpsilon = 1e-7; // Tolerance for parameter change
 
-  let errors = errorFunctionLogSpace(params, freq, targetDb, lowFreq, highFreq, fs);
+  let errors = errorFunctionLogSpace(params, freq, targetDb, lowFreq, highFreq, fs, regularization);
   let currentCost = errors.reduce((sum, err) => sum + err * err, 0) / errors.length; // Mean squared error
   let lastCost = currentCost;
 
@@ -351,7 +512,7 @@ export function fitPEQ(freq, targetDb, initParams, lowFreq, highFreq, fs) {
     const oldParams = [...params];
 
     // Calculate Jacobian matrix J = ∂error / ∂param
-    const jacobian = calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFreq, highFreq, fs);
+    const jacobian = calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFreq, highFreq, fs, regularization);
 
     // Calculate JᵀJ (approx Hessian) and Jᵀe (gradient direction)
     const [JtJ, Jte] = calculateJtJandJte(jacobian, errors);
@@ -420,7 +581,7 @@ export function fitPEQ(freq, targetDb, initParams, lowFreq, highFreq, fs) {
     newParams = newParams.map((p, i) => Math.max(boundsLow[i], Math.min(boundsHigh[i], p)));
 
     // Calculate cost with the new parameters
-    const newErrors = errorFunctionLogSpace(newParams, freq, targetDb, lowFreq, highFreq, fs);
+    const newErrors = errorFunctionLogSpace(newParams, freq, targetDb, lowFreq, highFreq, fs, regularization);
     const newCost = newErrors.reduce((sum, err) => sum + err * err, 0) / newErrors.length;
 
     // Check if the cost improved

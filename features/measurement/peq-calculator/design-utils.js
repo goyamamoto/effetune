@@ -3,7 +3,7 @@
  */
 import { smoothLog } from './smoothing.js';
 import { findPeaksDips } from './peak-detection.js';
-import { fitPEQ } from './optimization.js';
+import { fitPEQ, DEFAULT_REGULARIZATION } from './optimization.js';
 
 /**
  * Post-process optimized PEQ parameters: merge close bands and limit count.
@@ -132,14 +132,22 @@ export function createDefaultBands(bandCount, lowFreq = 20, highFreq = 20000) {
  * @param {number} lowFreq - Low frequency limit for correction.
  * @param {number} highFreq - High frequency limit for correction.
  * @param {number} fs - Sampling frequency in Hz.
+ * @param {Object} [options] - Additional options.
+ * @param {Object} [options.regularization] - Regularization parameters.
  * @returns {Array<{frequency: number, gain: number, Q: number, type: string}>} Array of PEQ parameters.
  */
-export function designPEQ(freq, magDb, bandCount, binsPerOct, lowFreq, highFreq, fs) {
+export function designPEQ(freq, magDb, bandCount, binsPerOct, lowFreq, highFreq, fs, options = {}) {
   // Basic validation already done in caller, but double-check lengths
   if (!freq || !magDb || freq.length !== magDb.length || freq.length < 3) {
       console.error("designPEQ: Invalid input data.");
       return createDefaultBands(bandCount, lowFreq, highFreq);
   }
+
+  // Setup regularization parameters with recommended defaults
+  const regularization = {
+    gainWeight: options.regularization?.gainWeight ?? DEFAULT_REGULARIZATION.gainWeight,
+    qWeight: options.regularization?.qWeight ?? DEFAULT_REGULARIZATION.qWeight
+  };
 
   try {
       // 1. Smooth the frequency response
@@ -182,116 +190,176 @@ export function designPEQ(freq, magDb, bandCount, binsPerOct, lowFreq, highFreq,
               initParams.push(gain, Q, fc);
           }
       } else {
-          // Use detected peaks/dips for the first N bands
-          const numBandsFromPeaks = Math.min(targetBands, candidates.length);
-          for (let k = 0; k < numBandsFromPeaks; k++) {
-              const i = candidates[k]; // Index in freq/smoothedMag array
+          // Instead of just using the most prominent peaks/dips, select them to ensure frequency-balanced distribution
+          // Divide the frequency range into logarithmically-spaced bands and select the best peak/dip from each band
+          
+          // Create frequency bands (more bands than we need to ensure good coverage)
+          const numFreqBands = targetBands * 2;
+          const logLow = Math.log10(lowFreq);
+          const logHigh = Math.log10(highFreq);
+          const logStep = (logHigh - logLow) / numFreqBands;
+          
+          const frequencyBands = [];
+          for (let i = 0; i < numFreqBands; i++) {
+              const bandStartLog = logLow + i * logStep;
+              const bandEndLog = logLow + (i + 1) * logStep;
+              const bandStart = 10**bandStartLog;
+              const bandEnd = 10**bandEndLog;
+              
+              frequencyBands.push({
+                  startFreq: bandStart,
+                  endFreq: bandEnd,
+                  candidates: []
+              });
+          }
+          
+          // Assign each peak/dip to its appropriate frequency band
+          for (const idx of candidates) {
+              const peakFreq = freq[idx];
+              const peakMag = Math.abs(smoothedMag[idx]);
+              const peakProminence = Math.abs(smoothedMag[idx]); // Use magnitude as an approximation of prominence
+              
+              // Find which band this peak belongs to
+              const bandIdx = Math.min(
+                  numFreqBands - 1,
+                  Math.max(0, Math.floor((Math.log10(peakFreq) - logLow) / logStep))
+              );
+              
+              frequencyBands[bandIdx].candidates.push({
+                  index: idx,
+                  frequency: peakFreq,
+                  magnitude: peakMag,
+                  prominence: peakProminence
+              });
+          }
+          
+          // Sort candidates within each band by prominence/magnitude
+          frequencyBands.forEach(band => {
+              band.candidates.sort((a, b) => b.prominence - a.prominence);
+          });
+          
+          // Select the best candidate from each band until we reach targetBands
+          const selectedIndices = [];
+          
+          // First pass: take the most prominent peak from each band (if available)
+          for (let round = 0; selectedIndices.length < targetBands && round < 3; round++) {
+              for (let i = 0; i < frequencyBands.length && selectedIndices.length < targetBands; i++) {
+                  const band = frequencyBands[i];
+                  if (band.candidates.length > round) {
+                      selectedIndices.push(band.candidates[round].index);
+                  }
+              }
+          }
+          
+          // Use the selected peaks/dips to create bands
+          for (let k = 0; k < selectedIndices.length; k++) {
+              const i = selectedIndices[k]; // Index in freq/smoothedMag array
               const fc = freq[i];
               const gain = -smoothedMag[i]; // Correct the deviation
-               const limitedGain = Math.max(-18, Math.min(18, gain));
+              const limitedGain = Math.max(-18, Math.min(18, gain));
 
               // Estimate Q based on bandwidth around the peak/dip in smoothed data
-               let Q = 1.41; // Default Q
-               const peakValue = smoothedMag[i];
-               const isPeak = peakValue > 0;
-               const targetRelLevel = isPeak ? -3.0 : 3.0; // Target relative level for -3dB points
+              let Q = 1.41; // Default Q
+              const peakValue = smoothedMag[i];
+              const isPeak = peakValue > 0;
+              const targetRelLevel = isPeak ? -3.0 : 3.0; // Target relative level for -3dB points
 
-               // Search left for f1 (frequency at targetRelLevel)
-               let f1 = freq[0]; // Default to lowest freq
-               for (let j = i - 1; j >= 0; j--) {
-                   if ((isPeak && smoothedMag[j] - peakValue <= targetRelLevel) ||
-                       (!isPeak && smoothedMag[j] - peakValue >= targetRelLevel)) {
-                        // Basic interpolation
-                        const val1 = smoothedMag[j] - peakValue;
-                        const val2 = smoothedMag[j+1] - peakValue;
-                        const freq1 = freq[j];
-                        const freq2 = freq[j+1];
-                        if (Math.abs(val2 - val1) > 1e-3) { // Avoid division by zero
-                           const t = (targetRelLevel - val1) / (val2 - val1);
-                           f1 = freq1 + t * (freq2 - freq1);
-                        } else {
-                           f1 = freq[j];
-                        }
-                       break;
-                   }
-                   f1 = freq[j]; // Keep track of furthest point reached
-               }
+              // Search left for f1 (frequency at targetRelLevel)
+              let f1 = freq[0]; // Default to lowest freq
+              for (let j = i - 1; j >= 0; j--) {
+                  if ((isPeak && smoothedMag[j] - peakValue <= targetRelLevel) ||
+                      (!isPeak && smoothedMag[j] - peakValue >= targetRelLevel)) {
+                      // Basic interpolation
+                      const val1 = smoothedMag[j] - peakValue;
+                      const val2 = smoothedMag[j+1] - peakValue;
+                      const freq1 = freq[j];
+                      const freq2 = freq[j+1];
+                      if (Math.abs(val2 - val1) > 1e-3) { // Avoid division by zero
+                          const t = (targetRelLevel - val1) / (val2 - val1);
+                          f1 = freq1 + t * (freq2 - freq1);
+                      } else {
+                          f1 = freq[j];
+                      }
+                      break;
+                  }
+                  f1 = freq[j]; // Keep track of furthest point reached
+              }
 
-               // Search right for f2
-                let f2 = freq[freq.length - 1]; // Default to highest freq
-                for (let j = i + 1; j < freq.length; j++) {
-                    if ((isPeak && smoothedMag[j] - peakValue <= targetRelLevel) ||
-                        (!isPeak && smoothedMag[j] - peakValue >= targetRelLevel)) {
-                         const val1 = smoothedMag[j-1] - peakValue;
-                         const val2 = smoothedMag[j] - peakValue;
-                         const freq1 = freq[j-1];
-                         const freq2 = freq[j];
-                        if (Math.abs(val2 - val1) > 1e-3) {
-                           const t = (targetRelLevel - val1) / (val2 - val1);
-                           f2 = freq1 + t * (freq2 - freq1);
-                        } else {
-                           f2 = freq[j];
-                        }
-                        break;
-                    }
-                     f2 = freq[j]; // Keep track of furthest point reached
-                }
+              // Search right for f2
+              let f2 = freq[freq.length - 1]; // Default to highest freq
+              for (let j = i + 1; j < freq.length; j++) {
+                  if ((isPeak && smoothedMag[j] - peakValue <= targetRelLevel) ||
+                      (!isPeak && smoothedMag[j] - peakValue >= targetRelLevel)) {
+                      const val1 = smoothedMag[j-1] - peakValue;
+                      const val2 = smoothedMag[j] - peakValue;
+                      const freq1 = freq[j-1];
+                      const freq2 = freq[j];
+                      if (Math.abs(val2 - val1) > 1e-3) {
+                          const t = (targetRelLevel - val1) / (val2 - val1);
+                          f2 = freq1 + t * (freq2 - freq1);
+                      } else {
+                          f2 = freq[j];
+                      }
+                      break;
+                  }
+                  f2 = freq[j]; // Keep track of furthest point reached
+              }
 
-                // Calculate Q = fc / (f2 - f1)
-                if (f2 > f1) {
-                    const bandwidth = f2 - f1;
-                    if (bandwidth > 1e-3) { // Ensure bandwidth is positive
-                        Q = fc / bandwidth;
-                        Q = Math.max(0.5, Math.min(10, Q)); // Clamp Q
-                    }
-                }
+              // Calculate Q = fc / (f2 - f1)
+              if (f2 > f1) {
+                  const bandwidth = f2 - f1;
+                  if (bandwidth > 1e-3) { // Ensure bandwidth is positive
+                      Q = fc / bandwidth;
+                      Q = Math.max(0.5, Math.min(10, Q)); // Clamp Q
+                  }
+              }
 
-               initParams.push(limitedGain, Q, fc);
+              initParams.push(limitedGain, Q, fc);
           }
 
           // If more bands are needed, fill with logarithmically spaced bands
-          if (numBandsFromPeaks < targetBands) {
+          if (selectedIndices.length < targetBands) {
               const logLow = Math.log10(lowFreq);
               const logHigh = Math.log10(highFreq);
               // Generate more points than needed initially
               const potentialFreqs = [];
-               for (let i = 1; i <= targetBands * 2; i++) {
+              for (let i = 1; i <= targetBands * 2; i++) {
                   const logF = logLow + (logHigh - logLow) * i / (targetBands * 2 + 1);
                   potentialFreqs.push(10**logF);
-               }
+              }
 
               // Filter potential frequencies to be far from existing initial bands
               const existingFreqs = initParams.filter((_, idx) => idx % 3 === 2);
-               const additionalFreqs = potentialFreqs.filter(pf => {
+              const additionalFreqs = potentialFreqs.filter(pf => {
                   let minDist = Infinity;
                   existingFreqs.forEach(ef => {
                       minDist = Math.min(minDist, Math.abs(Math.log2(pf / ef)));
                   });
                   return minDist > 0.3; // Require at least ~1/3 octave separation
-               });
+              });
 
-              const needed = targetBands - numBandsFromPeaks;
-               for (let i = 0; i < Math.min(needed, additionalFreqs.length); i++) {
+              const needed = targetBands - selectedIndices.length;
+              for (let i = 0; i < Math.min(needed, additionalFreqs.length); i++) {
                   const targetFc = additionalFreqs[i];
                   let closestIdx = 0;
                   let minLogDist = Infinity;
                   for (let j = 0; j < freq.length; j++) {
-                     const dist = Math.abs(Math.log10(freq[j]) - Math.log10(targetFc));
-                     if (dist < minLogDist) {
-                         minLogDist = dist;
-                         closestIdx = j;
-                     }
+                      const dist = Math.abs(Math.log10(freq[j]) - Math.log10(targetFc));
+                      if (dist < minLogDist) {
+                          minLogDist = dist;
+                          closestIdx = j;
+                      }
                   }
                   const fc = freq[closestIdx];
                   const gain = -smoothedMag[closestIdx];
                   const Q = 1.41;
                   initParams.push(gain, Q, fc);
-               }
+              }
 
-               // If still not enough, add default bands
-               while(initParams.length / 3 < targetBands) {
+              // If still not enough, add default bands
+              while(initParams.length / 3 < targetBands) {
                   initParams.push(0.0, 1.41, 1000); // Default band at 1kHz
-               }
+              }
           }
       }
 
@@ -311,7 +379,8 @@ export function designPEQ(freq, magDb, bandCount, binsPerOct, lowFreq, highFreq,
       // 4. Optimize PEQ parameters using Levenberg-Marquardt
       let optimizedFlatParams = [];
       try {
-          optimizedFlatParams = fitPEQ(freq, magDb, initParams, lowFreq, highFreq, fs); // Pass original non-smoothed magDb for optimization
+          // Pass regularization options to fitPEQ
+          optimizedFlatParams = fitPEQ(freq, magDb, initParams, lowFreq, highFreq, fs, { regularization }); // Pass original non-smoothed magDb for optimization
           if (!optimizedFlatParams || optimizedFlatParams.length !== targetBands * 3) {
                throw new Error("Optimization returned unexpected number of parameters or failed.");
           }

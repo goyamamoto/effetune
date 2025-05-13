@@ -5,8 +5,8 @@ Uma coleção de plugins que permite ajustar diferentes aspectos do som da sua m
 ## Lista de Plugins
 
 - [15Band GEQ](#15band-geq) - Ajuste detalhado do som com 15 controles precisos
+- [15Band PEQ](#15band-peq) - Equalizador paramétrico profissional com 15 bandas e máxima flexibilidade
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Equalizador baseado em dinâmica que reage à sua música
-- [5Band PEQ](#5band-peq) - Equalizador paramétrico profissional com controles flexíveis
 - [Hi Pass Filter](#hi-pass-filter) - Remove frequências baixas indesejadas com precisão
 - [Lo Pass Filter](#lo-pass-filter) - Remove frequências altas indesejadas com precisão
 - [Loudness Equalizer](#loudness-equalizer) - Correção do balanço de frequência para audição em volumes baixos
@@ -62,6 +62,60 @@ Uma ferramenta de ajuste de som detalhada com 15 controles separados, cada um af
 - Gráfico em tempo real mostrando os ajustes do seu som
 - Sliders fáceis de usar com controle preciso
 - Reinicialização para as configurações padrão com um clique
+
+## 15Band PEQ
+
+Um equalizador paramétrico de nível profissional com amplo controle de 15 bandas, oferecendo ajustes precisos de frequência. Perfeito tanto para refinamento sutil do som quanto para processamento corretivo de áudio com máxima flexibilidade.
+
+### Guia de Aperfeiçoamento do Som
+- Clareza de Vocais e Instrumentos:
+  - Use a banda de 3.2kHz com Q moderado (1.0-2.0) para uma presença natural
+  - Aplique cortes com Q estreito (4.0-8.0) para remover ressonâncias
+  - Adicione um toque suave de "air" com prateleira alta de 10kHz (+2 a +4dB)
+- Controle de Qualidade dos Graves:
+  - Molde os fundamentos com filtro de pico de 100Hz
+  - Remova a ressonância do ambiente usando Q estreito em frequências específicas
+  - Crie uma extensão suave dos graves com prateleira baixa
+- Ajuste Científico do Som:
+  - Direcione frequências específicas com precisão
+  - Use analisadores para identificar áreas problemáticas
+  - Aplique correções mensuradas com impacto mínimo na fase
+
+### Parâmetros Técnicos
+- **Bandas de Precisão**
+  - 15 bandas de frequência totalmente configuráveis
+  - Configuração inicial de frequência:
+    - 25Hz, 40Hz, 63Hz, 100Hz, 160Hz (Graves Profundos)
+    - 250Hz, 400Hz, 630Hz (Som Inferior)
+    - 1kHz, 1.6kHz, 2.5kHz (Som Médio)
+    - 4kHz, 6.3kHz, 10kHz, 16kHz (Som Alto)
+- **Controles Profissionais por Banda**
+  - Frequência Central: Espaçada logaritmicamente para cobertura ideal
+  - Faixa de Ganho: Ajuste preciso de ±20dB
+  - Fator Q: De 0.1 (amplo) a 10.0 (preciso)
+  - Múltiplos Tipos de Filtro:
+    - Peaking: Ajuste simétrico de frequência
+    - Low/High Pass: Inclinação de 12dB/octave
+    - Low/High Shelf: Moldagem espectral suave
+    - Band Pass: Isolamento focado de frequência
+    - Notch: Remoção precisa de frequência
+    - AllPass: Alinhamento de frequência com foco em fase
+- **Gerenciamento de Presets**
+  - Importação: Carregue configurações de EQ a partir de arquivos de texto em formato padrão
+    - Formato de exemplo:
+      ```
+      Preamp: -6.0 dB
+      Filter 1: ON PK Fc 50 Hz Gain -3.0 dB Q 2.00
+      Filter 2: ON HS Fc 12000 Hz Gain 4.0 dB Q 0.70
+      ...
+      ```
+
+### Exibição Técnica
+- Visualização de resposta de frequência em alta resolução
+- Pontos de controle interativos com exibição precisa de parâmetros
+- Cálculo da função de transferência em tempo real
+- Grade calibrada de frequência e ganho
+- Leituras numéricas precisas para todos os parâmetros
 
 ## 5Band Dynamic EQ
 
@@ -139,7 +193,7 @@ Um equalizador paramétrico de nível profissional baseado em princípios cient�
   - Banda 5: 10kHz (Extensão de Alta Frequência)
 - **Controles Profissionais por Banda**
   - Frequência Central: Espaçada logaritmicamente para cobertura ideal
-  - Faixa de Ganho: Ajuste preciso de ±18dB
+  - Faixa de Ganho: Ajuste preciso de ±20dB
   - Fator Q: De 0.1 a 10.0
   - Múltiplos Tipos de Filtro:
     - Peaking: Ajuste simétrico de frequência

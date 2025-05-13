@@ -68,6 +68,7 @@
   "unit:band": "Bande",
   "help:eqBandCount": "Le nombre de bandes de l'égaliseur paramétrique pour la correction. Plus vous augmentez le nombre de bandes, plus la correction de la fréquence sera détaillée, mais la charge de traitement augmentera.",
   "button:copyPEQ": "Copier les paramètres PEQ d'EffeTune dans le presse-papiers",
+  "button:exportTxt": "Exporter les paramètres de correction (TXT)",
   "button:exportCSV": "Exporter les paramètres de correction (CSV)",
   "help:exportOptions": "Les paramètres de correction de fréquence copiés peuvent être collés dans le pipeline d'effets d'EffeTune avec Ctrl+V.",
   "title:measurementDetails": "Détails de la mesure",

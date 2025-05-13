@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>EffeTune Benchmark</title>
     <link rel="stylesheet" href="../effetune.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -411,6 +412,13 @@
                         const params = {};
                         for (let i = 0; i < 15; i++) {
                             params['b' + i] = i % 2 === 0 ? 1 : -1;
+                        }
+                        plugin.setParameters(params);
+                        note = 'Enable all 15 bands';
+                    } else if (name === '15Band PEQ') {
+                        const params = {};
+                        for (let i = 0; i < 15; i++) {
+                            params['g' + i] = i % 2 === 0 ? 1 : -1;
                         }
                         plugin.setParameters(params);
                         note = 'Enable all 15 bands';

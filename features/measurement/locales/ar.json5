@@ -68,6 +68,7 @@
   "unit:band": "نطاق",
   "help:eqBandCount": "عدد نطاقات المعادل المعلمي للتصحيح. كلما زاد عدد النطاقات، كانت دقة التصحيح أعلى، ولكن يزيد الحمل على المعالجة.",
   "button:copyPEQ": "نسخ إعدادات PEQ إلى الحافظة",
+  "button:exportTxt": "تصدير معلمات التصحيح (TXT)",
   "button:exportCSV": "تصدير معلمات التصحيح (CSV)",
   "help:exportOptions": "يمكن لصق إعدادات تصحيح التردد المنسوخة في خط أنابيب التأثير في EffeTune عبر Ctrl+V.",
   "title:measurementDetails": "تفاصيل القياس",
