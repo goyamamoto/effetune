@@ -3,6 +3,7 @@
  */
 
 import audioUtils from '../audioUtils.js';
+import { FFT } from '../audio-utils/index.js';
 
 const AudioProcessing = {
     /**
@@ -62,28 +63,45 @@ const AudioProcessing = {
                 const totalPlaybackDuration = sweepDuration * (averagingCount + 1); // +1 for safety
                 console.log(`Sweep duration: ${sweepDuration.toFixed(2)}s, Total playback: ${totalPlaybackDuration.toFixed(2)}s`);
                 
-                // Create combined buffer of repeated TSP signals
-                const combinedBufferLength = sweepBuffer.length * (averagingCount + 1);
-                const combinedLeftBuffer = new Float32Array(combinedBufferLength);
-                const combinedRightBuffer = new Float32Array(combinedBufferLength);
+                // Get maximum channel count for selected output device
+                const maxChannels = await audioUtils.getDeviceMaxChannelCount(this.measurementConfig.audioOutputId) || 2;
+                console.log(`Maximum output channels: ${maxChannels}`);
                 
-                // Copy the sweep into the combined buffer multiple times
+                // Create combined buffer of repeated TSP signals for each channel
+                const combinedBufferLength = sweepBuffer.length * (averagingCount + 1);
+                
+                // Create buffer arrays for all channels
+                const combinedChannelBuffers = [];
+                for (let ch = 0; ch < maxChannels; ch++) {
+                    combinedChannelBuffers.push(new Float32Array(combinedBufferLength));
+                }
+                
+                // Copy the sweep into the combined buffer multiple times for each channel
                 for (let i = 0; i < averagingCount + 1; i++) {
                     const offset = i * sweepBuffer.length;
                     for (let j = 0; j < sweepBuffer.length; j++) {
-                        combinedLeftBuffer[offset + j] = sweepBuffer.left[j];
-                        combinedRightBuffer[offset + j] = sweepBuffer.right[j];
+                        // Copy to each channel's buffer from the source channel buffers
+                        for (let ch = 0; ch < maxChannels; ch++) {
+                            if (ch < sweepBuffer.channels.length) {
+                                combinedChannelBuffers[ch][offset + j] = sweepBuffer.channels[ch][j];
+                            }
+                        }
                     }
                 }
                 
-                // Create audio buffer for the combined sweep signal
+                // Create audio buffer for the combined sweep signal with all channels
                 const combinedSweepBuffer = audioContext.createBuffer(
-                    2, combinedBufferLength, sampleRate
+                    maxChannels, combinedBufferLength, sampleRate
                 );
                 
-                // Copy data to audio buffer
-                combinedSweepBuffer.copyToChannel(combinedLeftBuffer, 0);  // Left channel
-                combinedSweepBuffer.copyToChannel(combinedRightBuffer, 1); // Right channel
+                // Copy each channel data to audio buffer
+                for (let ch = 0; ch < maxChannels; ch++) {
+                    try {
+                        combinedSweepBuffer.copyToChannel(combinedChannelBuffers[ch], ch);
+                    } catch (e) {
+                        console.warn(`Could not copy to channel ${ch}: ${e.message}`);
+                    }
+                }
                 
                 // Calculate recording buffer length - match exactly with playback plus some padding
                 // Instead of using fixed delays, calculate exact timing:
@@ -225,6 +243,20 @@ const AudioProcessing = {
                         // Handle output device selection
                         let audioDestination = audioContext.destination;
                         
+                        // Set the channel count of the destination to match our max channels
+                        if (audioDestination.maxChannelCount) {
+                            try {
+                                // Set to maximum available channels
+                                const channelCount = Math.min(maxChannels, audioDestination.maxChannelCount);
+                                audioDestination.channelCount = channelCount;
+                                audioDestination.channelCountMode = 'explicit';
+                                audioDestination.channelInterpretation = 'discrete';
+                                console.log(`Set output channel count to ${channelCount}`);
+                            } catch (e) {
+                                console.warn('Error setting destination channel count:', e);
+                            }
+                        }
+                        
                         // If specific output device is requested, try to use it
                         if (outputDeviceId) {
                             try {
@@ -233,6 +265,18 @@ const AudioProcessing = {
                                 // Create an audio element for output device routing
                                 const audioElement = new Audio();
                                 const mediaStreamDestination = audioContext.createMediaStreamDestination();
+                                
+                                // Set media stream destination channel count if possible
+                                if (mediaStreamDestination.channelCount !== undefined) {
+                                    try {
+                                        mediaStreamDestination.channelCount = Math.min(maxChannels, mediaStreamDestination.maxChannelCount || maxChannels);
+                                        mediaStreamDestination.channelCountMode = 'explicit';
+                                        mediaStreamDestination.channelInterpretation = 'discrete';
+                                        console.log(`Set media stream destination channel count to ${mediaStreamDestination.channelCount}`);
+                                    } catch (e) {
+                                        console.warn('Error setting media stream destination channel count:', e);
+                                    }
+                                }
                                 
                                 // Store references for cleanup
                                 this.activeSweepElements.audioElement = audioElement;
@@ -423,132 +467,199 @@ const AudioProcessing = {
         // Log recording information
         console.log(`Recording length: ${recordBuffer.length} samples (${recordBuffer.length/sampleRate}s)`);
         console.log(`Sweep length: ${sweepLength} samples (${sweepLength/sampleRate}s)`);
-        console.log(`Averaging count: ${averagingCount}`);
         
-        // Extract segments from the recording buffer
-        // Format: 0.5s pre-roll + TSP signals + 0.5s post-roll
-        const postRollSamples = Math.ceil(sampleRate * 0.5);  // 0.5 second post-roll
-        
-        // Array to store segments
-        const measurements = [];
-        
-        // Calculate starting positions for all segments
-        for (let i = 0; i < averagingCount; i++) {
-            const startPos = recordBuffer.length - postRollSamples - ((i+1) * sweepLength);
+        try {
+            // Get inverse filter from audioUtils
+            const inverseFilter = audioUtils.lastInverseFilter;
             
-            // Check if the start position is within the recording buffer range
-            if (startPos + sweepLength <= recordBuffer.length) {
-                // Extract segment
-                const segment = new Float32Array(sweepLength);
-                for (let j = 0; j < sweepLength; j++) {
-                    segment[j] = recordBuffer[startPos + j];
+            if (!inverseFilter) {
+                console.warn('No inverse filter available, returning original recording');
+                console.timeEnd('processRecordedBuffer');
+                return recordBuffer;
+            }
+            
+            // Assuming there's a pre-roll time before the actual sweep
+            const preRollTime = 0.5; // seconds
+            const preRollSamples = Math.floor(preRollTime * sampleRate);
+            
+            // Extract segments based on averaging count
+            const segments = [];
+            const avgLength = sweepLength * 2; // Double length for convolution result
+            
+            for (let i = 0; i < averagingCount; i++) {
+                const startOffset = preRollSamples + (i * sweepLength);
+                
+                // Skip if not enough samples
+                if (startOffset + avgLength > recordBuffer.length) {
+                    console.warn(`Not enough samples for segment ${i+1}`);
+                    continue;
                 }
                 
-                measurements.push(segment);
-                console.log(`Extracted segment ${i+1}: ${startPos} to ${startPos + sweepLength} (${sweepLength} samples)`);
-            } else {
-                console.warn(`Segment ${i+1} would exceed buffer length. Skipping.`);
+                // Extract segment
+                const segment = new Float32Array(avgLength);
+                for (let j = 0; j < avgLength; j++) {
+                    segment[j] = recordBuffer[startOffset + j];
+                }
+                
+                segments.push(segment);
             }
-        }
-        
-        // If no measurements could be extracted, return empty array
-        if (measurements.length === 0) {
-            console.error('No segments could be extracted from the recording');
+            
+            console.log(`Created ${segments.length} segments for averaging`);
+            
+            // Process each segment to get impulse response
+            const processedSegments = [];
+            for (let i = 0; i < segments.length; i++) {
+                // Get FFT size that can fit both signals
+                const paddedSize = Math.pow(2, Math.ceil(Math.log2(segments[i].length + inverseFilter.length - 1)));
+                const fft = new FFT(paddedSize);
+                
+                // Prepare arrays for FFT
+                const signalReal = new Float32Array(paddedSize);
+                const signalImag = new Float32Array(paddedSize);
+                const filterReal = new Float32Array(paddedSize);
+                const filterImag = new Float32Array(paddedSize);
+                const resultReal = new Float32Array(paddedSize);
+                const resultImag = new Float32Array(paddedSize);
+                
+                // Copy segments with zero padding
+                signalReal.set(segments[i]);
+                filterReal.set(inverseFilter);
+                
+                // Transform to frequency domain
+                fft.transform(resultReal, resultImag, signalReal, signalImag);
+                const signal1Real = new Float32Array(resultReal);
+                const signal1Imag = new Float32Array(resultImag);
+                
+                fft.transform(resultReal, resultImag, filterReal, filterImag);
+                
+                // Multiply in frequency domain (convolution in time domain)
+                for (let j = 0; j < paddedSize; j++) {
+                    const real1 = signal1Real[j];
+                    const imag1 = signal1Imag[j];
+                    const real2 = resultReal[j];
+                    const imag2 = resultImag[j];
+                    
+                    resultReal[j] = real1 * real2 - imag1 * imag2;
+                    resultImag[j] = real1 * imag2 + imag1 * real2;
+                }
+                
+                // Transform back to time domain
+                fft.inverseTransform(resultReal, resultImag, resultReal, resultImag);
+                
+                // Copy result
+                const impulseResponse = new Float32Array(avgLength);
+                for (let j = 0; j < avgLength; j++) {
+                    impulseResponse[j] = resultReal[j];
+                }
+                
+                processedSegments.push(impulseResponse);
+            }
+            
+            // Average all processed segments
+            let result;
+            if (processedSegments.length > 0) {
+                const length = processedSegments[0].length;
+                result = new Float32Array(length);
+                
+                for (let i = 0; i < processedSegments.length; i++) {
+                    for (let j = 0; j < length; j++) {
+                        result[j] += processedSegments[i][j] / processedSegments.length;
+                    }
+                }
+            } else {
+                console.warn('No processed segments available');
+                result = recordBuffer;
+            }
+            
             console.timeEnd('processRecordedBuffer');
-            return new Float32Array(sweepLength); // Return empty buffer with correct length
+            return result;
+            
+        } catch (error) {
+            console.error('Error processing recorded buffer:', error);
+            console.timeEnd('processRecordedBuffer');
+            return recordBuffer;
         }
-        
-        // Calculate synchronous average
-        const averagedBuffer = audioUtils.synchronousAverage(measurements);
-        
-        console.timeEnd('processRecordedBuffer');
-        return averagedBuffer;
     },
     
     /**
-     * Stop active sweep playback and recording immediately
+     * Stop active sweep playback
+     * This is used to clean up active sweep playback when measurement is cancelled
      */
     stopSweepPlayback() {
-        try {
-            console.log('Stopping active sweep playback and recording');
-            
-            // Stop audio source if exists
+        console.log('Stopping active sweep playback');
+        
+        // Clean up active elements
+        if (this.activeSweepElements) {
+            // Stop source if it exists
             if (this.activeSweepElements.source) {
                 try {
                     this.activeSweepElements.source.stop();
                     this.activeSweepElements.source.disconnect();
-                    this.activeSweepElements.source = null;
                 } catch (e) {
-                    console.warn('Error stopping/disconnecting audio source:', e);
+                    console.warn('Error stopping sweep source:', e);
                 }
+                this.activeSweepElements.source = null;
             }
             
-            // Disconnect gain node if exists
+            // Disconnect gain node
             if (this.activeSweepElements.gainNode) {
                 try {
                     this.activeSweepElements.gainNode.disconnect();
-                    this.activeSweepElements.gainNode = null;
                 } catch (e) {
                     console.warn('Error disconnecting gain node:', e);
                 }
+                this.activeSweepElements.gainNode = null;
             }
             
-            // Stop recorder worklet if exists
-            if (this.activeSweepElements.recordNode) {
-                try {
-                    this.activeSweepElements.recordNode.port.postMessage({ command: 'stop' });
-                    this.activeSweepElements.recordNode.disconnect();
-                    this.activeSweepElements.recordNode = null;
-                } catch (e) {
-                    console.warn('Error stopping recorder node:', e);
-                }
-            }
-            
-            // Disconnect analyzer if exists
-            if (this.activeSweepElements.analyzer) {
-                try {
-                    this.activeSweepElements.analyzer.disconnect();
-                    this.activeSweepElements.analyzer = null;
-                } catch (e) {
-                    console.warn('Error disconnecting analyzer:', e);
-                }
-            }
-            
-            // Stop audio element if exists
+            // Stop audio element if it exists
             if (this.activeSweepElements.audioElement) {
                 try {
                     this.activeSweepElements.audioElement.pause();
                     this.activeSweepElements.audioElement.srcObject = null;
-                    this.activeSweepElements.audioElement = null;
                 } catch (e) {
                     console.warn('Error stopping audio element:', e);
                 }
+                this.activeSweepElements.audioElement = null;
             }
             
-            // Disconnect media stream destination if exists
+            // Disconnect media stream destination
             if (this.activeSweepElements.mediaStreamDestination) {
                 try {
                     this.activeSweepElements.mediaStreamDestination.disconnect();
-                    this.activeSweepElements.mediaStreamDestination = null;
                 } catch (e) {
                     console.warn('Error disconnecting media stream destination:', e);
                 }
+                this.activeSweepElements.mediaStreamDestination = null;
             }
             
-            // Clear check interval if exists
+            // Clean up other elements
+            if (this.activeSweepElements.analyzer) {
+                try {
+                    this.activeSweepElements.analyzer.disconnect();
+                } catch (e) {
+                    console.warn('Error disconnecting analyzer:', e);
+                }
+                this.activeSweepElements.analyzer = null;
+            }
+            
+            if (this.activeSweepElements.recordNode) {
+                try {
+                    this.activeSweepElements.recordNode.port.postMessage({ command: 'stop' });
+                    this.activeSweepElements.recordNode.disconnect();
+                } catch (e) {
+                    console.warn('Error stopping record node:', e);
+                }
+                this.activeSweepElements.recordNode = null;
+            }
+            
             if (this.activeSweepElements.checkInterval) {
                 clearInterval(this.activeSweepElements.checkInterval);
                 this.activeSweepElements.checkInterval = null;
             }
             
-            // Clear recorder node reference
-            this.recorderNode = null;
-            
-            console.log('Sweep playback and recording stopped successfully');
-        } catch (error) {
-            console.error('Error stopping sweep playback:', error);
+            console.log('Sweep playback stopped successfully');
         }
     }
 };
 
-export default AudioProcessing; 
+export default AudioProcessing;

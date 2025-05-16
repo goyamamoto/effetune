@@ -523,7 +523,7 @@ input[type="checkbox"] {
     color: #ffffff;
     border-radius: 4px;
     width: 300px;
-    margin-right: 5px;
+    margin: 0px 5px;
     height: 20px;
     position: relative;
     z-index: 1;
@@ -676,7 +676,10 @@ input[type="checkbox"] {
 .delete-button,
 .move-up-button,
 .move-down-button,
-.routing-button {
+.routing-button,
+.cut-button,
+.copy-button,
+.paste-button {
     padding: 4px 8px;
     background-color: #4d4d4d;
     border: 1px solid #5d5d5d;
@@ -690,7 +693,10 @@ input[type="checkbox"] {
 }
 
 .save-button,
-.help-button {
+.help-button,
+.cut-button,
+.copy-button,
+.paste-button {
     color: #4a9eff;
     margin-right: 5px;
 }

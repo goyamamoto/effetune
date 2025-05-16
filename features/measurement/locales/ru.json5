@@ -102,6 +102,13 @@
   "option:right": "Правый канал", // Option for right channel
   "option:both": "Оба канала (среднее)", // Option for both channels
   "option:bothSimple": "Оба канала", // Option for both channels (simple)
+  "option:all": "Все каналы", // Option for all channels
+  "option:ch3": "Канал 3", // Option for channel 3
+  "option:ch4": "Канал 4", // Option for channel 4
+  "option:ch5": "Канал 5", // Option for channel 5
+  "option:ch6": "Канал 6", // Option for channel 6
+  "option:ch7": "Канал 7", // Option for channel 7
+  "option:ch8": "Канал 8", // Option for channel 8
 
   // Sample rate options
   "option:sampleRate44100": "44.1 kHz", // Option for 44.1 kHz sample rate

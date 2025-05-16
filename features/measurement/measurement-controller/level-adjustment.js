@@ -113,9 +113,15 @@ const LevelAdjustment = {
                     return false;
                 }
                 
+                // Convert legacy 'both' value to 'all' for backwards compatibility
+                let outputChannel = this.measurementConfig.outputChannel;
+                if (outputChannel === 'both') {
+                    outputChannel = 'all';
+                }
+                
                 console.log(`Measurement config: ${JSON.stringify({
                     outputId: this.measurementConfig.audioOutputId,
-                    outputChannel: this.measurementConfig.outputChannel,
+                    outputChannel: outputChannel,
                 })}`);
                 
                 const noiseLevel = parseFloat(document.getElementById('noiseLevel').value);
@@ -124,7 +130,7 @@ const LevelAdjustment = {
                 const result = await audioUtils.startWhiteNoise(
                     noiseLevel,
                     this.measurementConfig.audioOutputId,
-                    this.measurementConfig.outputChannel
+                    outputChannel
                 );
                 
                 if (result) {

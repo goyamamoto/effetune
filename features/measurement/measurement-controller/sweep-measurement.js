@@ -103,12 +103,18 @@ const SweepMeasurement = {
             }
             
             // Generate sweep signal with proper channel configuration
+            // Convert legacy 'both' value to 'all' for backwards compatibility
+            let outputChannel = this.measurementConfig.outputChannel;
+            if (outputChannel === 'both') {
+                outputChannel = 'all';
+            }
+            
             const sweepLength = parseInt(this.measurementConfig.sweepLength);
             const sampleRate = audioUtils.audioContext.sampleRate;
             const sweepBuffer = audioUtils.generateTSP(
                 sweepLength, 
                 sampleRate, 
-                this.measurementConfig.outputChannel
+                outputChannel
             );
             
             // Update the graph to show the entire measurement duration

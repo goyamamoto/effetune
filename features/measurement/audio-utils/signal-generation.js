@@ -8,9 +8,9 @@ import FFT from './fft.js';
  * Start white noise playback
  * @param {number} level - Noise level in dB (0 to -36)
  * @param {string} outputDeviceId - The output device ID, or null for default
- * @param {string} channel - The channel to output to ('left', 'right', or 'both')
+ * @param {string} channel - The channel to output to ('left', 'right', 'all', or specific channel number '3'-'8')
  */
-async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'both') {
+async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'all') {
     // Make sure any existing white noise is properly stopped first
     if (this.isWhiteNoiseActive) {
         this.stopWhiteNoise();
@@ -32,15 +32,20 @@ async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'bo
     }
     
     try {
-        // Create white noise buffer
+        // Get the maximum channel count for the device
+        const maxChannels = await this.getDeviceMaxChannelCount(outputDeviceId);
+        console.log(`Using max channel count: ${maxChannels}`);
+        
+        // Create a buffer with enough channels for the device
+        const bufferChannels = maxChannels;
         const bufferSize = 2 * this.audioContext.sampleRate;
         const noiseBuffer = this.audioContext.createBuffer(
-            2, bufferSize, this.audioContext.sampleRate
+            bufferChannels, bufferSize, this.audioContext.sampleRate
         );
         
-        // Fill buffer with white noise
-        for (let channel = 0; channel < 2; channel++) {
-            const data = noiseBuffer.getChannelData(channel);
+        // Fill buffer with white noise on all channels
+        for (let ch = 0; ch < bufferChannels; ch++) {
+            const data = noiseBuffer.getChannelData(ch);
             for (let i = 0; i < bufferSize; i++) {
                 data[i] = Math.random() * 2 - 1;
             }
@@ -55,8 +60,58 @@ async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'bo
         this.whiteNoiseGain = this.audioContext.createGain();
         this.setNoiseLevel(level);
 
+        // Create channel merger for multichannel output
+        this.channelMerger = this.audioContext.createChannelMerger(maxChannels);
+        
+        // Reset all merger inputs (to silence)
+        for (let ch = 0; ch < maxChannels; ch++) {
+            const silenceNode = this.audioContext.createGain();
+            silenceNode.gain.value = 0;
+            silenceNode.connect(this.channelMerger, 0, ch);
+        }
+        
+        // Handle different channel routing
+        const targetChannel = parseInt(channel);
+        
+        // Determine where to connect the noise signal
+        if (channel === 'left' || channel === '0') {
+            // Route to left channel only
+            this.whiteNoiseNode.connect(this.whiteNoiseGain);
+            this.whiteNoiseGain.connect(this.channelMerger, 0, 0);
+        } else if (channel === 'right' || channel === '1') {
+            // Route to right channel only
+            this.whiteNoiseNode.connect(this.whiteNoiseGain);
+            this.whiteNoiseGain.connect(this.channelMerger, 0, 1);
+        } else if (!isNaN(targetChannel) && targetChannel >= 2 && targetChannel < maxChannels) {
+            // Route to specific channel (C3-C8)
+            this.whiteNoiseNode.connect(this.whiteNoiseGain);
+            this.whiteNoiseGain.connect(this.channelMerger, 0, targetChannel);
+        } else {
+            // Route to all channels (default)
+            this.whiteNoiseNode.connect(this.whiteNoiseGain);
+            
+            // Connect to all available channels
+            for (let ch = 0; ch < maxChannels; ch++) {
+                this.whiteNoiseGain.connect(this.channelMerger, 0, ch);
+            }
+        }
+
         // Handle output device selection
         let audioDestination = this.audioContext.destination;
+        
+        // Set the channel count of the destination to match our max channels
+        if (audioDestination.maxChannelCount) {
+            try {
+                // Set to maximum available channels
+                const channelCount = Math.min(maxChannels, audioDestination.maxChannelCount);
+                audioDestination.channelCount = channelCount;
+                audioDestination.channelCountMode = 'explicit';
+                audioDestination.channelInterpretation = 'discrete';
+                console.log(`Set output channel count to ${channelCount}`);
+            } catch (e) {
+                console.warn('Error setting destination channel count:', e);
+            }
+        }
 
         // If specific output device is requested and setSinkId is supported
         if (outputDeviceId) {
@@ -64,6 +119,13 @@ async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'bo
                 // Create an audio element and media stream destination to route audio
                 const audioElement = new Audio();
                 const mediaStreamDestination = this.audioContext.createMediaStreamDestination();
+                
+                // Set media stream destination channel count if possible
+                if (mediaStreamDestination.channelCount !== undefined) {
+                    mediaStreamDestination.channelCount = Math.min(maxChannels, mediaStreamDestination.maxChannelCount || maxChannels);
+                    mediaStreamDestination.channelCountMode = 'explicit';
+                    mediaStreamDestination.channelInterpretation = 'discrete';
+                }
                 
                 // Store references for cleanup
                 this.whiteNoiseDestination = mediaStreamDestination;
@@ -93,21 +155,8 @@ async function startWhiteNoise(level = -12, outputDeviceId = null, channel = 'bo
             }
         }
         
-        // Create stereo panner if we need to route to specific channels
-        if (channel === 'left' || channel === 'right') {
-            const panValue = channel === 'left' ? -1 : 1;
-            const panner = this.audioContext.createStereoPanner();
-            panner.pan.value = panValue;
-            
-            // Connect nodes with panner
-            this.whiteNoiseNode.connect(this.whiteNoiseGain);
-            this.whiteNoiseGain.connect(panner);
-            panner.connect(audioDestination);
-        } else {
-            // Connect nodes directly for both channels
-            this.whiteNoiseNode.connect(this.whiteNoiseGain);
-            this.whiteNoiseGain.connect(audioDestination);
-        }
+        // Connect merger to the destination
+        this.channelMerger.connect(audioDestination);
         
         // Start playback
         this.whiteNoiseNode.start(0);
@@ -153,6 +202,16 @@ function stopWhiteNoise() {
                 console.warn('Error disconnecting white noise gain node:', e);
             }
             this.whiteNoiseGain = null;
+        }
+        
+        // Disconnect channel merger
+        if (this.channelMerger) {
+            try {
+                this.channelMerger.disconnect();
+            } catch (e) {
+                console.warn('Error disconnecting channel merger:', e);
+            }
+            this.channelMerger = null;
         }
         
         // Stop audio element if it exists
@@ -214,12 +273,12 @@ function setNoiseLevel(levelDb) {
  * Generate a Time-Stretched Pulse (TSP) signal and its inverse filter
  * @param {number} length - Signal length in samples
  * @param {number} sampleRate - Sample rate in Hz
- * @param {string} channel - Output channel ('left', 'right', or 'both')
+ * @param {string} channel - Output channel ('left', 'right', 'all', or specific channel number '2'-'7')
  * @returns {{left: Float32Array, right: Float32Array, length: number, frequencyResponse: Array, peakOffset: number, 
  *   inverseFilter: Float32Array
  * }}
  */
-function generateTSP(length = 65536, sampleRate = 48000, channel = 'both') {
+function generateTSP(length = 65536, sampleRate = 48000, channel = 'all') {
     if (!this.initialized) {
         return null;
     }
@@ -299,16 +358,42 @@ function generateTSP(length = 65536, sampleRate = 48000, channel = 'both') {
     const invNorm = peak > 1e-9 ? 1 / peak : 1;
     for (let i = 0; i < N; i++) inverseFilter[i] *= invNorm;
 
-    // Create output buffers for left and right channels
-    const left = new Float32Array(N);
-    const right = new Float32Array(N);
+    // Get maximum number of channels this device might support
+    const MAX_CHANNELS = 8;
+    
+    // Create output buffers for all possible channels
+    const channelBuffers = [];
+    for (let i = 0; i < MAX_CHANNELS; i++) {
+        channelBuffers.push(new Float32Array(N));
+    }
+    
+    // For backward compatibility
+    const left = channelBuffers[0];
+    const right = channelBuffers[1];
+    
+    // Convert legacy 'both' value to 'all'
+    if (channel === 'both') {
+        channel = 'all';
+    }
+    
+    // Parse channel if it's a string number
+    const targetChannel = parseInt(channel);
     
     // Copy TSP signal to specified channel(s)
-    if (channel === 'left' || channel === 'both') {
+    if (channel === 'left' || channel === '0') {
+        // Left channel only
         left.set(tspSignal);
-    }
-    if (channel === 'right' || channel === 'both') {
+    } else if (channel === 'right' || channel === '1') {
+        // Right channel only
         right.set(tspSignal);
+    } else if (!isNaN(targetChannel) && targetChannel >= 2 && targetChannel < MAX_CHANNELS) {
+        // Specific channel (Ch 3-8)
+        channelBuffers[targetChannel].set(tspSignal);
+    } else {
+        // All channels (default)
+        for (let i = 0; i < MAX_CHANNELS; i++) {
+            channelBuffers[i].set(tspSignal);
+        }
     }
 
     // Save the generated signals for future reference
@@ -337,9 +422,11 @@ function generateTSP(length = 65536, sampleRate = 48000, channel = 'both') {
     }
     this.lastSweepFrequencyResponse = freqResponse;
     
+    // Return buffer with all channels
     return {
         left,
         right,
+        channels: channelBuffers,
         length: N,
         frequencyResponse: freqResponse,
         peakOffset: maxPos,

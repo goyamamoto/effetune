@@ -217,6 +217,41 @@ function stopMicrophoneInput() {
 }
 
 /**
+ * Get the maximum channel count for an audio device
+ * @param {string} deviceId - The device ID to query
+ * @returns {Promise<number>} - The maximum channel count (defaults to 2 if unable to determine)
+ */
+async function getDeviceMaxChannelCount(deviceId = null) {
+    try {
+        // Default to 2 channels if no device specified
+        if (!deviceId) return 2;
+        
+        // Make sure audio context exists and is running
+        if (!this.audioContext) {
+            await this.reinitialize();
+        }
+        
+        // For output devices, we can try to use an OfflineAudioContext
+        // Create a temporary offline context with the maximum number of channels we could expect
+        const MAX_POSSIBLE_CHANNELS = 8;
+        const tempContext = new OfflineAudioContext({
+            numberOfChannels: MAX_POSSIBLE_CHANNELS,
+            length: 1,
+            sampleRate: this.audioContext.sampleRate
+        });
+        
+        // Get the maximum channel count from the destination
+        const maxChannels = tempContext.destination.maxChannelCount || 2;
+        
+        console.log(`Device ${deviceId} max channel count: ${maxChannels}`);
+        return maxChannels;
+    } catch (error) {
+        console.warn('Error determining device max channel count:', error);
+        return 2; // Default to stereo if we can't determine
+    }
+}
+
+/**
  * Create an AudioWorkletNode for level meter
  * @param {string} channel - Input channel ('left', 'right', 'both')
  * @returns {Promise<AudioWorkletNode>} AudioWorkletNode for level meter
@@ -249,14 +284,9 @@ async function createLevelMeterWorkletNode(channel = 'left') {
             }
         });
         
-        // Verify the node was created successfully
-        if (!levelMeterNode) {
-            throw new Error('Failed to create level meter node');
-        }
-        
         return levelMeterNode;
     } catch (error) {
-        throw new Error(`Failed to create level meter node: ${error.message}`);
+        throw new Error(`Failed to create level meter worklet: ${error.message}`);
     }
 }
 
@@ -309,6 +339,7 @@ export {
     enumerateDevices,
     startMicrophoneInput,
     stopMicrophoneInput,
+    getDeviceMaxChannelCount,
     createLevelMeterWorkletNode,
     createRecorderWorkletNode
 }; 

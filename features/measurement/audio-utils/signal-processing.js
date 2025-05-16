@@ -12,6 +12,12 @@ import FFT from './fft.js';
  * @returns {Array} Array of [frequency, magnitude] pairs
  */
 function calculateFFT(timeDomainData, sampleRate = 48000, normalizeWithLastSweep = false) {
+    // Check for null or empty input data
+    if (!timeDomainData || timeDomainData.length === 0) {
+        console.warn('Invalid or empty time domain data provided to calculateFFT');
+        return [];
+    }
+    
     // Find FFT size as power of 2 (2^n)
     const size = Math.pow(2, Math.ceil(Math.log2(timeDomainData.length)));
     
@@ -198,8 +204,20 @@ function calculateFFT(timeDomainData, sampleRate = 48000, normalizeWithLastSweep
  * @returns {Array} Array of [frequency, magnitude] pairs with 0.01 octave spacing
  */
 function calculateFrequencyResponseWithSmoothing(timeDomainData, sampleRate = 48000, normalizeWithLastSweep = false, octaveSmoothing = 0.005) {
+    // Check for null or empty input data
+    if (!timeDomainData || timeDomainData.length === 0) {
+        console.warn('Invalid or empty time domain data provided to calculateFrequencyResponseWithSmoothing');
+        return [];
+    }
+    
     // First calculate the raw FFT response
     const rawResponse = this.calculateFFT(timeDomainData, sampleRate, normalizeWithLastSweep);
+    
+    // Check if raw response is valid
+    if (!rawResponse || rawResponse.length === 0) {
+        console.warn('No frequency response data calculated');
+        return [];
+    }
     
     // Apply gaussian smoothing to raw data first
     console.log(`Applying gaussian smoothing with sigma: ${octaveSmoothing} octaves`);
@@ -308,7 +326,12 @@ function calculateFrequencyResponseWithSmoothing(timeDomainData, sampleRate = 48
  * @returns {Array} Smoothed frequency response
  */
 function smoothFrequencyResponse(frequencyResponse, sigma = 0.3) {
-    if (sigma <= 0 || frequencyResponse.length < 3) {
+    // Check for null or invalid input
+    if (!frequencyResponse || !Array.isArray(frequencyResponse) || frequencyResponse.length < 3) {
+        return frequencyResponse || [];
+    }
+    
+    if (sigma <= 0) {
         return frequencyResponse;
     }
     
