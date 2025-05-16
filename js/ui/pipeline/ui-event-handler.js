@@ -358,6 +358,14 @@ export class UIEventHandler {
     setupPluginSelectionHandlers(pipelineElement) {
         pipelineElement.addEventListener('click', (e) => {
             const pipelineHeader = pipelineElement.querySelector('.pipeline-header');
+            
+            // Skip selection clearing if the click is on the clipboard buttons
+            if (e.target.closest('.cut-button') || 
+                e.target.closest('.copy-button') || 
+                e.target.closest('.paste-button')) {
+                return;
+            }
+            
             if (e.target === pipelineElement ||
                 e.target === this.core.pipelineList ||
                 e.target === pipelineHeader ||

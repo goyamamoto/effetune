@@ -50,11 +50,18 @@ export class UIManager {
         this.initPresetManagement();
         this.initOpenMusicButton();
 
+        // Initialize clipboard buttons
+        this.cutButton = document.getElementById('cutButton');
+        this.copyButton = document.getElementById('copyButton');
+        this.pasteButton = document.getElementById('pasteButton');
+
         // Initialize localization after everything else is set up
         // This is an async operation, but we can't make the constructor async
         this.initLocalization().then(() => {
             // Update UI texts after translations are loaded
             this.updateUITexts();
+            // Initialize clipboard buttons after translations are loaded
+            this.initClipboardButtons();
         }).catch(error => {
             console.error('Failed to initialize localization:', error);
         });
@@ -813,6 +820,45 @@ export class UIManager {
         } catch (error) {
             console.error('Failed to load preset:', error);
             this.setError('error.failedToLoadPreset', true);
+        }
+    }
+
+    /**
+     * Initialize clipboard buttons (cut, copy, paste)
+     */
+    initClipboardButtons() {
+        if (this.cutButton) {
+            this.cutButton.addEventListener('click', (e) => {
+                // Stop event propagation to prevent pipeline click handler from clearing selection
+                e.stopPropagation();
+                
+                this.pipelineManager.clipboardManager.cutSelectedPlugins();
+            });
+        }
+        
+        if (this.copyButton) {
+            this.copyButton.addEventListener('click', (e) => {
+                // Stop event propagation to prevent pipeline click handler from clearing selection
+                e.stopPropagation();
+                
+                this.pipelineManager.clipboardManager.copySelectedPluginsToClipboard();
+            });
+        }
+        
+        if (this.pasteButton) {
+            this.pasteButton.addEventListener('click', (e) => {
+                // Stop event propagation to prevent pipeline click handler from clearing selection
+                e.stopPropagation();
+                
+                navigator.clipboard.readText()
+                    .then(text => {
+                        this.pipelineManager.clipboardManager.handlePaste(text);
+                    })
+                    .catch(err => {
+                        // Failed to read clipboard
+                        this.setError('error.failedToReadClipboard', true);
+                    });
+            });
         }
     }
 }
