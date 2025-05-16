@@ -305,6 +305,11 @@ return data; // Return the modified buffer
         canvas.style.height = '240px';
         
         graphContainer.appendChild(canvas);
+        // Store references to DOM elements for later updates
+        this.container = container;
+        this.graphCanvas = canvas;
+        this.sliders = sliders;
+        this.valueDisplays = valueDisplays;
 
         // Reset button
         const resetButton = document.createElement('button');
@@ -333,105 +338,108 @@ return data; // Return the modified buffer
 
     drawGraph(canvas) {
         const ctx = canvas.getContext('2d');
-        const width = canvas.width;
+        const width  = canvas.width;
         const height = canvas.height;
-
-        // Clear canvas
+    
+        // ---------- constants ----------
+        const SR = (this.audioContext && this.audioContext.sampleRate) || 48000;
+        const Q  = 2.1;
+        const MIN_GAIN_DB = 0.01;               // ≈0 dB threshold ⇒ bypass
+    
+        // ---------- helpers ----------
+        const biquadMag = (f, fc, g) => {
+            if (Math.abs(g) < MIN_GAIN_DB) return 0;          // bypass = 0 dB
+    
+            const A     = Math.pow(10, g / 40);               // RBJ: A = 10^(G/40)
+            const w0    = 2 * Math.PI * fc / SR;
+            const cosw0 = Math.cos(w0);
+            const sinw0 = Math.sin(w0);
+            const alpha = sinw0 / (2 * Q);
+    
+            // un-normalised coeffs
+            const b0 = 1 + alpha * A;
+            const b1 = -2 * cosw0;
+            const b2 = 1 - alpha * A;
+            const a0 = 1 + alpha / A;
+            const a1 = -2 * cosw0;
+            const a2 = 1 - alpha / A;
+    
+            // normalise
+            const bz0 = b0 / a0, bz1 = b1 / a0, bz2 = b2 / a0;
+            const az1 = a1 / a0, az2 = a2 / a0;
+    
+            const w   = 2 * Math.PI * f / SR;
+            const cw  = Math.cos(w), sw = Math.sin(w);
+    
+            // |H(e^jw)|^2  (real arithmetic, no complex lib needed)
+            const numRe = bz0 + bz1 * cw + bz2 * (2 * cw * cw - 1);
+            const numIm = bz1 * sw + bz2 * 2 * cw * sw;
+            const denRe = 1   + az1 * cw + az2 * (2 * cw * cw - 1);
+            const denIm = az1 * sw + az2 * 2 * cw * sw;
+    
+            return 10 * Math.log10((numRe * numRe + numIm * numIm) /
+                                   (denRe * denRe + denIm * denIm));
+        };
+    
+        // ---------- clear ----------
         ctx.clearRect(0, 0, width, height);
-
-        // Draw grid
+    
+        // ---------- grid ----------
         ctx.strokeStyle = '#444';
-        ctx.lineWidth = 1;
-
-        // Vertical grid lines (frequency)
+        ctx.lineWidth   = 1;
+    
         const freqs = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
-        freqs.forEach(freq => {
-            const x = width * (Math.log10(freq) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            ctx.stroke();
-
-            // Frequency labels
-            if (freq !== 20 && freq !== 20000) {
-                ctx.fillStyle = '#666';
-                ctx.font = '20px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(freq >= 1000 ? `${freq/1000}k` : freq, x, height - 40);
-            }
+        freqs.forEach(f => {
+            const x = width * (Math.log10(f) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
         });
-
-        // Horizontal grid lines (dB)
+    
         const dBs = [-24, -18, -12, -6, 0, 6, 12, 18, 24];
         dBs.forEach(db => {
             const y = height * (1 - (db + 24) / 48);
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-
-            // dB labels
-            if (db !== -24 && db !== 24) {
-                ctx.fillStyle = '#666';
-                ctx.font = '20px Arial';
-                ctx.textAlign = 'right';
-                ctx.fillText(`${db}dB`, 80, y + 6);
-            }
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
         });
-
-        // Draw axis labels
-        ctx.fillStyle = '#fff';
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        
-        // Draw "Frequency (Hz)" label
-        ctx.fillText('Frequency (Hz)', width/2, height - 5);
-        
-        // Draw "Level (dB)" label
-        ctx.save();
-        ctx.translate(20, height/2);
-        ctx.rotate(-Math.PI/2);
-        ctx.fillText('Level (dB)', 0, 0);
-        ctx.restore();
-
-        // Draw frequency response
+    
+        // ---------- response ----------
         ctx.beginPath();
         ctx.strokeStyle = '#00ff00';
-        ctx.lineWidth = 2;
-
-        for (let i = 0; i < width; i++) {
-            const freq = Math.pow(10, Math.log10(20) + (i / width) * (Math.log10(20000) - Math.log10(20)));
-            let totalResponse = 0;
-
-            // Calculate response from non-zero gain bands only
-            for (let index = 0; index < FifteenBandGEQPlugin.BANDS.length; index++) {
-                const gain = this['b' + index];
-                // Skip calculation if gain is effectively zero
-                if ((gain >= 0 ? gain : -gain) < 0.01) continue;
-                
-                const bandFreq = FifteenBandGEQPlugin.BANDS[index].freq;
-                const bandResponse = gain * Math.exp(-Math.pow(Math.log(freq/bandFreq), 2) / (2 * Math.pow(0.5, 2)));
-                totalResponse += bandResponse;
+        ctx.lineWidth   = 2;
+    
+        for (let xPix = 0; xPix < width; xPix++) {
+            const f = Math.pow(10,
+                      Math.log10(20) + (xPix / width) * (Math.log10(20000) - Math.log10(20)));
+    
+            let sum = 0;
+            for (let i = 0; i < 15; i++) {
+                const g  = this['b' + i];
+                const fc = FifteenBandGEQPlugin.BANDS[i].freq;
+                sum += biquadMag(f, fc, g);
             }
-
-            const y = height * (1 - (totalResponse + 24) / 48);
-            if (i === 0) {
-                ctx.moveTo(i, y);
-            } else {
-                ctx.lineTo(i, y);
-            }
+    
+            const yPix = height * (1 - (sum + 24) / 48);
+            if (xPix === 0) ctx.moveTo(xPix, yPix);
+            else             ctx.lineTo(xPix, yPix);
         }
         ctx.stroke();
     }
-
+   
     setUIValues() {
-        this.container.querySelector('#geq-enabled').checked = this.enabled;
+        if (!this.container) return;
+        
+        // Update sliders and value displays directly using stored references
         for (let i = 0; i < 15; i++) {
-            this.container.querySelector(`#band-${i}-slider`).value = this['b' + i];
-            this.container.querySelector(`#band-${i}-label`).textContent = `${this['b' + i].toFixed(1)} dB`;
+            if (this.sliders && this.sliders[i]) {
+                this.sliders[i].value = this['b' + i];
+            }
+            if (this.valueDisplays && this.valueDisplays[i]) {
+                this.valueDisplays[i].textContent = this['b' + i].toFixed(1) + ' dB';
+            }
         }
 
-        this.drawGraph(this.graphCanvas);
+        // Redraw the graph using the stored canvas reference
+        if (this.graphCanvas) {
+            this.drawGraph(this.graphCanvas);
+        }
     }
 }
 
