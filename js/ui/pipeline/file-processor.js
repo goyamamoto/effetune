@@ -60,7 +60,7 @@ export class FileProcessor {
                         <div class="progress"></div>
                     </div>
                 <div class="progress-text">${processingText}</div>
-                <button class="cancel-button">${cancelText}</button>
+                <button class="cancel-button" title="${window.uiManager.t('ui.title.cancel')}">${cancelText}</button>
             </div>
             `;
         } else {
@@ -92,7 +92,7 @@ export class FileProcessor {
                         <div class="progress"></div>
                     </div>
                 <div class="progress-text">${processingText}</div>
-                <button class="cancel-button">${cancelText}</button>
+                <button class="cancel-button" title="${window.uiManager.t('ui.title.cancel')}">${cancelText}</button>
             </div>
             `;
         }

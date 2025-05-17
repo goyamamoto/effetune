@@ -349,7 +349,7 @@ class ElectronIntegration {
             <div class="about-copyright">Copyright © Frieve 2025</div>
           </div>
           <div class="dialog-buttons">
-            <button id="close-button">Close</button>
+            <button id="close-button" title="${t('ui.title.close')}">Close</button>
           </div>
         </div>
       `;

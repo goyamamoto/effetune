@@ -200,8 +200,8 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
           </select>
         </div>
         <div class="dialog-buttons">
-          <button id="cancel-button">${t('dialog.audioConfig.cancel')}</button>
-          <button id="apply-button">${t('dialog.audioConfig.apply')}</button>
+          <button id="cancel-button" title="${t('ui.title.cancel')}">${t('dialog.audioConfig.cancel')}</button>
+          <button id="apply-button" title="${t('ui.title.apply')}">${t('dialog.audioConfig.apply')}</button>
         </div>
       </div>
     `;

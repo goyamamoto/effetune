@@ -531,12 +531,57 @@ export class UIManager {
         const effectSearchInput = document.getElementById('effectSearchInput');
          if (effectSearchInput) {
             effectSearchInput.placeholder = this.t('ui.searchEffectsPlaceholder');
+            effectSearchInput.title = this.t('ui.title.searchEffects');
          }
 
         // Update reset button text based on environment
         const isElectron = window.electronIntegration && window.electronIntegration.isElectronEnvironment();
         if (this.resetButton) {
             this.resetButton.textContent = isElectron ? this.t('ui.configAudioButton') : this.t('ui.resetButton');
+            this.resetButton.title = this.t('ui.title.resetAudio');
+        }
+
+        if (this.openMusicButton) {
+            this.openMusicButton.title = this.t('ui.title.openMusic');
+        }
+        const sidebarButton = document.getElementById('sidebarButton');
+        if (sidebarButton) {
+            sidebarButton.title = this.t('ui.title.togglePluginList');
+        }
+        const masterToggle = document.querySelector('.toggle-button.master-toggle');
+        if (masterToggle) {
+            masterToggle.title = this.t('ui.title.masterToggle');
+        }
+        const cutButton = document.getElementById('cutButton');
+        if (cutButton) {
+            cutButton.title = this.t('ui.title.cutSettings');
+        }
+        const copyButton = document.getElementById('copyButton');
+        if (copyButton) {
+            copyButton.title = this.t('ui.title.copySettings');
+        }
+        const pasteButton = document.getElementById('pasteButton');
+        if (pasteButton) {
+            pasteButton.title = this.t('ui.title.pasteSettings');
+        }
+        if (shareButton) {
+            shareButton.title = this.t('ui.title.sharePipeline');
+        }
+        const savePresetButton = document.getElementById('savePresetButton');
+        if (savePresetButton) {
+            savePresetButton.title = this.t('ui.title.savePreset');
+        }
+        const deletePresetButton = document.getElementById('deletePresetButton');
+        if (deletePresetButton) {
+            deletePresetButton.title = this.t('ui.title.deletePreset');
+        }
+        const decreaseColumnsButton = document.getElementById('decreaseColumnsButton');
+        if (decreaseColumnsButton) {
+            decreaseColumnsButton.title = this.t('ui.title.decreaseColumns');
+        }
+        const increaseColumnsButton = document.getElementById('increaseColumnsButton');
+        if (increaseColumnsButton) {
+            increaseColumnsButton.title = this.t('ui.title.increaseColumns');
         }
 
         // Update drag message in plugin list manager

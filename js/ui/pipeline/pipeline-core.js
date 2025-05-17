@@ -92,6 +92,7 @@ export class PipelineCore {
         const toggle = document.createElement('button');
         toggle.className = 'toggle-button';
         toggle.textContent = 'ON';
+        toggle.title = window.uiManager.t('ui.title.enableEffect');
         toggle.classList.toggle('off', !plugin.enabled);
         toggle.onclick = (e) => {
             plugin.enabled = !plugin.enabled;
@@ -156,7 +157,7 @@ export class PipelineCore {
                 }
                 busInfo.textContent += `${channelName}`;
             }
-            busInfo.title = 'Click to configure bus routing';
+            busInfo.title = window.uiManager.t('ui.title.busInfo');
             busInfo.style.cursor = 'pointer';
             
             // Make the bus info clickable to open the routing dialog
@@ -178,7 +179,7 @@ export class PipelineCore {
             // Routing button
             const routingBtn = document.createElement('button');
             routingBtn.className = 'routing-button';
-            routingBtn.title = 'Configure bus routing';
+            routingBtn.title = window.uiManager.t('ui.title.routing');
             
             // Use the routing button image
             const routingImg = document.createElement('img');
@@ -202,7 +203,7 @@ export class PipelineCore {
         const moveUpBtn = document.createElement('button');
         moveUpBtn.className = 'move-up-button';
         moveUpBtn.textContent = '▲';
-        moveUpBtn.title = 'Move effect up';
+        moveUpBtn.title = window.uiManager.t('ui.title.moveUp');
         moveUpBtn.onclick = (e) => {
             // Use the common selection function
             this.handlePluginSelection(plugin, e);
@@ -238,7 +239,7 @@ export class PipelineCore {
         const moveDownBtn = document.createElement('button');
         moveDownBtn.className = 'move-down-button';
         moveDownBtn.textContent = '▼';
-        moveDownBtn.title = 'Move effect down';
+        moveDownBtn.title = window.uiManager.t('ui.title.moveDown');
         moveDownBtn.onclick = (e) => {
             // Use the common selection function
             this.handlePluginSelection(plugin, e);
@@ -274,6 +275,7 @@ export class PipelineCore {
         const helpBtn = document.createElement('button');
         helpBtn.className = 'help-button';
         helpBtn.textContent = '?';
+        helpBtn.title = window.uiManager.t('ui.title.pluginHelp');
         helpBtn.onclick = (e) => {
             const category = Object.entries(this.pluginManager.effectCategories)
                 .find(([_, {plugins}]) => plugins.includes(plugin.name))?.[0];
@@ -312,6 +314,7 @@ export class PipelineCore {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-button';
         deleteBtn.textContent = '✖';
+        deleteBtn.title = window.uiManager.t('ui.title.deleteEffect');
         deleteBtn.onclick = (e) => {
             // Use the common selection function
             this.handlePluginSelection(plugin, e);
@@ -468,7 +471,7 @@ export class PipelineCore {
                 // Update all titles
                 this.pipelineList.querySelectorAll('.plugin-name').forEach((nameEl, index) => {
                     const p = this.audioManager.pipeline[index];
-                    nameEl.title = this.expandedPlugins.has(p) ? 'Click to collapse' : 'Click to expand';
+                    nameEl.title = this.expandedPlugins.has(p) ? window.uiManager.t('ui.title.collapse') : window.uiManager.t('ui.title.expand');
                 });
                 
                 return; // Skip individual toggle since we've handled all plugins
@@ -487,9 +490,9 @@ export class PipelineCore {
             } else {
                 this.expandedPlugins.delete(plugin);
             }
-            name.title = isExpanded ? 'Click to collapse' : 'Click to expand';
+            name.title = isExpanded ? window.uiManager.t('ui.title.collapse') : window.uiManager.t('ui.title.expand');
         };
-        name.title = this.expandedPlugins.has(plugin) ? 'Click to collapse' : 'Click to expand';
+        name.title = this.expandedPlugins.has(plugin) ? window.uiManager.t('ui.title.collapse') : window.uiManager.t('ui.title.expand');
 
         // Setup drag events (will be handled by UIEventHandler)
         if (this.pipelineManager && this.pipelineManager.uiEventHandler) {
@@ -736,6 +739,7 @@ export class PipelineCore {
     createMasterToggle() {
         this.masterToggle = document.querySelector('.toggle-button.master-toggle');
         if (!this.masterToggle) return;
+        this.masterToggle.title = window.uiManager.t('ui.title.masterToggle');
 
         this.masterToggle.onclick = () => {
             this.enabled = !this.enabled;
@@ -861,6 +865,7 @@ export class PipelineCore {
         const closeBtn = document.createElement('button');
         closeBtn.className = 'routing-dialog-close';
         closeBtn.textContent = '✕';
+        closeBtn.title = window.uiManager.t('ui.title.close');
         closeBtn.onclick = () => dialog.remove();
         header.appendChild(closeBtn);
         dialog.appendChild(header);
@@ -1066,7 +1071,7 @@ export class PipelineCore {
             // Combine bus and channel info
             busInfo.textContent = [busText, channelText].filter(Boolean).join(' '); // Filter out empty strings and join with space
 
-            busInfo.title = 'Click to configure bus routing';
+            busInfo.title = window.uiManager.t('ui.title.busInfo');
             busInfo.style.cursor = 'pointer';
             
             // Make the bus info clickable to open the routing dialog
