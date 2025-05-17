@@ -65,9 +65,14 @@ class MultiChannelPanelPlugin extends PluginBase {
                 }
             }
 
-            // Array to store the peak sample values for each channel in the current audio block.
-            // These values are used for metering on the main thread.
-            const currentBlockPeakValues = new Float32Array(numChannelsToProcess);
+            // Allocate peak value storage when channel count or block size changes.
+            if (!context.currentBlockPeakValues ||
+                context.currentBlockPeakValues.length !== numChannelsToProcess ||
+                context.currentBlockPeakValuesBlockSize !== blockSize) {
+                context.currentBlockPeakValues = new Float32Array(numChannelsToProcess);
+                context.currentBlockPeakValuesBlockSize = blockSize;
+            }
+            const currentBlockPeakValues = context.currentBlockPeakValues;
 
             // --- Main processing loop for each channel ---
             for (let ch = 0; ch < numChannelsToProcess; ch++) {

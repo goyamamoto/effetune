@@ -359,17 +359,25 @@ class SpectrogramPlugin extends PluginBase {
         pointsValue.value = 1 << this.pt; pointsValue.step = 1; pointsValue.min = 1 << 8; pointsValue.max = 1 << 14; pointsValue.autocomplete = "off";
         const pointsHandler = (e) => {
             const value = parseInt(e.target.value, 10);
-            pointsValue.value = 1 << value; this.setPoints(value);
+            pointsValue.value = 1 << value;
+            this.setPoints(value);
         };
         pointsSlider.addEventListener('input', pointsHandler);
         this.boundEventListeners.set(pointsSlider, pointsHandler);
-        pointsValue.addEventListener('change', (e) => { // Sync from number input
+
+        const pointsValueHandler = (e) => { // Sync from number input
             const numFFTPoints = parseInt(e.target.value);
             const exponent = Math.round(Math.log2(numFFTPoints));
             if (exponent >= 8 && exponent <= 14) {
-                pointsSlider.value = exponent; pointsValue.value = 1 << exponent; this.setPoints(exponent);
-            } else { pointsValue.value = 1 << this.pt; }
-        });
+                pointsSlider.value = exponent;
+                pointsValue.value = 1 << exponent;
+                this.setPoints(exponent);
+            } else {
+                pointsValue.value = 1 << this.pt;
+            }
+        };
+        pointsValue.addEventListener('change', pointsValueHandler);
+        this.boundEventListeners.set(pointsValue, pointsValueHandler);
         pointsRow.appendChild(pointsLabel); pointsRow.appendChild(pointsSlider); pointsRow.appendChild(pointsValue);
         container.appendChild(pointsRow);
 
@@ -403,7 +411,25 @@ class SpectrogramPlugin extends PluginBase {
     handleIntersect(entries) { /* ... (same as original) ... */ entries.forEach(entry => {this.isVisible = entry.isIntersecting; if (this.isVisible) {this.startAnimation();} else {this.stopAnimation();}}); }
     startAnimation() { /* ... (same as original) ... */ if (this.animationFrameId) return; const animate = () => {if (!this.isVisible) {this.stopAnimation(); return;} this.drawGraph(); this.animationFrameId = requestAnimationFrame(animate);}; animate(); }
     stopAnimation() { /* ... (same as original) ... */ if (this.animationFrameId) {cancelAnimationFrame(this.animationFrameId); this.animationFrameId = null;} }
-    cleanup() { /* ... (mostly same, ensure listeners are correctly removed if stored differently) ... */ this.stopAnimation(); if(this.observer && this.canvas) {this.observer.unobserve(this.canvas);} this.boundEventListeners.forEach((listener, element) => { element.removeEventListener('input', listener); element.removeEventListener('change', listener);}); this.boundEventListeners.clear(); this.tempCtx=null; this.tempCanvas=null; this.canvasCtx=null; this.canvas=null; this.imageDataCache=null; this.spectrogramBuffer=null; /* etc. */ }
+    cleanup() { /* ... (mostly same, ensure listeners are correctly removed if stored differently) ... */
+        this.stopAnimation();
+        if (this.observer && this.canvas) {
+            this.observer.unobserve(this.canvas);
+            this.observer.disconnect();
+        }
+        this.boundEventListeners.forEach((listener, element) => {
+            element.removeEventListener('input', listener);
+            element.removeEventListener('change', listener);
+        });
+        this.boundEventListeners.clear();
+        this.tempCtx = null;
+        this.tempCanvas = null;
+        this.canvasCtx = null;
+        this.canvas = null;
+        this.imageDataCache = null;
+        this.spectrogramBuffer = null; /* etc. */
+        this.observer = null;
+    }
 
 
     dbToColor(db) {

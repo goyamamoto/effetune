@@ -108,7 +108,7 @@
         .progress-text {
             margin-top: 5px;
         }
-        .copy-button {
+        .copy-benchmark-result-button {
             padding: 6px 12px;
             background-color: #444;
             border: 1px solid #555;
@@ -120,13 +120,13 @@
             align-items: center;
             font-size: 14px;
         }
-        .copy-button:hover {
+        .copy-benchmark-result-button:hover {
             background-color: #555;
         }
-        .copy-button:active {
+        .copy-benchmark-result-button:active {
             background-color: #666;
         }
-        .copy-button svg {
+        .copy-benchmark-result-button svg {
             margin-right: 6px;
             width: 16px;
             height: 16px;
@@ -515,7 +515,7 @@
                 copyButtonContainer.style.textAlign = 'left';
 
                 const copyButton = document.createElement('button');
-                copyButton.className = 'copy-button';
+                copyButton.className = 'copy-benchmark-result-button';
                 copyButton.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

@@ -17,6 +17,7 @@ class NoiseBlenderPlugin extends PluginBase {
             // Store state variables per channel. Pink: 7 (b0-b6), Brown: 2 (lastBrown, dcOffset)
             const needsPinkInit = !context.pinkNoiseState || context.pinkNoiseState.length !== channelCount;
             const needsBrownInit = !context.brownNoiseState || context.brownNoiseState.length !== channelCount;
+            const needsNoiseBufferInit = !context.noiseBuffer || context.noiseBuffer.length !== blockSize;
 
             if (needsPinkInit) {
                 context.pinkNoiseState = new Array(channelCount);
@@ -29,6 +30,9 @@ class NoiseBlenderPlugin extends PluginBase {
                 for (let ch = 0; ch < channelCount; ch++) {
                     context.brownNoiseState[ch] = new Float32Array(2).fill(0.0); // lastBrown, dcOffset
                 }
+            }
+            if (needsNoiseBufferInit) {
+                context.noiseBuffer = new Float32Array(blockSize);
             }
             // Mark context as initialized after first setup
             if (!context.initialized) context.initialized = true;
@@ -118,8 +122,8 @@ class NoiseBlenderPlugin extends PluginBase {
 
             } else {
                 // --- Generate Single Noise Source, Apply to All Channels ---
-                // Allocate a temporary buffer for the shared noise signal
-                const noiseBuffer = new Float32Array(blockSize);
+                // Use the pre-allocated buffer for the shared noise signal
+                const noiseBuffer = context.noiseBuffer;
                 // Use state from channel 0 for the shared pink noise generation
                 const pinkState = context.pinkNoiseState[0];
                 const brownState = context.brownNoiseState[0]; // Use channel 0 state for shared brown noise

@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.52 (Mar xx, 2025)
+- Added Cut, Copy and Paste buttons
+- Various minor improvements
+
 ### Version 1.51 (Mar 13, 2025)
 - Added MultiChannel Panel and 15Band PEQ effects
 - 15band PEQ can now import text formats used by Equalizer APO and other software

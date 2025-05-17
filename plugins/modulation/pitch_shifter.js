@@ -180,8 +180,11 @@ class PitchShifterPlugin extends PluginBase {
 
 
             // --- Output Generation ---
-            // Allocate final output array (needs to be done *after* potential buffer resize)
-            const finalOutput = new Float32Array(data.length);
+            // Allocate/reuse final output buffer when block size changes
+            if (!context.finalOutput || context.finalOutput.length !== data.length) {
+                context.finalOutput = new Float32Array(data.length);
+            }
+            const finalOutput = context.finalOutput;
 
             for (let ch = 0; ch < channelCount; ch++) {
                 const outBuf = context.outputBuffer[ch];
@@ -269,7 +272,9 @@ class PitchShifterPlugin extends PluginBase {
                 context.outputReadPos[ch] = readPos;
             }
 
-            return finalOutput; // Return the processed audio data
+            // Copy final output back to the provided buffer
+            data.set(finalOutput);
+            return data;
         `);
     }
 

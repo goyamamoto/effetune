@@ -50,7 +50,11 @@ class OscillatorPlugin extends PluginBase {
             const panGainR = Math.sin(panAngle);
 
             // --- Generate Source Samples (Mono) ---
-            const samples = new Float32Array(blockSize); // Use Float32Array for samples
+            if (!context.samples || context.blockSize !== blockSize) {
+                context.samples = new Float32Array(blockSize); // Allocate when block size changes
+                context.blockSize = blockSize;
+            }
+            const samples = context.samples;
 
             // --- Sample Generation ---
 

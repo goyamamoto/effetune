@@ -40,8 +40,12 @@ class SpectrumAnalyzerPlugin extends PluginBase {
     }
 
     static processorFunction = `
-        // Create result buffer
-        const result = new Float32Array(data.length);
+        // Reuse result buffer from context
+        let result = context.resultBuffer;
+        if (!result || result.length !== data.length) {
+            result = new Float32Array(data.length);
+            context.resultBuffer = result;
+        }
         result.set(data);
 
         const { channelCount, blockSize, pt } = parameters; // Removed ch

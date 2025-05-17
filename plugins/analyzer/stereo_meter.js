@@ -24,6 +24,13 @@ class StereoMeterPlugin extends PluginBase {
     }
     this.observer = null;
 
+    // Persistent buffers for drawing
+    this.buckets = new Array(256);
+    for (let i = 0; i < 256; i++) {
+      this.buckets[i] = [];
+    }
+    this.smoothedPeaks = new Float32Array(360);
+
     // Register the Audio Worklet Processor
     this.registerProcessor(`
     // --- Optimization: Pre-calculate constant ---
@@ -323,10 +330,10 @@ class StereoMeterPlugin extends PluginBase {
     const endPos = this.currentMeasurements.currentPosition;
     const startIndex = (endPos - samplesNeeded + bufferLength) % bufferLength;
 
-    // Create buckets for each green value (0–255)
-    const buckets = new Array(256);
+    // Reset persistent buckets
+    const buckets = this.buckets;
     for (let i = 0; i < 256; i++) {
-      buckets[i] = [];
+      buckets[i].length = 0;
     }
     
     // Distribute samples into buckets based on intensity.
@@ -357,7 +364,7 @@ class StereoMeterPlugin extends PluginBase {
     }
 
     // Smooth the 360° peak buffer using a Gaussian (sigma = 5°).
-    const smoothedPeaks = new Float32Array(360);
+    const smoothedPeaks = this.smoothedPeaks;
     const sigma = 5;
     const gaussianRange = Math.ceil(sigma * 3);
     const { peakBuffer } = this.currentMeasurements;
