@@ -287,7 +287,7 @@ const AudioProcessing = {
                                 
                                 // Use setSinkId if available
                                 if (typeof audioElement.setSinkId === 'function') {
-                                    // 非同期処理をPromiseとして実行
+                                    // Execute asynchronously using a Promise
                                     (async () => {
                                         try {
                                             await audioElement.setSinkId(outputDeviceId);

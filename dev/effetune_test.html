@@ -244,7 +244,7 @@
 
                 // Test 5: Audio processing test
                 try {
-                    const SAMPLE_RATE = 44100;
+                    const SAMPLE_RATE = 96000;
                     const BUFFER_SIZE = 128;
                     const DURATION = 1; // 1 second
                     const NUM_BLOCKS = Math.ceil(SAMPLE_RATE * DURATION / BUFFER_SIZE);
@@ -255,14 +255,16 @@
                     params.blockSize = BUFFER_SIZE;
                     params.sampleRate = SAMPLE_RATE;
 
-                    let success = true;
+                    // Preserve processing state across blocks
+                    const context = { sampleRate: SAMPLE_RATE };
+                                        let success = true;
                     let errorMessage = null;
 
                     // Process blocks for 1 second
                     for (let i = 0; i < NUM_BLOCKS && success; i++) {
                         const inputData = new Float32Array(BUFFER_SIZE * 2); // stereo
                         try {
-                            const result = plugin.executeProcessor({}, inputData, params, i * BUFFER_SIZE / SAMPLE_RATE);
+                            const result = plugin.executeProcessor(context, inputData, params, i * BUFFER_SIZE / SAMPLE_RATE);
                             if (!(result instanceof Float32Array) || result.length !== inputData.length) {
                                 success = false;
                                 errorMessage = 'Invalid processor output';
@@ -304,11 +306,12 @@
                     
                     // Process some audio
                     const testData = new Float32Array(1024);
-                    tempPlugin.executeProcessor({}, testData, {
-                        channelCount: 2,
-                        blockSize: 512,
-                        sampleRate: 44100
-                    }, 0);
+                    const tempParams = tempPlugin.getParameters();
+                    tempParams.channelCount = 2;
+                    tempParams.blockSize = 128;
+                    tempParams.sampleRate = 96000;
+                    const context = { sampleRate: 96000 };
+                    tempPlugin.executeProcessor(context, testData, tempParams, 0);
                     
                     // Cleanup
                     tempPlugin.cleanup();

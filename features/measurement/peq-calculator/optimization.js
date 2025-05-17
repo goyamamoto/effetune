@@ -221,7 +221,7 @@ function calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFre
       if (regularization.gainWeight > 0) {
         // For each filter, add the gain regularization derivative
         for (let k = 0; k < numFilters; k++) {
-          // 各フィルターの正則化に対する微分を初期化
+          // Initialize derivative for the regularization of each filter
           jacobian[i][regTermIdx + k] = 0;
           
           if (paramType === 0 && k === filterIdx) { // Only affects the specific gain parameter
@@ -238,7 +238,7 @@ function calculateJacobian(params, freq, targetDb, boundsLow, boundsHigh, lowFre
       if (regularization.qWeight > 0) {
         // For each filter, add the Q regularization derivative
         for (let k = 0; k < numFilters; k++) {
-          // 各フィルターのQ正則化に対する微分を初期化
+          // Initialize derivative for the Q regularization of each filter
           jacobian[i][regTermIdx + k] = 0;
           
           if (paramType === 1 && k === filterIdx) { // Only affects this specific Q parameter

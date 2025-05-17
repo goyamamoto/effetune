@@ -1,7 +1,8 @@
 # Version History
 
-### Version 1.52 (Mar xx, 2025)
+### Version 1.52 (Mar 17, 2025)
 - Added Cut, Copy and Paste buttons
+- Added latency settings to the Audio Config of the app version to improve playback stability
 - Various minor improvements
 
 ### Version 1.51 (Mar 13, 2025)

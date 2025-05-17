@@ -63,6 +63,14 @@ export class AudioContextManager {
                         audioContextOptions.sampleRate = preferences.sampleRate;
                     }
                     
+                    // Add latencyHint from preferences if available
+                    if (preferences && preferences.latencyHint) {
+                        audioContextOptions.latencyHint = preferences.latencyHint;
+                    } else {
+                        // Default to interactive if not specified
+                        audioContextOptions.latencyHint = 'interactive';
+                    }
+                    
                     // Try to set sinkId if available (experimental Chrome/Chromium feature)
                     if (preferences && preferences.outputDeviceId) {
                         // This is an experimental feature in Chrome/Chromium
@@ -73,6 +81,7 @@ export class AudioContextManager {
                 
                 // Create audio context with options
                 this.audioContext = new AudioContext(audioContextOptions);
+                console.log('AudioContext created with options:', audioContextOptions);
                 window.audioContext = this.audioContext; // Global reference
                 
                 // Set audio context destination channel count based on preferences

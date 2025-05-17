@@ -300,7 +300,7 @@ input[type="checkbox"] {
     display: flex;
     align-items: center;
     cursor: pointer;
-    align-self: start; /* 上寄せ表示 */
+    align-self: start; /* align to top */
 }
 
 .collapse-indicator {
