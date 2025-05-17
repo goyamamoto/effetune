@@ -1,12 +1,12 @@
 {
   // Mensagens de erro e notificações
   "error.invalidUrl": "Parâmetros de URL inválidos: {message}",
-  "error.invalidPresetData": "Dados do predefinido inválidos",
-  "error.failedToLoadPreset": "Falha ao carregar o predefinido",
-  "error.noPresetSelected": "Nenhum predefinido selecionado",
+  "error.invalidPresetData": "Dados de predefinição inválidos",
+  "error.failedToLoadPreset": "Falha ao carregar predefinição",
+  "error.noPresetSelected": "Nenhuma predefinição selecionada",
   "error.failedToCutSettings": "Falha ao recortar configurações para a área de transferência",
   "error.failedToCopySettings": "Falha ao copiar configurações para a área de transferência",
-  "error.failedToPasteSettings": "Falha ao colar configurações do plugin",
+  "error.failedToPasteSettings": "Falha ao colar configurações do efeito",
   "error.failedToReadClipboard": "Falha ao ler a área de transferência",
   "error.unknownPresetFormat": "Formato de predefinido desconhecido",
   "error.failedToParsePresetFile": "Falha ao analisar o arquivo do predefinido",
@@ -23,12 +23,12 @@
 
   // Mensagens de sucesso
   "success.urlCopied": "URL copiada para a área de transferência!",
-  "success.presetSaved": "Predefinido \"{name}\" salvo!",
-  "success.presetLoaded": "Predefinido \"{name}\" carregado!",
-  "success.presetDeleted": "Predefinido \"{name}\" excluído!",
-  "success.settingsCut": "Configurações do plugin recortadas para a área de transferência!",
-  "success.settingsCopied": "Configurações do plugin copiadas para a área de transferência!",
-  "success.settingsPasted": "Configurações do plugin coladas com sucesso!",
+  "success.presetSaved": "Predefinição \"{name}\" salva!",
+  "success.presetLoaded": "Predefinição \"{name}\" carregada!",
+  "success.presetDeleted": "Predefinição \"{name}\" excluída!",
+  "success.settingsCut": "Configurações do efeito recortadas para a área de transferência!",
+  "success.settingsCopied": "Configurações do efeito copiadas para a área de transferência!",
+  "success.settingsPasted": "Configurações do efeito coladas com sucesso!",
 
   // Mensagens de status
   "status.configuringAudio": "Configurando dispositivos de áudio...",
@@ -52,12 +52,12 @@
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "Abrir arquivos de música",
-  "ui.title.sidebar": "Alternar lista de plugins",
+  "ui.title.sidebar": "Alternar lista de efeitos",
   "ui.title.searchEffects": "Buscar efeitos",
   "ui.title.masterToggle": "Ativar ou desativar todos os efeitos",
-  "ui.title.cut": "Cortar configurações",
-  "ui.title.copy": "Copiar configurações",
-  "ui.title.paste": "Colar configurações",
+  "ui.title.cut": "Cortar efeitos",
+  "ui.title.copy": "Copiar efeitos",
+  "ui.title.paste": "Colar efeitos",
   "ui.title.savePreset": "Salvar preset",
   "ui.title.deletePreset": "Excluir preset",
   "ui.title.sharePipeline": "Compartilhar pipeline",
@@ -74,7 +74,7 @@
   "ui.title.configureBusRouting": "Configurar roteamento de bus",
   "ui.title.moveUp": "Mover efeito para cima",
   "ui.title.moveDown": "Mover efeito para baixo",
-  "ui.title.pluginDocs": "Abrir documentação do plugin",
+  "ui.title.pluginDocs": "Abrir documentação do efeito",
   "ui.title.deleteEffect": "Excluir efeito",
   "ui.title.close": "Fechar",
   "ui.title.expand": "Clique para expandir",

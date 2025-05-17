@@ -4,9 +4,9 @@
   "error.invalidPresetData": "Données de préréglage invalides",
   "error.failedToLoadPreset": "Échec du chargement du préréglage",
   "error.noPresetSelected": "Aucun préréglage sélectionné",
-  "error.failedToCutSettings": "Échec de la découpe des paramètres dans le presse-papiers",
+  "error.failedToCutSettings": "Échec de la coupe des paramètres dans le presse-papiers",
   "error.failedToCopySettings": "Échec de la copie des paramètres dans le presse-papiers",
-  "error.failedToPasteSettings": "Échec du collage des paramètres du plugin",
+  "error.failedToPasteSettings": "Échec du collage des paramètres de l'effet",
   "error.failedToReadClipboard": "Échec de la lecture du presse-papiers",
   "error.unknownPresetFormat": "Format de préréglage inconnu",
   "error.failedToParsePresetFile": "Échec de l'analyse du fichier de préréglage",
@@ -26,9 +26,9 @@
   "success.presetSaved": "Préréglage \"{name}\" enregistré !",
   "success.presetLoaded": "Préréglage \"{name}\" chargé !",
   "success.presetDeleted": "Préréglage \"{name}\" supprimé !",
-  "success.settingsCut": "Paramètres du plugin coupés dans le presse-papiers !",
-  "success.settingsCopied": "Paramètres du plugin copiés dans le presse-papiers !",
-  "success.settingsPasted": "Paramètres du plugin collés avec succès !",
+  "success.settingsCut": "Paramètres de l'effet coupés dans le presse-papiers !",
+  "success.settingsCopied": "Paramètres de l'effet copiés dans le presse-papiers !",
+  "success.settingsPasted": "Paramètres de l'effet collés avec succès !",
 
   // Messages d'état
   "status.configuringAudio": "Configuration des périphériques audio...",
@@ -50,14 +50,14 @@
   "ui.sleepMode": "Mode veille",
   "ui.whatsThisApp": "Qu'est-ce que cette application ?",
 
-  // Infos-bulles affichées au survol de l’interface
+  // Infos-bulles affichées au survol de l'interface
   "ui.title.openMusic": "Ouvrir des fichiers musicaux",
-  "ui.title.sidebar": "Basculer la liste des plugins",
+  "ui.title.sidebar": "Basculer la liste des effets",
   "ui.title.searchEffects": "Rechercher des effets",
   "ui.title.masterToggle": "Activer ou désactiver tous les effets",
-  "ui.title.cut": "Couper les réglages",
-  "ui.title.copy": "Copier les réglages",
-  "ui.title.paste": "Coller les réglages",
+  "ui.title.cut": "Couper les effets",
+  "ui.title.copy": "Copier les effets",
+  "ui.title.paste": "Coller les effets",
   "ui.title.savePreset": "Enregistrer le preset",
   "ui.title.deletePreset": "Supprimer le preset",
   "ui.title.sharePipeline": "Partager la chaîne",
@@ -74,7 +74,7 @@
   "ui.title.configureBusRouting": "Configurer le routage des bus",
   "ui.title.moveUp": "Monter l'effet",
   "ui.title.moveDown": "Descendre l'effet",
-  "ui.title.pluginDocs": "Ouvrir la documentation du plugin",
+  "ui.title.pluginDocs": "Ouvrir la documentation de l'effet",
   "ui.title.deleteEffect": "Supprimer l'effet",
   "ui.title.close": "Fermer",
   "ui.title.expand": "Cliquer pour développer",
@@ -126,7 +126,7 @@
   "menu.settings": "Paramètres",
   "menu.settings.audioDevices": "Périphériques audio...",
   "menu.settings.performanceBenchmark": "Référence de performance",
-  "menu.settings.frequencyResponseMeasurement": "Mesure de la réponse en fréquence"
+  "menu.settings.frequencyResponseMeasurement": "Mesure de la réponse en fréquence",
 
   "menu.help": "Aide",
   "menu.help.help": "Aide",
