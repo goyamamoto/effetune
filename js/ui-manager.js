@@ -51,6 +51,8 @@ export class UIManager {
         this.initOpenMusicButton();
 
         // Initialize clipboard buttons
+        this.undoButton = document.getElementById('undoButton');
+        this.redoButton = document.getElementById('redoButton');
         this.cutButton = document.getElementById('cutButton');
         this.copyButton = document.getElementById('copyButton');
         this.pasteButton = document.getElementById('pasteButton');
@@ -62,6 +64,8 @@ export class UIManager {
             this.updateUITexts();
             // Initialize clipboard buttons after translations are loaded
             this.initClipboardButtons();
+            // Initialize history buttons after translations are loaded
+            this.initHistoryButtons();
         }).catch(error => {
             console.error('Failed to initialize localization:', error);
         });
@@ -568,6 +572,16 @@ export class UIManager {
             masterToggle.title = this.t('ui.title.masterToggle');
         }
 
+        const undoButton = document.getElementById('undoButton');
+        if (undoButton) {
+            undoButton.title = this.t('ui.title.undo');
+        }
+
+        const redoButton = document.getElementById('redoButton');
+        if (redoButton) {
+            redoButton.title = this.t('ui.title.redo');
+        }
+
         const cutButton = document.getElementById('cutButton');
         if (cutButton) {
             cutButton.title = this.t('ui.title.cut');
@@ -918,6 +932,25 @@ export class UIManager {
                         // Failed to read clipboard
                         this.setError('error.failedToReadClipboard', true);
                     });
+            });
+        }
+    }
+
+    /**
+     * Initialize undo/redo buttons
+     */
+    initHistoryButtons() {
+        if (this.undoButton) {
+            this.undoButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.pipelineManager.undo();
+            });
+        }
+
+        if (this.redoButton) {
+            this.redoButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.pipelineManager.redo();
             });
         }
     }

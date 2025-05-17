@@ -54,6 +54,8 @@
   "ui.title.sidebar": "エフェクト一覧の表示/非表示",
   "ui.title.searchEffects": "エフェクトを検索",
   "ui.title.masterToggle": "すべてのエフェクトを有効/無効",
+  "ui.title.undo": "元に戻す",
+  "ui.title.redo": "やり直す",
   "ui.title.cut": "エフェクトを切り取り",
   "ui.title.copy": "エフェクトをコピー",
   "ui.title.paste": "エフェクトを貼り付け",

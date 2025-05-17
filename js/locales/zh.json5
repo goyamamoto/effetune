@@ -55,6 +55,8 @@
   "ui.title.sidebar": "切换效果列表",
   "ui.title.searchEffects": "搜索效果",
   "ui.title.masterToggle": "启用或禁用所有效果",
+  "ui.title.undo": "撤销",
+  "ui.title.redo": "重做",
   "ui.title.cut": "剪切效果",
   "ui.title.copy": "复制效果",
   "ui.title.paste": "粘贴效果",

@@ -55,6 +55,8 @@
   "ui.title.sidebar": "이펙트 목록 전환",
   "ui.title.searchEffects": "이펙트 검색",
   "ui.title.masterToggle": "모든 이펙트 활성화/비활성화",
+  "ui.title.undo": "실행 취소",
+  "ui.title.redo": "다시 실행",
   "ui.title.cut": "이펙트 잘라내기",
   "ui.title.copy": "이펙트 복사",
   "ui.title.paste": "이펙트 붙여넣기",

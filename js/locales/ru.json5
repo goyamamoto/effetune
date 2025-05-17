@@ -55,6 +55,8 @@
   "ui.title.sidebar": "Показать/скрыть список эффектов",
   "ui.title.searchEffects": "Поиск эффектов",
   "ui.title.masterToggle": "Включить или выключить все эффекты",
+  "ui.title.undo": "Отменить",
+  "ui.title.redo": "Повторить",
   "ui.title.cut": "Вырезать эффекты",
   "ui.title.copy": "Копировать эффекты",
   "ui.title.paste": "Вставить эффекты",

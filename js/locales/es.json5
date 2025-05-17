@@ -55,6 +55,8 @@
   "ui.title.sidebar": "Mostrar u ocultar la lista de efectos",
   "ui.title.searchEffects": "Buscar efectos",
   "ui.title.masterToggle": "Activar o desactivar todos los efectos",
+  "ui.title.undo": "Deshacer",
+  "ui.title.redo": "Rehacer",
   "ui.title.cut": "Cortar efectos",
   "ui.title.copy": "Copiar efectos",
   "ui.title.paste": "Pegar efectos",

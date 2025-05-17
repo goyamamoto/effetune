@@ -55,6 +55,8 @@
   "ui.title.sidebar": "इफ़ेक्ट सूची टॉगल करें",
   "ui.title.searchEffects": "इफ़ेक्ट खोजें",
   "ui.title.masterToggle": "सभी इफ़ेक्ट सक्षम/अक्षम करें",
+  "ui.title.undo": "पूर्ववत करें",
+  "ui.title.redo": "फिर से करें",
   "ui.title.cut": "प्रभाव काटें",
   "ui.title.copy": "प्रभाव कॉपी करें",
   "ui.title.paste": "प्रभाव पेस्ट करें",

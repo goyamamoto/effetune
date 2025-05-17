@@ -55,6 +55,8 @@
   "ui.title.sidebar": "Toggle effect list",
   "ui.title.searchEffects": "Search effects",
   "ui.title.masterToggle": "Enable or disable all effects",
+  "ui.title.undo": "Undo",
+  "ui.title.redo": "Redo",
   "ui.title.cut": "Cut effects",
   "ui.title.copy": "Copy effects",
   "ui.title.paste": "Paste effects",

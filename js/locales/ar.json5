@@ -55,6 +55,8 @@
   "ui.title.sidebar": "عرض أو إخفاء قائمة المؤثرات",
   "ui.title.searchEffects": "البحث عن المؤثرات",
   "ui.title.masterToggle": "تفعيل أو تعطيل جميع المؤثرات",
+  "ui.title.undo": "تراجع",
+  "ui.title.redo": "إعادة",
   "ui.title.cut": "قص المؤثرات",
   "ui.title.copy": "نسخ المؤثرات",
   "ui.title.paste": "لصق المؤثرات",
