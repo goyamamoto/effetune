@@ -51,6 +51,7 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
      - Dans l'application de bureau, configurez-la en cliquant sur le bouton Config Audio en haut à droite de l'écran
    - Lancez la lecture de la musique depuis votre service de streaming
    - Vérifiez que l'audio circule via EffeTune
+   - Pour des instructions de configuration plus détaillées, consultez la [FAQ](faq.md)
 
 ### Configuration des sources audio physiques
 
@@ -211,49 +212,10 @@ Voici quelques combinaisons d'effets populaires pour améliorer votre expérienc
    - RS Reverb : Crée un espace atmosphérique
    - Résultat : Une esthétique lo-fi classique
 
-## Dépannage
+## Dépannage et FAQ
 
-### Problèmes audio
-1. Coupures ou interférences
-   - Dans l'application web, cliquez sur le bouton "Reset Audio", ou dans l'application de bureau, sélectionnez Reload dans le menu View pour reconstruire la pipeline audio
-   - Essayez de réduire le nombre d'effets actifs
-   - Fermez les autres onglets du navigateur utilisant l'audio
-
-2. Utilisation élevée du CPU
-   - Désactivez les effets que vous n'utilisez pas activement
-   - Envisagez d'utiliser moins d'effets dans votre chaîne
-
-3. Écho se produit
-   - Il est probable que vos entrées et sorties audio ne soient pas configurées correctement
-   - Pour traiter la sortie audio du navigateur, envisagez d'installer un navigateur dédié exclusivement à EffeTune, ou utilisez l'application de bureau au lieu de l'application web
-
-### Problèmes de configuration courants
-1. Pas d'entrée audio
-   - Vérifiez qu'une source audio est en cours de lecture et qu'elle est dirigée vers un périphérique audio virtuel
-   - Pour la version application web, assurez-vous que les autorisations d'entrée audio sont accordées dans votre navigateur et que le périphérique audio virtuel est sélectionné comme périphérique d'entrée
-   - Pour la version application de bureau, allez dans Config Audio dans le coin supérieur droit de l'écran et assurez-vous que le périphérique audio virtuel est sélectionné comme périphérique d'entrée
-
-2. Effet ne fonctionne pas
-   - Vérifiez que l'effet est activé (bouton ON/OFF)
-   - Vérifiez les paramètres
-
-3. Pas de sortie audio
-   - Pour la version application web, assurez-vous que la sortie audio du système d'exploitation est définie comme périphérique de sortie
-   - Pour la version application de bureau, allez dans "Config Audio" dans le coin supérieur droit de l'écran et assurez-vous que le périphérique de sortie correct est sélectionné
-
-## FAQ
-
-**Q. Cette application prend-elle en charge le son surround ?**  
-**R.** Actuellement, en raison des limitations du navigateur, nous ne pouvons pas gérer plus de 2 canaux dans le navigateur, et il n'existe aucune preuve concrète de la prise en charge du son surround. Bien que l'implémentation des effets supporte le son surround, il faudra attendre une prise en charge future par les navigateurs.
-
-**Q. Quelle est la longueur recommandée pour la chaîne d'effets ?**
-**R.** Bien qu'il n'y ait pas de limite stricte, nous recommandons de limiter votre chaîne d'effets à 8-10 effets pour des performances optimales. Des chaînes plus complexes peuvent impacter les performances du système.
-
-**Q. Comment obtenir la meilleure qualité sonore ?**
-**R.** Utilisez des fréquences d'échantillonnage de 96 kHz ou plus lorsque c'est possible, commencez par des réglages d'effets subtils et construisez votre chaîne progressivement. Surveillez les niveaux pour éviter la distorsion.
-
-**Q. Cela fonctionnera-t-il avec n'importe quelle source audio ?**  
-**R.** Oui, EffeTune peut traiter tout audio provenant du périphérique d'entrée sélectionné, y compris les services de streaming, les fichiers locaux et les supports physiques.
+En cas de problème, consultez la [FAQ](faq.md).
+Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-A/effetune/issues).
 
 ## Effets disponibles
 

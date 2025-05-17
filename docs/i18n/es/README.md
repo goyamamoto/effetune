@@ -51,6 +51,7 @@ Para procesar audio de servicios de streaming (Spotify, YouTube Music, etc.):
      - En la aplicación de escritorio, configúralo haciendo clic en el botón Config Audio en la esquina superior derecha de la pantalla
    - Comienza a reproducir música desde tu servicio de streaming
    - Verifica que el audio esté fluyendo a través de EffeTune
+   - Para instrucciones de configuración más detalladas, consulta la [FAQ](faq.md)
 
 ### Configuración para Fuentes de Audio Físicas
 
@@ -213,50 +214,10 @@ Aquí hay algunas combinaciones populares de efectos para mejorar tu experiencia
    - **RS Reverb:** Crea un espacio atmosférico
    - **Resultado:** Estética clásica lo-fi
 
-## Resolución de Problemas
+## Resolución de Problemas y Preguntas Frecuentes
 
-### Problemas de Audio
-
-1. **Interrupciones o Fallos**
-   - Haz clic en el botón **Reset Audio** en la esquina superior izquierda en la aplicación web o selecciona Reload desde el menú View en la aplicación de escritorio para reconstruir la pipeline de audio
-   - Intenta reducir el número de efectos activos
-
-2. **Alto Uso de CPU**
-   - Desactiva los efectos que no estés utilizando activamente
-   - Considera usar menos efectos en tu cadena
-
-3. **Aparece Eco**
-   - Es probable que tus entradas y salidas de audio no estén configuradas correctamente
-   - Para procesar la salida de audio del navegador, considera instalar un navegador dedicado exclusivamente para EffeTune, o usa la aplicación de escritorio en lugar de la aplicación web
-
-### Problemas Comunes de Configuración
-
-1. **Sin Entrada de Audio**
-   - Verifica que el audio se esté reproduciendo desde una fuente y saliendo a un dispositivo de audio virtual
-   - Para la versión de aplicación web, asegúrate de que los permisos de entrada de audio estén permitidos en tu navegador y que el dispositivo de audio virtual esté seleccionado como dispositivo de entrada
-   - Para la versión de aplicación de escritorio, ve a Config Audio en la esquina superior derecha de la pantalla y asegúrate de que el dispositivo de audio virtual esté seleccionado como dispositivo de entrada
-
-2. **El Efecto No Funciona**
-   - Verifica que el efecto esté habilitado (botón **ON/OFF**)
-   - Revisa los ajustes de los parámetros
-
-3. **Sin Salida de Audio**
-   - Para la versión de aplicación web, asegúrate de que la salida de audio del sistema operativo esté configurada como dispositivo de salida
-   - Para la versión de aplicación de escritorio, ve a "Config Audio" en la esquina superior derecha de la pantalla y asegúrate de que el dispositivo de salida correcto esté seleccionado
-
-## Preguntas Frecuentes
-
-**P. ¿Esta aplicación soporta sonido envolvente?**
-Actualmente, debido a las limitaciones del navegador, no podemos manejar más de 2 canales, y no existe un historial comprobado de funcionamiento con sonido envolvente. Aunque la implementación del efecto en sí soporta sonido envolvente, tendremos que esperar a que el navegador ofrezca soporte en el futuro.
-
-**P. ¿Cuál es la longitud recomendada para la cadena de efectos?**
-Aunque no existe un límite estricto, recomendamos mantener tu cadena de efectos en 8-10 efectos para un rendimiento óptimo. Cadenas más complejas pueden afectar el rendimiento del sistema.
-
-**P. ¿Cómo logro la mejor calidad de sonido?**
-Usa tasas de muestreo de 96kHz o superiores cuando sea posible, comienza con ajustes sutiles en los efectos y construye tu cadena gradualmente. Monitorea los niveles para evitar distorsiones.
-
-**P. ¿Funcionará esto con cualquier fuente de audio?**
-Sí, EffeTune puede procesar cualquier audio que se reproduzca a través del dispositivo de entrada seleccionado, incluyendo servicios de streaming, archivos locales y medios físicos.
+Si tienes algún inconveniente, consulta la [FAQ](faq.md).
+Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.com/Frieve-A/effetune/issues).
 
 ## Efectos Disponibles
 

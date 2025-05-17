@@ -56,6 +56,7 @@ To process audio from streaming services (Spotify, YouTube Music, etc.):
      - In the desktop app, set it up by clicking the Config Audio button in the top right of the screen
    - Start playing music from your streaming service
    - Verify that audio is flowing through EffeTune
+   - For more detailed setup instructions, see the [FAQ](docs/faq.md)
 
 ### Physical Audio Source Setup
 
@@ -219,48 +220,10 @@ Here are some popular effect combinations to enhance your listening experience:
    - RS Reverb: Creates atmospheric space
    - Result: Classic lo-fi aesthetic
 
-## Troubleshooting
+## Troubleshooting and FAQ
 
-### Audio Issues
-1. Dropouts or Glitches
-   - Click the "Reset Audio" button in the top-left corner on the web app or select Reload from the View menu on the desktop app to rebuild the audio pipeline
-   - Try reducing the number of active effects
-
-2. High CPU Usage
-   - Disable effects you're not actively using
-   - Consider using fewer effects in your chain
-
-3. Echo Occurs
-   - It's likely that your audio inputs and outputs are not configured correctly
-   - To process browser audio output, consider installing a dedicated browser solely for EffeTune, or use the desktop app instead.
-
-### Common Setup Issues
-1. No Audio Input
-   - Verify that audio is playing from a source and outputting to a virtual audio device
-   - For the web app version, make sure audio input permissions are allowed in your browser and that the virtual audio device is selected as the input device
-   - For the desktop app version, go to Config Audio in the top right corner of the screen and make sure the virtual audio device is selected as the input device
-
-2. Effect Not Working
-   - Verify effect is enabled (ON/OFF button)
-   - Check parameter settings
-
-3. No Audio Output
-   - For the web app version, make sure that the audio output of the OS is set as the output device
-   - For the desktop app version, go to "Config Audio" in the top right corner of the screen and make sure the correct output device is selected.
-
-## FAQ
-
-Q. Does this app support surround sound?
-A. Currently, due to browser limitations, we cannot handle more than 2 channels in the browser, and there is no proven track record of surround sound operation. While the effect implementation itself supports surround sound, we'll need to wait for future browser support.
-
-Q. What's the recommended effect chain length?
-A. While there's no strict limit, we recommend keeping your effect chain to 8-10 effects for optimal performance. More complex chains may impact system performance.
-
-Q. How do I achieve the best sound quality?
-A. When possible, use sample rates of 96kHz or higher, begin with subtle effect settings, and gradually build your effect chain. Monitor levels to avoid distortion.
-
-Q. Will this work with any audio source?
-A. Yes, EffeTune can process any audio playing through your selected input device, including streaming services, local files, and physical media.
+If you encounter any issues, please refer to the [Troubleshooting and FAQ](docs/faq.md).
+If the problem persists, report it through [GitHub Issues](https://github.com/Frieve-A/effetune/issues).
 
 ## Available Effects
 

@@ -51,6 +51,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
      - 在桌面应用中，通过点击屏幕右上角的 Config Audio 按钮进行设置
    - 开始播放流媒体音乐
    - 确认音频通过 EffeTune 正常传输
+   - 如需更详细的设置说明，请参阅[常见问题](faq.md)
 
 ### Physical Audio Source Setup
 
@@ -213,66 +214,12 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
    - RS Reverb: 营造出氛围空间
    - 结果: 经典的 lo-fi 美学
 
-## 故障排除
+## 故障排除和常见问题
 
-### 音频问题
-1. 断音或杂音
-   - 在网页应用中点击左上角的 "Reset Audio" 按钮，或在桌面应用中从 View 菜单选择 Reload 重建音频管道
-   - 尝试减少激活效果的数量
-
-2. 高 CPU 使用率
-   - 禁用未主动使用的效果
-   - 考虑在效果链中使用较少效果
-
-3. 出现回声
-   - 可能是您的音频输入和输出配置不正确
-   - 要处理浏览器的音频输出，请考虑专门为 EffeTune 安装单独的浏览器，或使用桌面应用而不是网页应用
-
-### 常见设置问题
-1. 无音频输入
-   - 确认音频正在从源播放并输出到虚拟音频设备
-   - 对于网页应用版本，确保浏览器中允许音频输入权限，并且虚拟音频设备被选为输入设备
-   - 对于桌面应用版本，点击屏幕右上角的 "Config Audio"，确保虚拟音频设备被选为输入设备
-
-2. 效果无响应
-   - 验证效果是否已启用（ON/OFF 按钮）
-   - 检查参数设置
-
-3. 无音频输出
-   - 对于网页应用版本，确保操作系统的音频输出被设置为输出设备
-   - 对于桌面应用版本，点击屏幕右上角的 "Config Audio"，确保选择了正确的输出设备
-
-## FAQ
-
-**Q. 该应用支持环绕声吗？**
-**A.** 目前由于浏览器的限制，我们无法在浏览器中处理超过 2 个声道，也没有经过验证的环绕声运行记录。虽然效果本身支持环绕声，但需要等待未来浏览器的支持。
-
-**Q. 推荐的效果链长度是多少？**
-**A.** 尽管没有严格限制，我们建议将效果链保持在 8-10 个效果以内以获得最佳性能。更复杂的链可能会影响系统性能。
-
-**Q. 如何实现最佳音质？**
-**A.** 尽可能使用 96kHz 或更高的采样率，从细微的效果设置开始，并逐步构建效果链。监控音量以避免失真。
-
-**Q. 这能处理任何音频源吗？**
-**A.** 可以，EffeTune 能处理通过您所选输入设备播放的任何音频，包括流媒体服务、本地文件和物理介质。
-
+如果遇到问题，请参阅[常见问题](faq.md)。
+若仍无法解决，请在[GitHub Issues](https://github.com/Frieve-A/effetune/issues)反馈。
 ## 可用效果
 
-| 类别     | 效果               | 描述                                                                      | 文档                                                    |
-| -------- | ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Analyzer | Level Meter        | 显示带峰值保持的音频电平                                                   | [详细信息](plugins/analyzer.md#level-meter)             |
-| Analyzer | Oscilloscope       | 实时波形可视化                                                           | [详细信息](plugins/analyzer.md#oscilloscope)            |
-| Analyzer | Spectrogram        | 显示随时间变化的频谱                                                      | [详细信息](plugins/analyzer.md#spectrogram)             |
-| Analyzer | Spectrum Analyzer  | 实时频谱分析                                                             | [详细信息](plugins/analyzer.md#spectrum-analyzer)       |
-| Analyzer | Stereo Meter       | 可视化立体声平衡和声音移动                                                | [详细信息](plugins/analyzer.md#stereo-meter)            |
-| Basics   | Channel Divider    | 将立体声信号按频段分割并路由到独立通道                                     | [详细信息](plugins/basics.md#channel-divider)           |
-| Basics   | DC Offset          | 直流偏移调整                                                             | [详细信息](plugins/basics.md#dc-offset)                 |
-| Basics   | Matrix             | 灵活控制音频通道的路由和混合                                               | [详细信息](plugins/basics.md#matrix)                    |
-| Basics   | MultiChannel Panel | 多通道控制面板，包含音量、静音、独奏和延迟控制                            | [详细信息](plugins/basics.md#multichannel-panel)        |
-| Basics   | Mute               | 完全静音音频信号                                                         | [详细信息](plugins/basics.md#mute)                      |
-| Basics   | Polarity Inversion | 信号极性反转                                                             | [详细信息](plugins/basics.md#polarity-inversion)        |
-| Basics   | Stereo Balance     | 立体声通道平衡控制                                                       | [详细信息](plugins/basics.md#stereo-balance)            |
-| Basics   | Volume             | 基本音量控制                                                             | [详细信息](plugins/basics.md#volume)                    |
 | Delay     | Delay | 标准延迟效果 | [详情](plugins/delay.md#delay) |
 | Delay     | Time Alignment | 音频通道的时序微调 | [详情](plugins/delay.md#time-alignment) |
 | Dynamics  | Auto Leveler | 基于LUFS测量的自动音量调整，以实现一致的聆听体验 | [详情](plugins/dynamics.md#auto-leveler) |
