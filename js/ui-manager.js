@@ -546,6 +546,66 @@ export class UIManager {
                 this.pluginListManager.dragMessage.textContent = this.t('ui.dragEffectMessage');
              }
         }
+
+        // Update titles for common buttons
+        const openMusicButton = document.getElementById('openMusicButton');
+        if (openMusicButton) {
+            openMusicButton.title = this.t('ui.title.openMusic');
+        }
+
+        const sidebarButton = document.getElementById('sidebarButton');
+        if (sidebarButton) {
+            sidebarButton.title = this.t('ui.title.sidebar');
+        }
+
+        const searchButton = document.getElementById('effectSearchButton');
+        if (searchButton) {
+            searchButton.title = this.t('ui.title.searchEffects');
+        }
+
+        const masterToggle = document.querySelector('.toggle-button.master-toggle');
+        if (masterToggle) {
+            masterToggle.title = this.t('ui.title.masterToggle');
+        }
+
+        const cutButton = document.getElementById('cutButton');
+        if (cutButton) {
+            cutButton.title = this.t('ui.title.cut');
+        }
+
+        const copyButton = document.getElementById('copyButton');
+        if (copyButton) {
+            copyButton.title = this.t('ui.title.copy');
+        }
+
+        const pasteButton = document.getElementById('pasteButton');
+        if (pasteButton) {
+            pasteButton.title = this.t('ui.title.paste');
+        }
+
+        const savePresetButton = document.getElementById('savePresetButton');
+        if (savePresetButton) {
+            savePresetButton.title = this.t('ui.title.savePreset');
+        }
+
+        const deletePresetButton = document.getElementById('deletePresetButton');
+        if (deletePresetButton) {
+            deletePresetButton.title = this.t('ui.title.deletePreset');
+        }
+
+        if (shareButton) {
+            shareButton.title = this.t('ui.title.sharePipeline');
+        }
+
+        const decreaseColumnsButton = document.getElementById('decreaseColumnsButton');
+        if (decreaseColumnsButton) {
+            decreaseColumnsButton.title = this.t('ui.title.decreaseColumns');
+        }
+
+        const increaseColumnsButton = document.getElementById('increaseColumnsButton');
+        if (increaseColumnsButton) {
+            increaseColumnsButton.title = this.t('ui.title.increaseColumns');
+        }
     }
 
     getLocalizedDocPath(basePath) {

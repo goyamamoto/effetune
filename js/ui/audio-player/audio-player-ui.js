@@ -42,13 +42,13 @@ export class AudioPlayerUI {
      <div class="player-controls">
         <input type="range" class="seek-bar" min="0" max="100" value="0" step="0.1">
         <div class="time-display">00:00</div>
-        <button class="player-button play-pause-button"><img src="images/play_button.png" width="16" height="16"></button>
-        <button class="player-button stop-button"><img src="images/stop_button.png" width="16" height="16"></button>
-        <button class="player-button prev-button"><img src="images/previous_button.png" width="16" height="16"></button>
-        <button class="player-button next-button"><img src="images/next_button.png" width="16" height="16"></button>
-        <button class="player-button repeat-button"><img src="images/${repeatButtonImg}" width="16" height="16"></button>
-        <button class="player-button shuffle-button"><img src="images/shuffle_button.png" width="16" height="16"></button>
-        <button class="player-button close-button">✖</button>
+        <button class="player-button play-pause-button" title="${window.uiManager ? window.uiManager.t('ui.title.playPause') : 'Play or pause'}"><img src="images/play_button.png" width="16" height="16"></button>
+        <button class="player-button stop-button" title="${window.uiManager ? window.uiManager.t('ui.title.stop') : 'Stop'}"><img src="images/stop_button.png" width="16" height="16"></button>
+        <button class="player-button prev-button" title="${window.uiManager ? window.uiManager.t('ui.title.prevTrack') : 'Previous track'}"><img src="images/previous_button.png" width="16" height="16"></button>
+        <button class="player-button next-button" title="${window.uiManager ? window.uiManager.t('ui.title.nextTrack') : 'Next track'}"><img src="images/next_button.png" width="16" height="16"></button>
+        <button class="player-button repeat-button" title="${window.uiManager ? window.uiManager.t('ui.title.repeat') : 'Toggle repeat mode'}"><img src="images/${repeatButtonImg}" width="16" height="16"></button>
+        <button class="player-button shuffle-button" title="${window.uiManager ? window.uiManager.t('ui.title.shuffle') : 'Toggle shuffle'}"><img src="images/shuffle_button.png" width="16" height="16"></button>
+        <button class="player-button close-button" title="${window.uiManager ? window.uiManager.t('ui.title.closePlayer') : 'Close player'}">✖</button>
       </div>
     `;
 
