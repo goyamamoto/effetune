@@ -50,6 +50,7 @@
   "ui.sleepMode": "Sleep Mode",
   "ui.whatsThisApp": "What's this app?",
 
+  // Hints displayed when hovering over UI
   "ui.title.openMusic": "Open music files",
   "ui.title.sidebar": "Toggle plugin list",
   "ui.title.searchEffects": "Search effects",
