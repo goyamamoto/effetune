@@ -1,8 +1,10 @@
 # Version History
 
 ### Version 1.52 (Mar 17, 2025)
-- Added Cut, Copy and Paste buttons
+- Added Undo, Redo, Cut, Copy and Paste buttons
 - Added latency settings to the Audio Config of the app version to improve playback stability
+- Added [FAQ document](faq.md) with detailed setup instructions and troubleshooting
+- Supports specifying channel from Ch3 onwards when measuring frequency response using a multi-channel output device
 - Various minor improvements
 
 ### Version 1.51 (Mar 13, 2025)
