@@ -1011,11 +1011,33 @@ export class PipelineCore {
         outputBusContainer.appendChild(outputBusSelect);
         dialog.appendChild(outputBusContainer);
         
-        // Position the dialog near the button
+        // Calculate current zoom factor - This is what was missing in previous solutions
+        // Create a temporary measuring element to accurately determine zoom level
+        const zoomMeasureEl = document.createElement('div');
+        zoomMeasureEl.style.width = '100px';
+        zoomMeasureEl.style.height = '100px';
+        zoomMeasureEl.style.position = 'absolute';
+        zoomMeasureEl.style.opacity = '0';
+        zoomMeasureEl.style.pointerEvents = 'none';
+        document.body.appendChild(zoomMeasureEl);
+        
+        // Get the actual rendered size which changes with zoom
+        const actualSize = zoomMeasureEl.getBoundingClientRect();
+        // Calculate zoom factor (100px is expected size at 100% zoom)
+        const zoomFactor = 100 / actualSize.width;
+        // Clean up the measuring element
+        document.body.removeChild(zoomMeasureEl);
+        
+        // Position the dialog near the button, accounting for zoom
         const buttonRect = button.getBoundingClientRect();
         dialog.style.position = 'absolute';
-        dialog.style.top = `${buttonRect.bottom + window.scrollY}px`;
-        dialog.style.left = `${buttonRect.left + window.scrollX}px`;
+        
+        // Apply zoom correction to make position consistent at any zoom level
+        const correctedTop = buttonRect.bottom * zoomFactor + window.scrollY;
+        const correctedLeft = buttonRect.left * zoomFactor + window.scrollX;
+        
+        dialog.style.top = `${correctedTop}px`;
+        dialog.style.left = `${correctedLeft}px`;
         
         // Add dialog to the document
         document.body.appendChild(dialog);
