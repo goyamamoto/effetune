@@ -1,28 +1,32 @@
 # Version History
 
-### Version 1.52 (Mar 17, 2025)
+### Version 1.53 (May xx, 2025)
+- Added Band Pass Filter effect
+- Various minor improvements
+
+### Version 1.52 (May 17, 2025)
 - Added Undo, Redo, Cut, Copy and Paste buttons
 - Added latency settings to the Audio Config of the app version to improve playback stability
 - Added [FAQ document](faq.md) with detailed setup instructions and troubleshooting
 - Supports specifying channel from Ch3 onwards when measuring frequency response using a multi-channel output device
 - Various minor improvements
 
-### Version 1.51 (Mar 13, 2025)
+### Version 1.51 (May 13, 2025)
 - Added MultiChannel Panel and 15Band PEQ effects
 - 15band PEQ can now import text formats used by Equalizer APO and other software
 - Various minor improvements
 
-### Version 1.50 (Mar 11, 2025)
+### Version 1.50 (May 11, 2025)
 - Effect categories can now be collapsed
 - Added Channel Divider effect
 - Various minor improvements
 
-### Version 1.49 (Mar 6, 2025)
+### Version 1.49 (May 6, 2025)
 - Supports multi-channel processing and output
 - Added Matrix effect
 - Various minor improvements
 
-### Version 1.48 (Mar 5, 2025)
+### Version 1.48 (May 5, 2025)
 - Added frequency response measurement and correction function
 - Added Mute, 5Band Dynamic EQ and MS Matrix effects
 - Various minor improvements

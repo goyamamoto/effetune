@@ -49,6 +49,9 @@ class SpectrogramPlugin extends PluginBase {
         this.canvasCtx = null;
         this.canvas = null;
 
+        this.secondMarkers = [];
+        this.prevTime = null;
+
         // Store event listeners for cleanup
         this.boundEventListeners = new Map();
 
@@ -217,6 +220,8 @@ class SpectrogramPlugin extends PluginBase {
              const data = this.imageDataCache.data;
              for (let i = 0, len = data.length; i < len; i += 4) { data[i]=0; data[i+1]=0; data[i+2]=0; data[i+3]=255;}
         }
+        this.secondMarkers = [];
+        this.prevTime = null;
         this.updateParameters();
     }
 
@@ -295,6 +300,15 @@ class SpectrogramPlugin extends PluginBase {
                 this.imageDataCache.data.copyWithin(rowStartImage, rowStartImage + 4, rowStartImage + spectroWidth * 4);
             }
         }
+
+        // Shift marker positions
+        this.secondMarkers = this.secondMarkers.map(v => v - 1).filter(v => v >= 0);
+
+        const t = message.measurements.time;
+        if (this.prevTime !== null && !Number.isNaN(t) && Math.floor(this.prevTime) !== Math.floor(t)) {
+            this.secondMarkers.push(spectroWidth - 1);
+        }
+        this.prevTime = t;
         
         // Add new spectrum data to the rightmost column of the spectrogram display buffer
         const minDisplayFreq = 20;
@@ -429,6 +443,8 @@ class SpectrogramPlugin extends PluginBase {
         this.imageDataCache = null;
         this.spectrogramBuffer = null; /* etc. */
         this.observer = null;
+        this.secondMarkers = [];
+        this.prevTime = null;
     }
 
 
@@ -506,7 +522,18 @@ class SpectrogramPlugin extends PluginBase {
                 }
             });
         }
-        
+
+        // Draw 1-second markers
+        ctx.strokeStyle = '#888';
+        ctx.lineWidth = 4;
+        for (const idx of this.secondMarkers) {
+            const x = targetWidth * idx / 1024;
+            ctx.beginPath();
+            ctx.moveTo(x, targetHeight - 16);
+            ctx.lineTo(x, targetHeight);
+            ctx.stroke();
+        }
+
         // Draw axis labels
         ctx.fillStyle = '#fff'; ctx.font = '28px Arial'; ctx.textAlign = 'center';
         ctx.fillText('Time', targetWidth / 2, targetHeight - 10);

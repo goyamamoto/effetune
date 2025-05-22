@@ -422,18 +422,57 @@ export class PipelineCore {
 
         // Toggle UI visibility and handle selection
         name.onclick = (e) => {
-            // Handle selection first to ensure immediate visual feedback
-            // Special handling for Ctrl/Cmd click to toggle selection
+            // Ctrl/Cmd+Click collapses or expands all effects based on the clicked effect's state
             if (e.ctrlKey || e.metaKey) {
-                if (this.selectedPlugins.has(plugin)) {
-                    this.selectedPlugins.delete(plugin);
-                    this.updateSelectionClasses();
-                } else {
-                    this.handlePluginSelection(plugin, e, false);
-                }
-            } else {
+                // Only handle normal selection without modifying selectedPlugins set for Ctrl+Click on name
                 this.handlePluginSelection(plugin, e);
+                
+                // Determine if we should expand or collapse based on the clicked plugin's current state
+                const shouldExpand = !this.expandedPlugins.has(plugin);
+                
+                // Apply the same expand/collapse state to all plugins
+                this.audioManager.pipeline.forEach(p => {
+                    // Find the corresponding pipeline item using plugin ID instead of index
+                    const itemEl = document.querySelector(`.pipeline-item[data-plugin-id="${p.id}"]`);
+                    if (!itemEl) return;
+                    
+                    const pluginUI = itemEl.querySelector('.plugin-ui');
+                    if (!pluginUI) return;
+                    
+                    if (shouldExpand) {
+                        pluginUI.classList.add('expanded');
+                        this.expandedPlugins.add(p);
+                        if (p.updateMarkers && p.updateResponse) {
+                            requestAnimationFrame(() => {
+                                p.updateMarkers();
+                                p.updateResponse();
+                            });
+                        }
+                    } else {
+                        pluginUI.classList.remove('expanded');
+                        this.expandedPlugins.delete(p);
+                    }
+                });
+
+                // Update all tooltips - using correct element selection
+                document.querySelectorAll('.pipeline-item').forEach(item => {
+                    const pluginId = parseInt(item.dataset.pluginId);
+                    const p = this.audioManager.pipeline.find(plugin => plugin.id === pluginId);
+                    if (!p) return;
+                    
+                    const nameEl = item.querySelector('.plugin-name');
+                    if (!nameEl) return;
+                    
+                    nameEl.title = this.expandedPlugins.has(p)
+                        ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
+                        : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
+                });
+
+                return; // Skip individual toggle
             }
+
+            // Handle selection for regular click
+            this.handlePluginSelection(plugin, e);
             
             // Handle Shift+Click to collapse/expand effects
             if (e.shiftKey) {

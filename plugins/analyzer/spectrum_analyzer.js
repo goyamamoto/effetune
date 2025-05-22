@@ -246,16 +246,16 @@ class SpectrumAnalyzerPlugin extends PluginBase {
         const decay = 20 * deltaTime;
 
         if (!this.peaks || this.peaks.length !== halfFft) {
-            this.peaks = new Float32Array(halfFft).fill(-144);
+            this.peaks = new Float32Array(halfFft).fill(-145);
         }
 
         for (let i = 0; i < halfFft; i++) {
-            if (isNaN(this.peaks[i]) || this.peaks[i] < -144 || this.peaks[i] > 0) {
-                this.peaks[i] = -144;
+            if (isNaN(this.peaks[i]) || this.peaks[i] < -145 || this.peaks[i] > 0) {
+                this.peaks[i] = -145;
             }
             const decayedPeak = this.peaks[i] - decay;
             const newPeak = this.spectrum[i] > decayedPeak ? this.spectrum[i] : decayedPeak;
-            this.peaks[i] = newPeak < -144 ? -144 : newPeak > 0 ? 0 : newPeak;
+            this.peaks[i] = newPeak < -145 ? -145 : newPeak > 0 ? 0 : newPeak;
         }
         
         this.lastProcessTime = currentTime;

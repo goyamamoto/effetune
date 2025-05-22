@@ -85,6 +85,7 @@ To use EffeTune with CD players, network players, or other physical sources:
 4. Drag the handle (⋮) or click the ▲▼ buttons to reorder the effects
 5. Click an effect's name to expand/collapse its settings
    - Shift+click to collapse/expand all effects except for the Analyzer category
+   - Ctrl+click to collapse/expand all effects
 6. Use the ON button to bypass individual effects
 7. Click the ? button to open its detailed documentation in a new tab
 8. Remove effects using the × button

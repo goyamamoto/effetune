@@ -80,6 +80,7 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
 4. Arraste o manipulador (⋮) ou clique nos botões ▲▼ para reordenar os efeitos
 5. Clique no nome do efeito para expandir/ocultar suas configurações
    - Shift+clique para expandir/ocultar todos os efeitos, exceto a categoria Analyzer
+   - Ctrl+clique para expandir/ocultar todos os efeitos
 6. Use o botão **ON** para desativar (bypass) efeitos individuais
 7. Clique no botão **?** para abrir sua documentação detalhada em uma nova aba
 8. Remova os efeitos utilizando o botão ×

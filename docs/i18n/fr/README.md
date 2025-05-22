@@ -78,6 +78,7 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
 4. Faites glisser la poignée (⋮) ou cliquez sur les boutons ▲▼ pour réorganiser les effets
 5. Cliquez sur le nom d'un effet pour développer/réduire ses paramètres
    - Maj+Clic pour développer/réduire tous les effets sauf la catégorie Analyzer
+   - Ctrl+Clic pour développer/réduire tous les effets
 6. Utilisez le bouton ON pour contourner les effets individuels
 7. Cliquez sur le bouton ? pour ouvrir sa documentation détaillée dans un nouvel onglet
 8. Supprimez les effets en utilisant le bouton ×  

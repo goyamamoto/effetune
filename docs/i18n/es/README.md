@@ -80,6 +80,7 @@ Para usar EffeTune con reproductores de CD, reproductores de red u otras fuentes
 4. Arrastra el manejador (⋮) o pulsa los botones ▲▼ para reordenar los efectos
 5. Haz clic en el nombre de un efecto para expandir o colapsar sus ajustes
    - Shift+clic para colapsar/expandir todos los efectos excepto la categoría Analizador
+   - Ctrl+clic para colapsar/expandir todos los efectos
 6. Utiliza el botón **ON** para omitir efectos individuales
 7. Haz clic en el botón **?** para abrir su documentación detallada en una nueva pestaña
 8. Elimina efectos utilizando el botón ×

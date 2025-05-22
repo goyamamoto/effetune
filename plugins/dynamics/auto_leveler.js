@@ -24,6 +24,8 @@ class AutoLevelerPlugin extends PluginBase {
         // LUFS history buffers (1024 points) initialized with NaN so that no initial bottom line is drawn
         this.inputLufsBuffer = new Float32Array(1024).fill(NaN);
         this.outputLufsBuffer = new Float32Array(1024).fill(NaN);
+        this.secondMarkers = [];
+        this.prevTime = null;
 
         this.observer = null;
 
@@ -297,9 +299,20 @@ class AutoLevelerPlugin extends PluginBase {
 
     onMessage(message) {
         if (message.type === 'processBuffer' && message.measurements) {
-            // Update LUFS history buffers by shifting left one element
+            // Shift history buffers
             this.inputLufsBuffer.copyWithin(0, 1);
             this.outputLufsBuffer.copyWithin(0, 1);
+
+            // Shift marker positions
+            this.secondMarkers = this.secondMarkers.map(v => v - 1).filter(v => v >= 0);
+
+            const t = message.measurements.time;
+            if (this.prevTime !== null && !Number.isNaN(t) && Math.floor(this.prevTime) !== Math.floor(t)) {
+                this.secondMarkers.push(this.inputLufsBuffer.length - 1);
+            }
+            this.prevTime = t;
+
+            // Store LUFS values
             this.inputLufsBuffer[this.inputLufsBuffer.length - 1] = message.measurements.inputLufs;
             this.outputLufsBuffer[this.outputLufsBuffer.length - 1] = message.measurements.outputLufs;
         }
@@ -427,6 +440,17 @@ class AutoLevelerPlugin extends PluginBase {
         ctx.textAlign = 'center';
         ctx.fillText('Time', width / 2, height - 10);
 
+        // Draw 1-second markers
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        for (const idx of this.secondMarkers) {
+            const x = width * idx / this.inputLufsBuffer.length;
+            ctx.beginPath();
+            ctx.moveTo(x, height - 16);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+
         // Draw LUFS history; skip segments with NaN values
         const drawLufs = (buffer, color) => {
             ctx.strokeStyle = color;
@@ -536,6 +560,8 @@ class AutoLevelerPlugin extends PluginBase {
         // Reset buffers to NaN so that initial graph is blank
         this.inputLufsBuffer.fill(NaN);
         this.outputLufsBuffer.fill(NaN);
+        this.secondMarkers = [];
+        this.prevTime = null;
     }
 }
 

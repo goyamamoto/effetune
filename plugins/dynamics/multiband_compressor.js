@@ -282,8 +282,8 @@ class MultibandCompressorPlugin extends PluginBase {
 
         // 1. Copy channel data from input 'data' to 'inputBuffer'
         // This avoids modifying the original 'data' and fits the filter function signature.
-        // Direct subarray view is not possible if 'data' is interleaved, but the original code structure implies non-interleaved processing per channel block. Assuming 'data' contains channel blocks sequentially.
-        // TODO: Verify if 'data' is interleaved or block-sequential. Assuming block-sequential based on original code structure 'offset = ch * parameters.blockSize; data[offset + i]'
+        // Direct subarray view is not possible if 'data' is interleaved. This implementation
+        // assumes channel data is block-sequential as in: offset = ch * blockSize; data[offset + i]
         for (let i = 0; i < blockSize; i++) {
             inputBuffer[i] = data[offset + i];
         }

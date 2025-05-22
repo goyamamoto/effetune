@@ -51,11 +51,11 @@ function saveWindowState() {
       
       // Get display scaling factor
       const scaleFactor = getDisplayScaleFactor();
-      
-      // Update window state - store physical pixels by dividing by scale factor
+
+      // Store window dimensions in logical pixels
       const windowState = {
-        width: Math.round(bounds.width / scaleFactor),
-        height: Math.round(bounds.height / scaleFactor),
+        width: Math.round(bounds.width),
+        height: Math.round(bounds.height),
         x: bounds.x,
         y: bounds.y,
         isMaximized: false,

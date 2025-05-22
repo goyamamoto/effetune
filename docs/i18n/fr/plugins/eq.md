@@ -7,6 +7,7 @@ Une collection de plugins qui vous permet d'ajuster différents aspects du son d
 - [15Band PEQ](#15band-peq) - Égaliseur paramétrique professionnel à 15 bandes offrant une flexibilité maximale
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Égaliseur dynamique qui réagit à votre musique
 - [5Band PEQ](#5band-peq) - Égaliseur paramétrique professionnel avec des contrôles flexibles
+- [Band Pass Filter](#band-pass-filter) - Concentrez-vous sur des fréquences spécifiques
 - [Hi Pass Filter](#hi-pass-filter) - Éliminez avec précision les basses fréquences indésirables
 - [Lo Pass Filter](#lo-pass-filter) - Éliminez avec précision les hautes fréquences indésirables
 - [Loudness Equalizer](#loudness-equalizer) - Correction de l'équilibre des fréquences pour une écoute à faible volume
@@ -207,6 +208,52 @@ Un égaliseur paramétrique de qualité professionnelle basé sur des principes 
 - Calcul en temps réel de la fonction de transfert
 - Grille de fréquences et de gains calibrée
 - Affichages numériques précis pour tous les paramètres
+
+## Band Pass Filter
+
+Un filtre passe-bande de précision qui combine les filtres passe-haut et passe-bas pour ne laisser passer que les fréquences dans une plage spécifique. Basé sur la conception de filtre Linkwitz-Riley pour une réponse de phase optimale et une qualité sonore transparente.
+
+### Guide d'Amélioration de l'Écoute
+- Focalisation sur la Plage Vocale:
+  - Réglez le HPF entre 100-300Hz et le LPF entre 4-8kHz pour accentuer la clarté vocale
+  - Utilisez des pentes modérées (-24dB/oct) pour un son naturel
+  - Aide les voix à se distinguer dans les mixages complexes
+- Création d'Effets Spéciaux:
+  - Définissez des plages de fréquences étroites pour des effets de téléphone, radio ou mégaphone
+  - Utilisez des pentes plus abruptes (-36dB/oct ou plus) pour un filtrage plus dramatique
+  - Expérimentez avec différentes plages de fréquences pour des sons créatifs
+- Nettoyage de Plages de Fréquences Spécifiques:
+  - Ciblez les fréquences problématiques avec un contrôle précis
+  - Utilisez différentes pentes pour les sections passe-haut et passe-bas selon les besoins
+  - Parfait pour éliminer simultanément les bruits de basse et haute fréquence
+
+### Paramètres
+- **HPF Frequency (Hz)** - Contrôle où les basses fréquences sont filtrées (1Hz à 40000Hz)
+  - Valeurs inférieures: Seules les fréquences les plus basses sont éliminées
+  - Valeurs supérieures: Plus de basses fréquences sont éliminées
+  - Ajustez en fonction du contenu basse fréquence spécifique que vous souhaitez éliminer
+- **HPF Slope** - Contrôle l'agressivité de la réduction des fréquences en dessous du point de coupure
+  - Off: Aucun filtrage appliqué
+  - -12dB/oct: Filtrage doux (LR2 - Linkwitz-Riley du 2ème ordre)
+  - -24dB/oct: Filtrage standard (LR4 - Linkwitz-Riley du 4ème ordre)
+  - -36dB/oct: Filtrage plus fort (LR6 - Linkwitz-Riley du 6ème ordre)
+  - -48dB/oct: Filtrage très fort (LR8 - Linkwitz-Riley du 8ème ordre)
+- **LPF Frequency (Hz)** - Contrôle où les hautes fréquences sont filtrées (1Hz à 40000Hz)
+  - Valeurs inférieures: Plus de hautes fréquences sont éliminées
+  - Valeurs supérieures: Seules les fréquences les plus hautes sont éliminées
+  - Ajustez en fonction du contenu haute fréquence spécifique que vous souhaitez éliminer
+- **LPF Slope** - Contrôle l'agressivité de la réduction des fréquences au-dessus du point de coupure
+  - Off: Aucun filtrage appliqué
+  - -12dB/oct: Filtrage doux (LR2 - Linkwitz-Riley du 2ème ordre)
+  - -24dB/oct: Filtrage standard (LR4 - Linkwitz-Riley du 4ème ordre)
+  - -36dB/oct: Filtrage plus fort (LR6 - Linkwitz-Riley du 6ème ordre)
+  - -48dB/oct: Filtrage très fort (LR8 - Linkwitz-Riley du 8ème ordre)
+
+### Affichage Visuel
+- Graphique de réponse en fréquence en temps réel avec échelle de fréquence logarithmique
+- Visualisation claire des deux pentes de filtre et des points de coupure
+- Contrôles interactifs pour un ajustement précis
+- Grille de fréquences avec marqueurs aux points de référence clés
 
 ## Hi Pass Filter
 Un filtre passe-haut de précision qui élimine les basses fréquences indésirables tout en préservant la clarté des fréquences élevées. Basé sur le design de filtre Linkwitz-Riley pour une réponse en phase optimale et une qualité sonore transparente.

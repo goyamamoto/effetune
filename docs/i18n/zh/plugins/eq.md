@@ -8,6 +8,7 @@
 - [15Band PEQ](#15band-peq) - 具有15个频段的专业参数化均衡器，提供最大灵活性
 - [5Band Dynamic EQ](#5band-dynamic-eq) - 基于动态的均衡器，可响应您的音乐
 - [5Band PEQ](#5band-peq) - 专业参数均衡器，具有灵活的控制
+- [Band Pass Filter](#band-pass-filter) - 结合高通和低通滤波器，只允许特定频率范围通过
 - [Hi Pass Filter](#hi-pass-filter) - 精确去除不需要的低频
 - [Lo Pass Filter](#lo-pass-filter) - 精确去除不需要的高频
 - [Loudness Equalizer](#loudness-equalizer) - 针对低音量播放进行频率平衡校正
@@ -210,6 +211,52 @@
 - 实时传输函数计算
 - 校准后的频率和增益网格
 - 所有参数的精确数值显示
+
+## Band Pass Filter
+
+一款精密的带通滤波器，结合了高通和低通滤波器，只允许特定频率范围通过。基于 Linkwitz-Riley 滤波器设计，实现最佳相位响应和透明音质。
+
+### 听觉增强指南
+- 聚焦于人声范围:
+  - 将HPF设置在100-300Hz之间，LPF设置在4-8kHz之间，以强调人声清晰度
+  - 使用适中的斜率 (-24dB/oct) 获得自然音效
+  - 帮助人声在复杂混音中脱颖而出
+- 创造特殊效果:
+  - 设置窄频率范围，模拟电话、收音机或扩音器效果
+  - 使用陡峭斜率 (-36dB/oct 或更高) 实现更戏剧性的滤波
+  - 尝试不同频率范围，创造创意音效
+- 清理特定频率范围:
+  - 使用精确控制锁定有问题的频率
+  - 根据需要为高通和低通部分设置不同斜率
+  - 完美同时去除低频隆隆声和高频噪声
+
+### 参数
+- **HPF Frequency (Hz)** - 控制低频被滤除的位置 (1Hz 到 40000Hz)
+  - 较低的数值: 仅去除最底部的频率
+  - 较高的数值: 会去除更多低频
+  - 根据需要消除的低频内容进行调整
+- **HPF Slope** - 控制截止频率以下频率衰减的程度
+  - Off: 不应用滤波
+  - -12dB/oct: 轻微滤波 (LR2 - 2阶 Linkwitz-Riley)
+  - -24dB/oct: 标准滤波 (LR4 - 4阶 Linkwitz-Riley)
+  - -36dB/oct: 更强滤波 (LR6 - 6阶 Linkwitz-Riley)
+  - -48dB/oct: 非常强滤波 (LR8 - 8阶 Linkwitz-Riley)
+- **LPF Frequency (Hz)** - 控制高频被滤除的位置 (1Hz 到 40000Hz)
+  - 较低的数值: 会去除更多高频
+  - 较高的数值: 仅去除最极端的高频
+  - 根据需要去除的高频内容进行调整
+- **LPF Slope** - 控制截止频率以上频率衰减的力度
+  - Off: 不应用滤波
+  - -12dB/oct: 轻微滤波 (LR2 - 2阶 Linkwitz-Riley)
+  - -24dB/oct: 标准滤波 (LR4 - 4阶 Linkwitz-Riley)
+  - -36dB/oct: 更强滤波 (LR6 - 6阶 Linkwitz-Riley)
+  - -48dB/oct: 非常强滤波 (LR8 - 8阶 Linkwitz-Riley)
+
+### 可视化显示
+- 使用对数频率刻度的实时频率响应图
+- 清晰展示两个滤波器斜率和截止点
+- 交互式控制，实现精确调整
+- 频率网格，标有关键参考点
 
 ## Hi Pass Filter
 

@@ -30,15 +30,14 @@ function createWindow() {
   // Get the window state
   const state = constants.getWindowState();
   
-  // Adjust window size based on scale factor difference
+  // Adjust window size if the display scale factor has changed
   let adjustedWidth = state.width;
   let adjustedHeight = state.height;
-  
-  // If we have a saved scale factor and it's different from current
-  if (state.scaleFactor && state.scaleFactor !== currentScaleFactor) {
-     // Convert from physical to logical pixels
-    adjustedWidth = Math.round(state.width * currentScaleFactor);
-    adjustedHeight = Math.round(state.height * currentScaleFactor);
+
+  if (state.scaleFactor) {
+    const factor = currentScaleFactor / state.scaleFactor;
+    adjustedWidth = Math.round(state.width * factor);
+    adjustedHeight = Math.round(state.height * factor);
   }
   
   // Create the browser window

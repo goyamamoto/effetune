@@ -7,6 +7,8 @@ Uma coleção de plugins que permite ajustar diferentes aspectos do som da sua m
 - [15Band GEQ](#15band-geq) - Ajuste detalhado do som com 15 controles precisos
 - [15Band PEQ](#15band-peq) - Equalizador paramétrico profissional com 15 bandas e máxima flexibilidade
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Equalizador baseado em dinâmica que reage à sua música
+- [5Band PEQ](#5band-peq) - Equalizador paramétrico profissional com cinco bandas e controle flexível
+- [Band Pass Filter](#band-pass-filter) - Foco em frequências específicas
 - [Hi Pass Filter](#hi-pass-filter) - Remove frequências baixas indesejadas com precisão
 - [Lo Pass Filter](#lo-pass-filter) - Remove frequências altas indesejadas com precisão
 - [Loudness Equalizer](#loudness-equalizer) - Correção do balanço de frequência para audição em volumes baixos
@@ -209,6 +211,52 @@ Um equalizador paramétrico de nível profissional baseado em princípios cient�
 - Cálculo da função de transferência em tempo real
 - Grade calibrada de frequência e ganho
 - Leituras numéricas precisas para todos os parâmetros
+
+## Band Pass Filter
+
+Um filtro passa-banda de precisão que combina filtros passa-alta e passa-baixa para permitir que apenas frequências em uma faixa específica passem. Baseado no design de filtro Linkwitz-Riley para resposta de fase ideal e qualidade de som transparente.
+
+### Guia de Aperfeiçoamento da Audição
+- Foco na Faixa Vocal:
+  - Configure o HPF entre 100-300Hz e o LPF entre 4-8kHz para enfatizar a clareza vocal
+  - Use inclinações moderadas (-24dB/oct) para um som natural
+  - Ajuda os vocais a se destacarem em mixagens complexas
+- Crie Efeitos Especiais:
+  - Configure faixas de frequência estreitas para efeitos de telefone, rádio ou megafone
+  - Use inclinações mais íngremes (-36dB/oct ou superior) para filtragem mais dramática
+  - Experimente diferentes faixas de frequência para sons criativos
+- Limpe Faixas de Frequência Específicas:
+  - Direcione frequências problemáticas com controle preciso
+  - Use diferentes inclinações para seções passa-alta e passa-baixa conforme necessário
+  - Perfeito para remover simultaneamente o ruído de baixa frequência e o ruído de alta frequência
+
+### Parâmetros
+- **HPF Frequency (Hz)** - Controla onde as frequências baixas são filtradas (1Hz a 40000Hz)
+  - Valores mais baixos: Apenas as frequências mais baixas são removidas
+  - Valores mais altos: Mais frequências baixas são removidas
+  - Ajuste com base no conteúdo específico de baixa frequência que deseja eliminar
+- **HPF Slope** - Controla quão agressivamente as frequências abaixo do corte são reduzidas
+  - Off: Nenhuma filtragem aplicada
+  - -12dB/oct: Filtragem suave (LR2 - Linkwitz-Riley de 2ª ordem)
+  - -24dB/oct: Filtragem padrão (LR4 - Linkwitz-Riley de 4ª ordem)
+  - -36dB/oct: Filtragem mais forte (LR6 - Linkwitz-Riley de 6ª ordem)
+  - -48dB/oct: Filtragem muito forte (LR8 - Linkwitz-Riley de 8ª ordem)
+- **LPF Frequency (Hz)** - Controla onde as frequências altas são filtradas (1Hz a 40000Hz)
+  - Valores mais baixos: Mais frequências altas são removidas
+  - Valores mais altos: Apenas as frequências mais altas são removidas
+  - Ajuste com base no conteúdo específico de alta frequência que deseja eliminar
+- **LPF Slope** - Controla quão agressivamente as frequências acima do corte são reduzidas
+  - Off: Nenhuma filtragem aplicada
+  - -12dB/oct: Filtragem suave (LR2 - Linkwitz-Riley de 2ª ordem)
+  - -24dB/oct: Filtragem padrão (LR4 - Linkwitz-Riley de 4ª ordem)
+  - -36dB/oct: Filtragem mais forte (LR6 - Linkwitz-Riley de 6ª ordem)
+  - -48dB/oct: Filtragem muito forte (LR8 - Linkwitz-Riley de 8ª ordem)
+
+### Exibição Visual
+- Gráfico de resposta de frequência em tempo real com escala logarítmica de frequência
+- Visualização clara de ambas inclinações do filtro e pontos de corte
+- Controles interativos para ajuste preciso
+- Grade de frequência com marcadores em pontos de referência chave
 
 ## Hi Pass Filter
 
