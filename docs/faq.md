@@ -35,6 +35,7 @@ Download the VB-CABLE Driver Pack45, run `VBCABLE_Setup_x64.exe` as administrato
 
 ### 1-2. Streaming service routing (Spotify example)
 Open **Settings▸System▸Sound▸Volume mixer**, and set `Spotify.exe` output to **CABLE Input**. Play a track to confirm silence from the speakers.
+On macOS, use Rogue Amoeba's **SoundSource** to assign Spotify output to **CABLE Input** in the same manner.
 
 ### 1-3. EffeTune audio settings
 Launch the desktop app and open **Config Audio**.

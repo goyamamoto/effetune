@@ -35,6 +35,7 @@ EffeTune هو تطبيق DSP في الوقت الفعلي لعشاق الصوت 
 
 ### 1-2. توجيه خدمة البث (مثال Spotify)
 افتح **Settings▸System▸Sound▸Volume mixer**، وقم بتعيين إخراج `Spotify.exe` إلى **CABLE Input**. قم بتشغيل مقطع للتأكد من عدم وجود صوت من مكبرات الصوت.
+على نظام macOS، استخدم **SoundSource** من Rogue Amoeba لتعيين خرج Spotify إلى **CABLE Input** بنفس الطريقة.
 
 ### 1-3. إعدادات الصوت في EffeTune
 قم بتشغيل تطبيق سطح المكتب وافتح **Config Audio**.

@@ -35,6 +35,7 @@ Descargue el paquete de controladores VB-CABLE, ejecute `VBCABLE_Setup_x64.exe` 
 
 ### 1-2. Enrutamiento del servicio de streaming (ejemplo de Spotify)
 Abra **Settings▸System▸Sound▸Volume mixer**, y configure la salida de `Spotify.exe` a **CABLE Input**. Reproduzca una pista para confirmar que no hay sonido desde los altavoces.
+En macOS, utilice **SoundSource** de Rogue Amoeba para asignar la salida de Spotify a **CABLE Input** del mismo modo.
 
 ### 1-3. Configuración de audio de EffeTune
 Inicie la aplicación de escritorio y abra **Config Audio**.

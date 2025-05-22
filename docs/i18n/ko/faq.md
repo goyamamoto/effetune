@@ -35,6 +35,7 @@ VB-CABLE 드라이버 팩45를 다운로드하고, 관리자 권한으로 `VBCAB
 
 ### 1-2. 스트리밍 서비스 라우팅(Spotify 예시)
 **Settings▸System▸Sound▸Volume mixer**를 열고, `Spotify.exe` 출력을 **CABLE Input**으로 설정합니다. 트랙을 재생하여 스피커에서 소리가 나지 않는지 확인합니다.
+macOS가 사용되는 경우, Rogue Amoeba의 **SoundSource**를 이용하여 Spotify 출력을 동일한 방식으로 **CABLE Input**으로 지정합니다.
 
 ### 1-3. EffeTune 오디오 설정
 데스크톱 앱을 실행하고 **Config Audio**를 엽니다.

@@ -35,6 +35,7 @@ Windows 示例：Spotify → VB-CABLE → EffeTune → DAC/放大器。其他服
 
 ### 1-2. 流媒体服务路由（以 Spotify 为例）
 打开 **设置▸系统▸声音▸音量混合器**，将 `Spotify.exe` 输出设置为 **CABLE Input**。播放一首曲目以确认扬声器没有声音。
+在 macOS 上，可使用 Rogue Amoeba 的 **SoundSource** 将 Spotify 输出同样设置为 **CABLE Input**。
 
 ### 1-3. EffeTune 音频设置
 启动桌面应用并打开 **配置音频**。
