@@ -9,6 +9,7 @@ Uma coleção de plugins que ajudam a equilibrar as partes altas e baixas da sua
 - [Compressor](#compressor) - Equilibra automaticamente os níveis de volume para uma audição mais confortável
 - [Gate](#gate) - Reduz ruídos de fundo indesejados atenuando sinais abaixo de um limite
 - [Multiband Compressor](#multiband-compressor) - Processador de dinâmica profissional de 5 bandas com modelagem de som estilo rádio FM
+- [Transient Shaper](#transient-shaper) - Controla as porções de transiente e sustentação do sinal
 
 ## Auto Leveler
 
@@ -457,3 +458,100 @@ Esta configuração cria o som característico "pronto para rádio":
 - Ajuste fino do threshold de cada banda para a quantidade desejada de controle
 - Use os controles de ganho para moldar o balanço final de frequência
 - Monitore os medidores de redução de ganho para garantir processamento apropriado
+
+## Transient Shaper
+
+Um processador de dinâmica especializado que permite aprimorar ou reduzir independentemente as partes de ataque e sustentação do seu áudio. Esta poderosa ferramenta oferece controle preciso sobre o punch e corpo da sua música, permitindo remodelar o caráter dos sons sem afetar seu nível geral.
+
+### Listening Enhancement Guide
+- Percussão:
+  - Adicione punch e definição às baterias ao aprimorar os transientes
+  - Reduza a ressonância da sala controlando a porção de sustentação
+  - Crie sons de bateria mais impactantes sem aumentar o volume
+- Violão/Guitarra Acústica:
+  - Realce os ataques de palhetada para maior clareza e presença
+  - Controle a sustentação para encontrar o equilíbrio perfeito com outros instrumentos
+  - Molde padrões de dedilhado para se encaixarem melhor na mixagem
+- Música Eletrônica:
+  - Acentue os ataques de sintetizadores para uma sensação mais percussiva
+  - Controle a sustentação de sons graves para mixagens mais firmes
+  - Adicione punch a baterias eletrônicas sem alterar seu timbre
+
+### Parameters
+
+- **Fast Attack** (0.1ms a 10.0ms)
+  - Controla quão rapidamente o seguidor de envelope rápido responde
+  - Valores mais baixos: Mais responsivo a transientes agudos
+  - Valores mais altos: Detecção de transientes mais suave
+  - Comece com 1.0ms para a maioria dos materiais
+
+- **Fast Release** (1ms a 200ms)
+  - Quão rapidamente o seguidor de envelope rápido é redefinido
+  - Valores mais baixos: Rastreamento de transientes mais preciso
+  - Valores mais altos: Modelagem de transientes mais natural
+  - 20ms funciona bem como ponto de partida
+
+- **Slow Attack** (1ms a 100ms)
+  - Controla quão rapidamente o seguidor de envelope lento responde
+  - Valores mais baixos: Separação mais pronunciada entre transientes e sustentação
+  - Valores mais altos: Detecção mais natural da porção de sustentação
+  - 20ms é uma boa configuração padrão
+
+- **Slow Release** (50ms a 1000ms)
+  - Quão rapidamente o envelope lento retorna ao estado de repouso
+  - Valores mais baixos: Porção de sustentação mais curta
+  - Valores mais altos: Detecção de caudas de sustentação mais longas
+  - Tente 300ms como ponto de partida
+
+- **Transient Gain** (-24dB a +24dB)
+  - Aumenta ou suprime a parte de ataque do som
+  - Valores positivos: Enfatiza punch e clareza
+  - Valores negativos: Cria som mais suave e menos agressivo
+  - Comece com +6dB para enfatizar transientes
+
+- **Sustain Gain** (-24dB a +24dB)
+  - Aumenta ou suprime a parte de sustentação do som
+  - Valores positivos: Adiciona mais riqueza e corpo
+  - Valores negativos: Cria som mais firme e controlado
+  - Comece com 0dB e ajuste ao gosto
+
+- **Smoothing** (0.1ms a 20.0ms)
+  - Controla a suavidade das mudanças de ganho
+  - Valores mais baixos: Modelagem mais precisa, mas potencialmente mais agressiva
+  - Valores mais altos: Processamento mais natural e transparente
+  - 5.0ms proporciona um bom equilíbrio para a maioria dos materiais
+
+### Visual Feedback
+- Visualização de ganho em tempo real
+- Exibição clara do histórico de ganho
+- Marcadores de tempo para referência
+- Interface intuitiva para todos os parâmetros
+
+### Recommended Settings
+
+#### Percussão Realçada
+- Fast Attack: 0.5ms
+- Fast Release: 10ms
+- Slow Attack: 15ms
+- Slow Release: 200ms
+- Transient Gain: +9dB
+- Sustain Gain: -3dB
+- Smoothing: 3.0ms
+
+#### Instrumentos Acústicos Naturais
+- Fast Attack: 2.0ms
+- Fast Release: 30ms
+- Slow Attack: 25ms
+- Slow Release: 400ms
+- Transient Gain: +3dB
+- Sustain Gain: 0dB
+- Smoothing: 8.0ms
+
+#### Som Eletrônico Firme
+- Fast Attack: 1.0ms
+- Fast Release: 15ms
+- Slow Attack: 10ms
+- Slow Release: 250ms
+- Transient Gain: +6dB
+- Sustain Gain: -6dB
+- Smoothing: 4.0ms

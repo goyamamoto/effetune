@@ -250,6 +250,7 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Dynamics  | Compressor | Dynamic range compression with threshold, ratio, and knee control | [Details](docs/plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | Noise gate with threshold, ratio, and knee control for noise reduction | [Details](docs/plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Professional 5-band dynamics processor with FM radio-style sound shaping | [Details](docs/plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | Controls transient and sustain portions of the signal | [Details](docs/plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15-band graphic equalizer | [Details](docs/plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Professional parametric equalizer with 15 fully configurable bands | [Details](docs/plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 5-band dynamic equalizer with threshold-based frequency adjustment | [Details](docs/plugins/eq.md#5band-dynamic-eq) |

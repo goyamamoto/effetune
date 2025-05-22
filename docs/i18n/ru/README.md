@@ -228,6 +228,7 @@ No audiophile myths, Just pure science.
 | Dynamics  | Compressor | Компрессия динамического диапазона с регулировкой порога, коэффициента и «колена» | [Подробнее](plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | Гейт шумоподавления с регулировкой порога, коэффициента и «колена» для уменьшения шума | [Подробнее](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Профессиональный 5-полосный динамический процессор с FM-радио стилизацией звука | [Подробнее](plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | Управление атакой и сустейном сигнала | [Подробнее](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15-полосный графический эквалайзер | [Подробнее](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Профессиональный параметрический эквалайзер с 15 полностью настраиваемыми полосами | [Подробнее](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 5-полосный динамический эквалайзер с регулировкой частот на основе порога | [Подробнее](plugins/eq.md#5band-dynamic-eq) |

@@ -240,6 +240,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Dynamics  | Compressor | 임계값, 비율 및 니 제어가 가능한 다이내믹 레인지 컴프레션 | [세부 정보](plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | 노이즈 감소를 위한 임계값, 비율 및 니 제어 기능의 노이즈 게이트 | [세부 정보](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FM 라디오 스타일 사운드 셰이핑을 갖춘 전문 5밴드 다이내믹 프로세서 | [세부 정보](plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | 신호의 트랜지언트 및 서스테인 부분을 제어 | [세부 정보](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15밴드 그래픽 이퀄라이저 | [세부 정보](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | 15개의 완전 구성 가능 밴드를 갖춘 전문 파라메트릭 이퀄라이저 | [세부 정보](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 임계값 기반 주파수 조정이 가능한 5밴드 다이내믹 이퀄라이저 | [세부 정보](plugins/eq.md#5band-dynamic-eq) |

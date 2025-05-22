@@ -242,6 +242,7 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | Dynamics  | Compressor | Compression de la plage dynamique avec contrôle du seuil, du ratio et de la zone de transition | [Détails](plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | Gate de bruit avec réglages du seuil, du ratio et de la zone de transition pour la réduction du bruit | [Détails](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Processeur dynamique professionnel 5 bandes offrant une coloration sonore façon radio FM | [Détails](plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | Contrôle les portions transitoires et de sustain du signal | [Détails](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | Égaliseur graphique 15 bandes | [Détails](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Égaliseur paramétrique professionnel avec 15 bandes entièrement configurables | [Détails](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | Égaliseur dynamique 5 bandes avec ajustement des fréquences basé sur un seuil | [Détails](plugins/eq.md#5band-dynamic-eq) |

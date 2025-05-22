@@ -9,6 +9,7 @@
 - [Compressor](#compressor) - 自动平衡音量级别,实现更舒适的聆听体验
 - [Gate](#gate) - 通过衰减低于阈值的信号来减少不需要的背景噪音
 - [Multiband Compressor](#multiband-compressor) - 具有 FM 广播风格声音塑造的专业 5 段动态处理器
+- [Transient Shaper](#transient-shaper) - 控制信号的瞬态和延音部分
 
 ## Auto Leveler
 
@@ -461,3 +462,100 @@ Multiband Compressor 具有优化的默认设置,重现 FM 广播的精致、专
 - 微调每个频段的阈值以获得所需的控制量
 - 使用增益控制塑造最终的频率平衡
 - 监控增益减少计量以确保适当的处理
+
+## Transient Shaper
+
+这是一种专门的动态处理器，让您能够独立地增强或减弱音频的瞬态（起音）和延音部分。这个强大的工具可以精确控制音乐的冲击力和厚度，使您能够重塑声音特性而不影响其整体电平。
+
+### 聆听增强指南
+- 打击乐器:
+  - 通过增强瞬态为鼓增添冲击力和清晰度
+  - 通过控制延音部分减少房间共鸣
+  - 在不增加音量的情况下创造更有冲击力的鼓声
+- 原声吉他:
+  - 增强拨弦瞬态以获得更清晰和更具存在感的声音
+  - 控制延音以与其他乐器找到完美平衡
+  - 塑造扫弦模式使其在混音中表现更好
+- 电子音乐:
+  - 强调合成器瞬态以获得更具打击感的效果
+  - 控制贝斯声音的延音以获得更紧凑的混音
+  - 在不改变音色的情况下为电子鼓增添冲击力
+
+### 参数
+
+- **Fast Attack** (0.1ms to 10.0ms)
+  - 控制快速包络跟随器的响应速度
+  - 较低值：对尖锐瞬态反应更敏感
+  - 较高值：更平滑的瞬态检测
+  - 大多数材料从1.0ms开始比较合适
+
+- **Fast Release** (1ms to 200ms)
+  - 快速包络跟随器重置的速度
+  - 较低值：更精确的瞬态跟踪
+  - 较高值：更自然的瞬态塑形
+  - 20ms是一个不错的起点
+
+- **Slow Attack** (1ms to 100ms)
+  - 控制慢速包络跟随器的响应速度
+  - 较低值：瞬态和延音之间的分离更明显
+  - 较高值：更自然地检测延音部分
+  - 20ms是一个好的默认设置
+
+- **Slow Release** (50ms to 1000ms)
+  - 慢速包络返回休止状态的速度
+  - 较低值：较短的延音部分
+  - 较高值：检测更长的延音尾部
+  - 试试300ms作为起点
+
+- **Transient Gain** (-24dB to +24dB)
+  - 提升或削减声音的起音部分
+  - 正值：更多冲击力和清晰度
+  - 负值：更柔和、不那么激进的声音
+  - 从+6dB开始增强瞬态
+
+- **Sustain Gain** (-24dB to +24dB)
+  - 提升或削减声音的延音部分
+  - 正值：更多声音体积和共鸣
+  - 负值：更紧凑、更受控的声音
+  - 从0dB开始，根据喜好调整
+
+- **Smoothing** (0.1ms to 20.0ms)
+  - 控制增益变化应用的平滑程度
+  - 较低值：更精确，可能更激进的塑形
+  - 较高值：更自然、透明的处理
+  - 5.0ms为大多数材料提供良好平衡
+
+### 视觉显示
+- 实时增益可视化
+- 清晰的增益历史显示
+- 参考时间标记
+- 所有参数的直观界面
+
+### 推荐设置
+
+#### 增强的打击乐
+- Fast Attack: 0.5ms
+- Fast Release: 10ms
+- Slow Attack: 15ms
+- Slow Release: 200ms
+- Transient Gain: +9dB
+- Sustain Gain: -3dB
+- Smoothing: 3.0ms
+
+#### 自然的原声乐器
+- Fast Attack: 2.0ms
+- Fast Release: 30ms
+- Slow Attack: 25ms
+- Slow Release: 400ms
+- Transient Gain: +3dB
+- Sustain Gain: 0dB
+- Smoothing: 8.0ms
+
+#### 更紧凑的电子声音
+- Fast Attack: 1.0ms
+- Fast Release: 15ms
+- Slow Attack: 10ms
+- Slow Release: 250ms
+- Transient Gain: +6dB
+- Sustain Gain: -6dB
+- Smoothing: 4.0ms

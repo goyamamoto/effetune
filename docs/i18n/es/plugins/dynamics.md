@@ -9,6 +9,7 @@ Una colección de plugins que ayudan a equilibrar las partes fuertes y suaves de
 - [Compressor](#compressor) - Equilibra automáticamente los niveles de volumen para una escucha más cómoda
 - [Gate](#gate) - Reduce el ruido de fondo no deseado atenuando señales por debajo de un umbral
 - [Multiband Compressor](#multiband-compressor) - Procesador de dinámica profesional de 5 bandas con modelado de sonido estilo radio FM
+- [Transient Shaper](#transient-shaper) - Controla las partes de ataque y sostenimiento de la señal
 
 ## Auto Leveler
 
@@ -449,3 +450,100 @@ Esta configuración crea el característico sonido "listo para radio":
 - Ajusta el threshold de cada banda para la cantidad deseada de control
 - Usa los controles de ganancia para moldear el balance de frecuencia final
 - Monitorea los medidores de reducción de ganancia para asegurar un procesamiento apropiado
+
+## Transient Shaper
+
+Un procesador de dinámica especializado que te permite mejorar o reducir independientemente las partes de ataque y sostenimiento de tu audio. Esta poderosa herramienta te da un control preciso sobre el punch y el cuerpo de tu música, permitiéndote remodelar el carácter de los sonidos sin afectar su nivel general.
+
+### Listening Enhancement Guide
+- Percusión:
+  - Añade punch y definición a los tambores mejorando los transientes
+  - Reduce la resonancia de la sala controlando la porción de sostenimiento
+  - Crea sonidos de batería más impactantes sin aumentar el volumen
+- Guitarra Acústica:
+  - Mejora los ataques de púa para mayor claridad y presencia
+  - Controla el sostenimiento para encontrar el equilibrio perfecto con otros instrumentos
+  - Da forma a los patrones de rasgueo para que se asienten mejor en la mezcla
+- Música Electrónica:
+  - Acentúa los ataques de sintetizador para una sensación más percusiva
+  - Controla el sostenimiento de sonidos graves para mezclas más ajustadas
+  - Añade punch a baterías electrónicas sin cambiar su timbre
+
+### Parameters
+
+- **Fast Attack** (0.1ms a 10.0ms)
+  - Controla qué tan rápido responde el seguidor de envolvente rápido
+  - Valores más bajos: Más sensible a transientes agudos
+  - Valores más altos: Detección de transientes más suave
+  - Comienza con 1.0ms para la mayoría del material
+
+- **Fast Release** (1ms a 200ms)
+  - Qué tan rápido se reinicia el seguidor de envolvente rápido
+  - Valores más bajos: Seguimiento de transientes más preciso
+  - Valores más altos: Moldeado de transientes más natural
+  - 20ms funciona bien como punto de partida
+
+- **Slow Attack** (1ms a 100ms)
+  - Controla qué tan rápido responde el seguidor de envolvente lento
+  - Valores más bajos: Separación más pronunciada entre transientes y sostenimiento
+  - Valores más altos: Detección más natural de la porción de sostenimiento
+  - 20ms es un buen ajuste predeterminado
+
+- **Slow Release** (50ms a 1000ms)
+  - Qué tan rápido el envolvente lento vuelve al estado de reposo
+  - Valores más bajos: Porción de sostenimiento más corta
+  - Valores más altos: Detección de colas de sostenimiento más largas
+  - Prueba 300ms como punto de partida
+
+- **Transient Gain** (-24dB a +24dB)
+  - Aumenta o suprime la parte de ataque del sonido
+  - Valores positivos: Enfatiza punch y claridad
+  - Valores negativos: Crea un sonido más suave y menos agresivo
+  - Comienza con +6dB para enfatizar transientes
+
+- **Sustain Gain** (-24dB a +24dB)
+  - Aumenta o suprime la parte de sostenimiento del sonido
+  - Valores positivos: Añade más riqueza y cuerpo
+  - Valores negativos: Crea un sonido más ajustado y controlado
+  - Comienza con 0dB y ajusta al gusto
+
+- **Smoothing** (0.1ms a 20.0ms)
+  - Controla la suavidad de los cambios de ganancia
+  - Valores más bajos: Moldeado más preciso pero potencialmente más agresivo
+  - Valores más altos: Procesamiento más natural y transparente
+  - 5.0ms proporciona un buen equilibrio para la mayoría del material
+
+### Visual Feedback
+- Visualización de ganancia en tiempo real
+- Visualización clara del historial de ganancia
+- Marcadores de tiempo para referencia
+- Interfaz intuitiva para todos los parámetros
+
+### Recommended Settings
+
+#### Percusión Mejorada
+- Fast Attack: 0.5ms
+- Fast Release: 10ms
+- Slow Attack: 15ms
+- Slow Release: 200ms
+- Transient Gain: +9dB
+- Sustain Gain: -3dB
+- Smoothing: 3.0ms
+
+#### Instrumentos Acústicos Naturales
+- Fast Attack: 2.0ms
+- Fast Release: 30ms
+- Slow Attack: 25ms
+- Slow Release: 400ms
+- Transient Gain: +3dB
+- Sustain Gain: 0dB
+- Smoothing: 8.0ms
+
+#### Sonido Electrónico Ajustado
+- Fast Attack: 1.0ms
+- Fast Release: 15ms
+- Slow Attack: 10ms
+- Slow Release: 250ms
+- Transient Gain: +6dB
+- Sustain Gain: -6dB
+- Smoothing: 4.0ms

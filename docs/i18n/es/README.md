@@ -244,6 +244,7 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | Dynamics  | Compressor | Compresión de rango dinámico con control de umbral, relación y curvatura | [Detalles](plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | Puerta de ruido con control de umbral, relación y curvatura para reducción de ruido | [Detalles](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Procesador dinámico profesional de 5 bandas con modelado de sonido al estilo radio FM | [Detalles](plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | Controla las porciones transitorias y de sostenimiento de la señal | [Detalles](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | Ecualizador gráfico de 15 bandas | [Detalles](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Ecualizador paramétrico profesional con 15 bandas totalmente configurables | [Detalles](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | Ecualizador dinámico de 5 bandas con ajuste de frecuencia basado en umbral | [Detalles](plugins/eq.md#5band-dynamic-eq) |

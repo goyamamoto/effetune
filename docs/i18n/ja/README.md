@@ -249,6 +249,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Dynamics  | Compressor | しきい値、レシオ、ニーコントロール付きのダイナミックレンジ圧縮 | [詳細](plugins/dynamics.md#compressor) |
 | Dynamics  | Gate | ノイズリダクションのためのしきい値、レシオ、ニーコントロール付きノイズゲート | [詳細](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FMラジオ風のサウンドシェイピングを備えたプロフェッショナルな5バンドダイナミクスプロセッサ | [詳細](plugins/dynamics.md#multiband-compressor) |
+| Dynamics  | Transient Shaper | 信号のアタックとサステイン部分を独立してコントロール | [詳細](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15バンドグラフィックイコライザー | [詳細](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | 15の完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | しきい値に基づく周波数調整が可能な5バンドダイナミックイコライザー | [詳細](plugins/eq.md#5band-dynamic-eq) |

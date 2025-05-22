@@ -9,6 +9,7 @@ Une collection de plugins qui aident à équilibrer les parties fortes et douces
 - [Compressor](#compressor) - Équilibre automatiquement les niveaux de volume pour une écoute plus confortable
 - [Gate](#gate) - Réduit les bruits de fond indésirables en atténuant les signaux sous un seuil
 - [Multiband Compressor](#multiband-compressor) - Processeur de dynamique professionnel à 5 bandes avec mise en forme du son style radio FM
+- [Transient Shaper](#transient-shaper) - Contrôle les parties d'attaque et de sustain du signal
 
 ## Auto Leveler
 
@@ -457,3 +458,100 @@ Cette configuration crée le son caractéristique "prêt pour la radio" :
 - Affinez le seuil de chaque bande pour le niveau de contrôle souhaité
 - Utilisez les contrôles de gain pour façonner l'équilibre final des fréquences
 - Surveillez les vumètres de réduction de gain pour assurer un traitement approprié
+
+## Transient Shaper
+
+Un processeur de dynamique spécialisé qui vous permet d'améliorer ou de réduire indépendamment les parties d'attaque et de sustain de votre audio. Cet outil puissant vous donne un contrôle précis sur le punch et le corps de votre musique, vous permettant de remodeler le caractère des sons sans affecter leur niveau global.
+
+### Listening Enhancement Guide
+- Percussion :
+  - Ajoutez du punch et de la définition aux batteries en améliorant les transitoires
+  - Réduisez la résonance de la pièce en maîtrisant la portion de sustain
+  - Créez des sons de batterie plus impactants sans augmenter le volume
+- Guitare Acoustique :
+  - Améliorez les attaques de médiator pour plus de clarté et de présence
+  - Contrôlez le sustain pour trouver l'équilibre parfait avec les autres instruments
+  - Façonnez les motifs de strumming pour mieux s'intégrer dans le mixage
+- Musique Électronique :
+  - Accentuez les attaques de synthétiseur pour une sensation plus percussive
+  - Contrôlez le sustain des sons de basse pour des mixages plus serrés
+  - Ajoutez du punch aux batteries électroniques sans changer leur timbre
+
+### Parameters
+
+- **Fast Attack** (0.1ms à 10.0ms)
+  - Contrôle la rapidité de réponse du suiveur d'enveloppe rapide
+  - Valeurs plus basses : Plus réactif aux transitoires nettes
+  - Valeurs plus hautes : Détection de transitoires plus douce
+  - Commencez avec 1.0ms pour la plupart des matériaux
+
+- **Fast Release** (1ms à 200ms)
+  - Rapidité de réinitialisation du suiveur d'enveloppe rapide
+  - Valeurs plus basses : Suivi des transitoires plus précis
+  - Valeurs plus hautes : Façonnage des transitoires plus naturel
+  - 20ms fonctionne bien comme point de départ
+
+- **Slow Attack** (1ms à 100ms)
+  - Contrôle la rapidité de réponse du suiveur d'enveloppe lent
+  - Valeurs plus basses : Séparation plus prononcée entre transitoires et sustain
+  - Valeurs plus hautes : Détection plus naturelle de la portion de sustain
+  - 20ms est un bon réglage par défaut
+
+- **Slow Release** (50ms à 1000ms)
+  - Rapidité avec laquelle l'enveloppe lente revient à l'état de repos
+  - Valeurs plus basses : Portion de sustain plus courte
+  - Valeurs plus hautes : Détection de queues de sustain plus longues
+  - Essayez 300ms comme point de départ
+
+- **Transient Gain** (-24dB à +24dB)
+  - Augmente ou supprime la partie d'attaque du son
+  - Valeurs positives : Accentue le punch et la clarté
+  - Valeurs négatives : Crée un son plus doux et moins agressif
+  - Commencez avec +6dB pour accentuer les transitoires
+
+- **Sustain Gain** (-24dB à +24dB)
+  - Augmente ou supprime la partie de sustain du son
+  - Valeurs positives : Ajoute plus de richesse et de corps
+  - Valeurs négatives : Crée un son plus serré et contrôlé
+  - Commencez à 0dB et ajustez selon vos goûts
+
+- **Smoothing** (0.1ms à 20.0ms)
+  - Contrôle la douceur des changements de gain
+  - Valeurs plus basses : Façonnage plus précis mais potentiellement plus agressif
+  - Valeurs plus hautes : Traitement plus naturel et transparent
+  - 5.0ms offre un bon équilibre pour la plupart des matériaux
+
+### Visual Feedback
+- Visualisation du gain en temps réel
+- Affichage clair de l'historique de gain
+- Marqueurs temporels pour référence
+- Interface intuitive pour tous les paramètres
+
+### Recommended Settings
+
+#### Percussion Améliorée
+- Fast Attack : 0.5ms
+- Fast Release : 10ms
+- Slow Attack : 15ms
+- Slow Release : 200ms
+- Transient Gain : +9dB
+- Sustain Gain : -3dB
+- Smoothing : 3.0ms
+
+#### Instruments Acoustiques Naturels
+- Fast Attack : 2.0ms
+- Fast Release : 30ms
+- Slow Attack : 25ms
+- Slow Release : 400ms
+- Transient Gain : +3dB
+- Sustain Gain : 0dB
+- Smoothing : 8.0ms
+
+#### Son Électronique Serré
+- Fast Attack : 1.0ms
+- Fast Release : 15ms
+- Slow Attack : 10ms
+- Slow Release : 250ms
+- Transient Gain : +6dB
+- Sustain Gain : -6dB
+- Smoothing : 4.0ms
