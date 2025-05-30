@@ -113,7 +113,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                      // Ensure the function returns the processed data or modifies it in place
                      return data; // Or return modified data if the plugin creates a new buffer
                  } catch (error) {
-                     console.error('Error in processor function (' + pluginType + '):', error);
+                     console.error('Error in processor function (${pluginType}):', error);
                      // Return original data on error to prevent chain breakage
                      return data;
                  }`
@@ -522,7 +522,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             // --- 9d. Execute Plugin Processor Function ---
             let result; // Can be the modified processingBuffer or a new buffer returned by processor
             try {
-                 result = processor.call(null, context, processingBuffer, processingParams, time);
+                 result = processor.call(context, context, processingBuffer, processingParams, time);
                  // Update context state potentially modified by the processor
                  pluginContexts.set(plugin.id, context);
             } catch(e) {

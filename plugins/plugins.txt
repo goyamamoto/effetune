@@ -39,6 +39,7 @@ dynamics/brickwall_limiter: Brickwall Limiter | Dynamics | BrickwallLimiterPlugi
 dynamics/compressor: Compressor | Dynamics | CompressorPlugin | css
 dynamics/gate: Gate | Dynamics | GatePlugin | css
 dynamics/multiband_compressor: Multiband Compressor | Dynamics | MultibandCompressorPlugin | css
+dynamics/multiband_transient: Multiband Transient | Dynamics | MultibandTransientPlugin | css
 dynamics/transient_shaper: Transient Shaper | Dynamics | TransientShaperPlugin | css
 eq/band_pass_filter: Band Pass Filter | EQ | BandPassFilterPlugin | css
 eq/fifteen_band_geq: 15Band GEQ | EQ | FifteenBandGEQPlugin | css

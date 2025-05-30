@@ -9,6 +9,7 @@ A collection of plugins that help balance the loud and quiet parts of your music
 - [Compressor](#compressor) - Automatically balances volume levels for more comfortable listening
 - [Gate](#gate) - Reduces unwanted background noise by attenuating signals below a threshold
 - [Multiband Compressor](#multiband-compressor) - Professional 5-band dynamics processor with FM radio-style sound shaping
+- [Multiband Transient](#multiband-transient) - Advanced 3-band transient shaper for frequency-specific attack and sustain control
 - [Transient Shaper](#transient-shaper) - Controls transient and sustain portions of the signal
 
 ## Auto Leveler
@@ -460,6 +461,165 @@ This configuration creates the characteristic "radio-ready" sound:
 - Fine-tune each band's threshold for desired amount of control
 - Use the gain controls to shape the final frequency balance
 - Monitor the gain reduction meters to ensure appropriate processing
+
+## Multiband Transient
+
+An advanced transient shaping processor that divides your audio into three frequency bands (Low, Mid, High) and applies independent transient shaping to each band. This sophisticated tool allows you to enhance or reduce the attack and sustain characteristics of different frequency ranges simultaneously, providing precise control over the punch, clarity, and body of your music.
+
+### Listening Enhancement Guide
+- Classical Music:
+  - Enhance the attack of string sections for better clarity while controlling hall resonance in the low frequencies
+  - Shape piano transients differently across the frequency spectrum for more balanced sound
+  - Independently control the punch of timpani (low) and cymbals (high) for optimal orchestral balance
+- Rock/Pop Music:
+  - Add punch to kick drums (low band) while enhancing snare presence (mid band)
+  - Control bass guitar attack separately from vocal clarity
+  - Shape guitar pick attacks in the high frequencies without affecting bass response
+- Electronic Music:
+  - Independently shape bass drops and lead synthesizers
+  - Control sub-bass punch while maintaining clarity in the high frequencies
+  - Add definition to individual elements across the frequency spectrum
+
+### Frequency Bands
+
+The Multiband Transient processor splits your audio into three carefully designed frequency bands:
+
+- **Low Band** (Below Freq 1)
+  - Controls bass and sub-bass frequencies
+  - Ideal for shaping kick drums, bass instruments, and low-frequency elements
+  - Default crossover: 200 Hz
+
+- **Mid Band** (Between Freq 1 and Freq 2)  
+  - Handles the critical midrange frequencies
+  - Contains most vocal and instrumental presence
+  - Default crossover: 200 Hz to 4000 Hz
+
+- **High Band** (Above Freq 2)
+  - Manages treble and air frequencies
+  - Controls cymbals, guitar picks, and brightness
+  - Default crossover: Above 4000 Hz
+
+### Parameters
+
+#### Crossover Frequencies
+- **Freq 1** (20Hz to 2000Hz)
+  - Sets the Low/Mid crossover point
+  - Lower values: More content in mid and high bands
+  - Higher values: More content in low band
+  - Default: 200Hz
+
+- **Freq 2** (200Hz to 20000Hz)
+  - Sets the Mid/High crossover point
+  - Lower values: More content in high band
+  - Higher values: More content in mid band
+  - Default: 4000Hz
+
+#### Per-Band Controls (Low, Mid, High)
+Each frequency band has independent transient shaping controls:
+
+- **Fast Attack** (0.1ms to 10.0ms)
+  - How quickly the fast envelope responds to transients
+  - Lower values: More precise transient detection
+  - Higher values: Smoother transient response
+  - Typical range: 0.5ms to 5.0ms
+
+- **Fast Release** (1ms to 200ms)
+  - How quickly the fast envelope resets
+  - Lower values: Tighter transient control
+  - Higher values: More natural transient decay
+  - Typical range: 20ms to 50ms
+
+- **Slow Attack** (1ms to 100ms)
+  - Controls the slow envelope's response time
+  - Lower values: Better separation of transient vs sustain
+  - Higher values: More gradual sustain detection
+  - Typical range: 10ms to 50ms
+
+- **Slow Release** (50ms to 1000ms)
+  - How long the sustain portion is tracked
+  - Lower values: Shorter sustain detection
+  - Higher values: Longer sustain tail tracking
+  - Typical range: 150ms to 500ms
+
+- **Transient Gain** (-24dB to +24dB)
+  - Enhances or reduces the attack portion
+  - Positive values: More punch and definition
+  - Negative values: Softer, less aggressive attacks
+  - Typical range: 0dB to +12dB
+
+- **Sustain Gain** (-24dB to +24dB)
+  - Enhances or reduces the sustain portion
+  - Positive values: More body and resonance
+  - Negative values: Tighter, more controlled sound
+  - Typical range: -6dB to +6dB
+
+- **Smoothing** (0.1ms to 20.0ms)
+  - Controls how smoothly gain changes are applied
+  - Lower values: More precise shaping
+  - Higher values: More natural, transparent processing
+  - Typical range: 3ms to 8ms
+
+### Visual Feedback
+- Three independent gain visualization graphs (one per band)
+- Real-time gain history display for each frequency band
+- Time markers for reference
+- Interactive band selection
+- Clear visual feedback of transient shaping activity
+
+### Recommended Settings
+
+#### Enhanced Drum Kit
+- **Low Band (Kick Drum):**
+  - Fast Attack: 2.0ms, Fast Release: 50ms
+  - Slow Attack: 25ms, Slow Release: 250ms
+  - Transient Gain: +6dB, Sustain Gain: -3dB
+  - Smoothing: 5.0ms
+
+- **Mid Band (Snare/Vocals):**
+  - Fast Attack: 1.0ms, Fast Release: 30ms
+  - Slow Attack: 15ms, Slow Release: 150ms
+  - Transient Gain: +9dB, Sustain Gain: 0dB
+  - Smoothing: 3.0ms
+
+- **High Band (Cymbals/Hi-hat):**
+  - Fast Attack: 0.5ms, Fast Release: 20ms
+  - Slow Attack: 10ms, Slow Release: 100ms
+  - Transient Gain: +3dB, Sustain Gain: -6dB
+  - Smoothing: 2.0ms
+
+#### Balanced Full Mix
+- **All Bands:**
+  - Fast Attack: 2.0ms, Fast Release: 30ms
+  - Slow Attack: 20ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: 0dB
+  - Smoothing: 5.0ms
+
+#### Natural Acoustic Enhancement
+- **Low Band:**
+  - Fast Attack: 5.0ms, Fast Release: 50ms
+  - Slow Attack: 30ms, Slow Release: 400ms
+  - Transient Gain: +2dB, Sustain Gain: +1dB
+  - Smoothing: 8.0ms
+
+- **Mid Band:**
+  - Fast Attack: 3.0ms, Fast Release: 35ms
+  - Slow Attack: 25ms, Slow Release: 300ms
+  - Transient Gain: +4dB, Sustain Gain: +1dB
+  - Smoothing: 6.0ms
+
+- **High Band:**
+  - Fast Attack: 1.5ms, Fast Release: 25ms
+  - Slow Attack: 15ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: -2dB
+  - Smoothing: 4.0ms
+
+### Application Tips
+- Start with moderate settings and adjust each band independently
+- Use the visual feedback to monitor the amount of transient shaping applied
+- Consider the musical content when setting crossover frequencies
+- Higher frequency bands typically benefit from faster attack times
+- Lower frequency bands often need longer release times for natural sound
+- Combine with other dynamics processors for comprehensive control
 
 ## Transient Shaper
 

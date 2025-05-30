@@ -54,7 +54,7 @@ class TransientShaperPlugin extends PluginBase {
 
                 for (let ch = 0; ch < channelCount; ch++) {
                     const index = ch * blockSize + i;
-                    const xAbs = Math.abs(data[index]);
+                    const xAbs = data[index] < 0 ? -data[index] : data[index];
 
                     const coeffFast = xAbs > fastEnv[ch] ? aFaAtk : aFaRel;
                     fastEnv[ch] = fastEnv[ch] * coeffFast + xAbs * (1 - coeffFast);
@@ -198,8 +198,8 @@ class TransientShaperPlugin extends PluginBase {
         ctx.fillStyle = '#ccc';
 
         // Draw horizontal grid lines (6dB steps from -24dB to +24dB)
-        for (let db = -9; db <= 9; db += 3) {
-            const y = height * (1 - (db + 12) / 24);
+        for (let db = -4; db <= 4; db += 2) {
+            const y = height * (1 - (db + 6) / 12);
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(width, y);
@@ -239,7 +239,7 @@ class TransientShaperPlugin extends PluginBase {
             const value = this.gainBuffer[i];
             if (isNaN(value)) continue;
             const x = width * i / this.gainBuffer.length;
-            const y = height * (1 - (value + 12) / 24);
+            const y = height * (1 - (value + 6) / 12);
             if (!started) {
                 ctx.moveTo(x, y);
                 started = true;

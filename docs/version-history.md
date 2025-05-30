@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.54 (May 30, 2025)
+- Added Multiband Transient effect
+- Various minor improvements
+
 ### Version 1.53 (May 22, 2025)
 - Added Transient Shaper and Band Pass Filter effects
 - Various minor improvements

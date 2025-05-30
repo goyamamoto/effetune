@@ -209,7 +209,7 @@ class FifteenBandPEQPlugin extends PluginBase {
     
   constructor() {
     super('15Band PEQ', '15-band parametric equalizer');
-    this._sampleRate = 48000;
+    this._sampleRate = 96000;
     this.uiCreated = false;
     this.currentBandIndex = 0;
     this.instanceId = `fifteen-band-peq-${Math.random().toString(36).substring(2, 9)}`;
@@ -271,6 +271,18 @@ class FifteenBandPEQPlugin extends PluginBase {
     this.updateParameters();
     if (this.responseSvg) { this.updateResponse(); }
     if (this.markers) { this.updateMarkers(); }
+  }
+
+  invertGains() {
+    for (let i = 0; i < 15; i++) {
+      this['g' + i] = -this['g' + i];
+    }
+    this.updateParameters();
+    if (this.uiCreated) {
+      this.setUIValues();
+      if (this.responseSvg) { this.updateResponse(); }
+      if (this.markers) { this.updateMarkers(); }
+    }
   }
 
   getParameters() {
@@ -378,6 +390,14 @@ class FifteenBandPEQPlugin extends PluginBase {
       }
     });
     
+    const inverseButton = document.createElement('button');
+    inverseButton.className = 'fifteen-band-peq-inverse-button';
+    inverseButton.textContent = 'Inverse';
+    inverseButton.addEventListener('click', () => {
+      this.invertGains();
+    });
+
+    importButtonContainer.appendChild(inverseButton);
     importButtonContainer.appendChild(importButton);
     importButtonContainer.appendChild(fileInput);
     graphContainer.appendChild(importButtonContainer);

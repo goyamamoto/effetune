@@ -9,6 +9,7 @@ Una colección de plugins que ayudan a equilibrar las partes fuertes y suaves de
 - [Compressor](#compressor) - Equilibra automáticamente los niveles de volumen para una escucha más cómoda
 - [Gate](#gate) - Reduce el ruido de fondo no deseado atenuando señales por debajo de un umbral
 - [Multiband Compressor](#multiband-compressor) - Procesador de dinámica profesional de 5 bandas con modelado de sonido estilo radio FM
+- [Multiband Transient](#multiband-transient) - Procesador avanzado de modelado de transientes de 3 bandas para control específico de ataques y sostenimientos por frecuencia
 - [Transient Shaper](#transient-shaper) - Controla las partes de ataque y sostenimiento de la señal
 
 ## Auto Leveler
@@ -450,6 +451,167 @@ Esta configuración crea el característico sonido "listo para radio":
 - Ajusta el threshold de cada banda para la cantidad deseada de control
 - Usa los controles de ganancia para moldear el balance de frecuencia final
 - Monitorea los medidores de reducción de ganancia para asegurar un procesamiento apropiado
+
+## Multiband Transient
+
+Un procesador avanzado de modelado de transientes que divide tu audio en tres bandas de frecuencia (Grave, Medio, Agudo) y aplica modelado independiente de transientes a cada banda. Esta herramienta sofisticada te permite mejorar o reducir simultáneamente las características de ataque y sostenimiento de diferentes rangos de frecuencia, proporcionando control preciso sobre el punch, claridad y cuerpo de tu música.
+
+### Guía de Mejora de Escucha
+- **Música Clásica:**
+  - Mejorar el ataque de las secciones de cuerdas para mayor claridad mientras se controla la reverberación del hall en las frecuencias bajas
+  - Modelar los transientes del piano de manera diferente a través del espectro de frecuencias para un sonido más equilibrado
+  - Controlar independientemente el punch de los timbales (grave) y platillos (agudo) para un equilibrio orquestal óptimo
+
+- **Música Rock/Pop:**
+  - Añadir punch al bombo (banda grave) mientras se mejora la presencia del redoblante (banda media)
+  - Controlar el ataque del bajo guitarra por separado de la claridad vocal
+  - Modelar los ataques de púa de guitarra en las frecuencias altas sin afectar la respuesta de graves
+
+- **Música Electrónica:**
+  - Modelar independientemente los drops de bajo y los sintetizadores lead
+  - Controlar el punch del sub-bajo mientras se mantiene la claridad en las frecuencias altas
+  - Añadir definición a elementos individuales a través del espectro de frecuencias
+
+### Bandas de Frecuencia
+
+El procesador Multiband Transient divide tu audio en tres bandas de frecuencia cuidadosamente diseñadas:
+
+- **Low Band** (Por debajo de Freq 1)
+  - Controla las frecuencias graves y sub-graves
+  - Ideal para modelar bombos, instrumentos de bajo y elementos de baja frecuencia
+  - Frecuencia de cruce por defecto: 200 Hz
+
+- **Mid Band** (Entre Freq 1 y Freq 2)
+  - Maneja las frecuencias medias críticas
+  - Contiene la mayor parte de la presencia vocal e instrumental
+  - Frecuencia de cruce por defecto: 200 Hz a 4000 Hz
+
+- **High Band** (Por encima de Freq 2)
+  - Gestiona las frecuencias agudas y de aire
+  - Controla platillos, ataques de guitarra y brillo
+  - Frecuencia de cruce por defecto: Por encima de 4000 Hz
+
+### Parámetros
+
+#### Frecuencias de Cruce
+- **Freq 1** (20Hz a 2000Hz)
+  - Establece el punto de cruce Grave/Medio
+  - Valores más bajos: Más contenido en bandas media y aguda
+  - Valores más altos: Más contenido en banda grave
+  - Por defecto: 200Hz
+
+- **Freq 2** (200Hz a 20000Hz)
+  - Establece el punto de cruce Medio/Agudo
+  - Valores más bajos: Más contenido en banda aguda
+  - Valores más altos: Más contenido en banda media
+  - Por defecto: 4000Hz
+
+#### Controles por Banda (Low, Mid, High)
+Cada banda de frecuencia tiene controles independientes de modelado de transientes:
+
+- **Fast Attack** (0.1ms a 10.0ms)
+  - Qué tan rápido responde la envolvente rápida a los transientes
+  - Valores más bajos: Detección más precisa de transientes
+  - Valores más altos: Respuesta de transientes más suave
+  - Rango típico: 0.5ms a 5.0ms
+
+- **Fast Release** (1ms a 200ms)
+  - Qué tan rápido se reinicia la envolvente rápida
+  - Valores más bajos: Control más estricto de transientes
+  - Valores más altos: Decaimiento más natural de transientes
+  - Rango típico: 20ms a 50ms
+
+- **Slow Attack** (1ms a 100ms)
+  - Controla el tiempo de respuesta de la envolvente lenta
+  - Valores más bajos: Mejor separación entre transiente y sostenimiento
+  - Valores más altos: Detección más gradual del sostenimiento
+  - Rango típico: 10ms a 50ms
+
+- **Slow Release** (50ms a 1000ms)
+  - Duración del seguimiento de la parte de sostenimiento
+  - Valores más bajos: Detección más corta de sostenimiento
+  - Valores más altos: Seguimiento más largo de cola de sostenimiento
+  - Rango típico: 150ms a 500ms
+
+- **Transient Gain** (-24dB a +24dB)
+  - Mejora o reduce la parte de ataque
+  - Valores positivos: Más punch y definición
+  - Valores negativos: Ataques más suaves, menos agresivos
+  - Rango típico: 0dB a +12dB
+
+- **Sustain Gain** (-24dB a +24dB)
+  - Mejora o reduce la parte de sostenimiento
+  - Valores positivos: Más cuerpo y resonancia
+  - Valores negativos: Sonido más ajustado, más controlado
+  - Rango típico: -6dB a +6dB
+
+- **Smoothing** (0.1ms a 20.0ms)
+  - Controla qué tan suavemente se aplican los cambios de ganancia
+  - Valores más bajos: Modelado más preciso
+  - Valores más altos: Procesamiento más natural, transparente
+  - Rango típico: 3ms a 8ms
+
+### Retroalimentación Visual
+- Tres gráficos independientes de visualización de ganancia (uno por banda)
+- Visualización en tiempo real del historial de ganancia para cada banda de frecuencia
+- Marcadores de tiempo de referencia
+- Selección interactiva de bandas
+- Retroalimentación visual clara de la actividad de modelado de transientes
+
+### Ajustes Recomendados
+
+#### Mejora de Batería
+- **Low Band (Bombo):**
+  - Fast Attack: 2.0ms, Fast Release: 50ms
+  - Slow Attack: 25ms, Slow Release: 250ms
+  - Transient Gain: +6dB, Sustain Gain: -3dB
+  - Smoothing: 5.0ms
+
+- **Mid Band (Redoblante/Voces):**
+  - Fast Attack: 1.0ms, Fast Release: 30ms
+  - Slow Attack: 15ms, Slow Release: 150ms
+  - Transient Gain: +9dB, Sustain Gain: 0dB
+  - Smoothing: 3.0ms
+
+- **High Band (Platillos/Hi-hat):**
+  - Fast Attack: 0.5ms, Fast Release: 20ms
+  - Slow Attack: 10ms, Slow Release: 100ms
+  - Transient Gain: +3dB, Sustain Gain: -6dB
+  - Smoothing: 2.0ms
+
+#### Mezcla Completa Equilibrada
+- **Todas las Bandas:**
+  - Fast Attack: 2.0ms, Fast Release: 30ms
+  - Slow Attack: 20ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: 0dB
+  - Smoothing: 5.0ms
+
+#### Mejora Acústica Natural
+- **Low Band:**
+  - Fast Attack: 5.0ms, Fast Release: 50ms
+  - Slow Attack: 30ms, Slow Release: 400ms
+  - Transient Gain: +2dB, Sustain Gain: +1dB
+  - Smoothing: 8.0ms
+
+- **Mid Band:**
+  - Fast Attack: 3.0ms, Fast Release: 35ms
+  - Slow Attack: 25ms, Slow Release: 300ms
+  - Transient Gain: +4dB, Sustain Gain: +1dB
+  - Smoothing: 6.0ms
+
+- **High Band:**
+  - Fast Attack: 1.5ms, Fast Release: 25ms
+  - Slow Attack: 15ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: -2dB
+  - Smoothing: 4.0ms
+
+### Consejos de Aplicación
+- Comienza con ajustes moderados y ajusta cada banda independientemente
+- Usa la retroalimentación visual para monitorear la cantidad de modelado de transientes aplicado
+- Considera el contenido musical al configurar las frecuencias de cruce
+- Las bandas de alta frecuencia generalmente se benefician de tiempos de ataque más rápidos
+- Las bandas de baja frecuencia a menudo necesitan tiempos de release más largos para un sonido natural
+- Combina con otros procesadores de dinámica para control integral
 
 ## Transient Shaper
 

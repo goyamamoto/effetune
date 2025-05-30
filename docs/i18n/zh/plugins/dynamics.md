@@ -9,6 +9,7 @@
 - [Compressor](#compressor) - 自动平衡音量级别,实现更舒适的聆听体验
 - [Gate](#gate) - 通过衰减低于阈值的信号来减少不需要的背景噪音
 - [Multiband Compressor](#multiband-compressor) - 具有 FM 广播风格声音塑造的专业 5 段动态处理器
+- [Multiband Transient](#multiband-transient) - 高级 3 段瞬态塑形器,实现频段特定的瞬态和延音控制
 - [Transient Shaper](#transient-shaper) - 控制信号的瞬态和延音部分
 
 ## Auto Leveler
@@ -462,6 +463,167 @@ Multiband Compressor 具有优化的默认设置,重现 FM 广播的精致、专
 - 微调每个频段的阈值以获得所需的控制量
 - 使用增益控制塑造最终的频率平衡
 - 监控增益减少计量以确保适当的处理
+
+## Multiband Transient
+
+一个高级瞬态塑形处理器，将音频分为三个频段（低、中、高）并对每个频段应用独立的瞬态塑形。这个精密工具允许您同时增强或减弱不同频率范围的瞬态和延音特性，提供对音乐冲击力、清晰度和丰满度的精确控制。
+
+### 聆听增强指南
+- **古典音乐:**
+  - 增强弦乐组的瞬态以提高清晰度，同时控制低频的音厅残响
+  - 在整个频谱中以不同方式塑形钢琴瞬态，获得更平衡的声音
+  - 独立控制定音鼓（低频）和钹（高频）的冲击力，实现最佳的管弦乐平衡
+
+- **摇滚/流行音乐:**
+  - 为底鼓（低频段）增加冲击力，同时增强军鼓（中频段）的存在感
+  - 独立控制贝司的瞬态而不影响人声清晰度
+  - 塑形高频的吉他拨弦瞬态而不影响低频响应
+
+- **电子音乐:**
+  - 独立塑形低音下潜和主音合成器
+  - 控制次低音的冲击力同时保持高频清晰度
+  - 为频谱中的各个元素增加定义感
+
+### 频段
+
+Multiband Transient 处理器将音频分为三个精心设计的频段：
+
+- **Low Band** (Freq 1 以下)
+  - 控制低音和次低音频率
+  - 适合塑形底鼓、贝司乐器和低频元素
+  - 默认分频点：200 Hz
+
+- **Mid Band** (Freq 1 和 Freq 2 之间)
+  - 处理关键的中频范围
+  - 包含大部分人声和乐器的存在感
+  - 默认分频点：200 Hz 到 4000 Hz
+
+- **High Band** (Freq 2 以上)
+  - 管理高音和空气感频率
+  - 控制钹、吉他拨弦和明亮度
+  - 默认分频点：4000 Hz 以上
+
+### 参数
+
+#### 分频点
+- **Freq 1** (20Hz 到 2000Hz)
+  - 设置低频/中频分频点
+  - 较低值：中高频包含更多内容
+  - 较高值：低频包含更多内容
+  - 默认：200Hz
+
+- **Freq 2** (200Hz 到 20000Hz)
+  - 设置中频/高频分频点
+  - 较低值：高频包含更多内容
+  - 较高值：中频包含更多内容
+  - 默认：4000Hz
+
+#### 每段控制 (Low, Mid, High)
+每个频段都有独立的瞬态塑形控制：
+
+- **Fast Attack** (0.1ms 到 10.0ms)
+  - 快速包络对瞬态的响应速度
+  - 较低值：更精确的瞬态检测
+  - 较高值：更平滑的瞬态响应
+  - 典型范围：0.5ms 到 5.0ms
+
+- **Fast Release** (1ms 到 200ms)
+  - 快速包络重置的速度
+  - 较低值：更严格的瞬态控制
+  - 较高值：更自然的瞬态衰减
+  - 典型范围：20ms 到 50ms
+
+- **Slow Attack** (1ms 到 100ms)
+  - 控制慢速包络的响应时间
+  - 较低值：瞬态与延音更好分离
+  - 较高值：更渐进的延音检测
+  - 典型范围：10ms 到 50ms
+
+- **Slow Release** (50ms 到 1000ms)
+  - 延音部分被追踪的时间长度
+  - 较低值：更短的延音检测
+  - 较高值：更长的延音尾部追踪
+  - 典型范围：150ms 到 500ms
+
+- **Transient Gain** (-24dB 到 +24dB)
+  - 增强或减弱瞬态部分
+  - 正值：更多冲击力和定义感
+  - 负值：更柔和、不那么激进的瞬态
+  - 典型范围：0dB 到 +12dB
+
+- **Sustain Gain** (-24dB 到 +24dB)
+  - 增强或减弱延音部分
+  - 正值：更多丰满度和共鸣
+  - 负值：更紧凑、受控的声音
+  - 典型范围：-6dB 到 +6dB
+
+- **Smoothing** (0.1ms 到 20.0ms)
+  - 控制增益变化应用的平滑度
+  - 较低值：更精确的塑形
+  - 较高值：更自然、透明的处理
+  - 典型范围：3ms 到 8ms
+
+### 视觉反馈
+- 三个独立的增益可视化图（每个频段一个）
+- 每个频段的实时增益历史显示
+- 参考时间标记
+- 交互式频段选择
+- 瞬态塑形活动的清晰视觉反馈
+
+### 推荐设置
+
+#### 鼓组增强
+- **Low Band (底鼓):**
+  - Fast Attack: 2.0ms, Fast Release: 50ms
+  - Slow Attack: 25ms, Slow Release: 250ms
+  - Transient Gain: +6dB, Sustain Gain: -3dB
+  - Smoothing: 5.0ms
+
+- **Mid Band (军鼓/人声):**
+  - Fast Attack: 1.0ms, Fast Release: 30ms
+  - Slow Attack: 15ms, Slow Release: 150ms
+  - Transient Gain: +9dB, Sustain Gain: 0dB
+  - Smoothing: 3.0ms
+
+- **High Band (钹/踩镲):**
+  - Fast Attack: 0.5ms, Fast Release: 20ms
+  - Slow Attack: 10ms, Slow Release: 100ms
+  - Transient Gain: +3dB, Sustain Gain: -6dB
+  - Smoothing: 2.0ms
+
+#### 平衡完整混音
+- **所有频段:**
+  - Fast Attack: 2.0ms, Fast Release: 30ms
+  - Slow Attack: 20ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: 0dB
+  - Smoothing: 5.0ms
+
+#### 自然原声增强
+- **Low Band:**
+  - Fast Attack: 5.0ms, Fast Release: 50ms
+  - Slow Attack: 30ms, Slow Release: 400ms
+  - Transient Gain: +2dB, Sustain Gain: +1dB
+  - Smoothing: 8.0ms
+
+- **Mid Band:**
+  - Fast Attack: 3.0ms, Fast Release: 35ms
+  - Slow Attack: 25ms, Slow Release: 300ms
+  - Transient Gain: +4dB, Sustain Gain: +1dB
+  - Smoothing: 6.0ms
+
+- **High Band:**
+  - Fast Attack: 1.5ms, Fast Release: 25ms
+  - Slow Attack: 15ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: -2dB
+  - Smoothing: 4.0ms
+
+### 使用技巧
+- 从适中的设置开始，独立调整每个频段
+- 使用视觉反馈监控应用的瞬态塑形量
+- 设置分频点时考虑音乐内容
+- 高频段通常受益于更快的瞬态时间
+- 低频段通常需要更长的释放时间以获得自然声音
+- 与其他动态处理器结合使用以实现全面控制
 
 ## Transient Shaper
 

@@ -226,7 +226,8 @@ class GatePlugin extends PluginBase {
                     // --- Process 4 samples ---
     
                     // Sample 1 (index i)
-                    let inputAbs1 = Math.abs(data[offset + i]);
+                    let val1 = data[offset + i];
+                    let inputAbs1 = val1 >= 0 ? val1 : -val1;
                     let coeff1 = (inputAbs1 > envelope) ? attackCoeff : releaseCoeff;
                     let oneMinusCoeff1 = (inputAbs1 > envelope) ? oneMinusAttackCoeff : oneMinusReleaseCoeff;
                     envelope = envelope * coeff1 + inputAbs1 * oneMinusCoeff1;
@@ -234,7 +235,8 @@ class GatePlugin extends PluginBase {
                     let currentEnvelope1 = envelope; // Store envelope for this sample's calculation
     
                     // Sample 2 (index i+1) - Calculate envelope sequentially
-                    let inputAbs2 = Math.abs(data[offset + i + 1]);
+                    let val2 = data[offset + i + 1];
+                    let inputAbs2 = val2 >= 0 ? val2 : -val2;
                     let coeff2 = (inputAbs2 > envelope) ? attackCoeff : releaseCoeff;
                     let oneMinusCoeff2 = (inputAbs2 > envelope) ? oneMinusAttackCoeff : oneMinusReleaseCoeff;
                     envelope = envelope * coeff2 + inputAbs2 * oneMinusCoeff2;
@@ -242,7 +244,8 @@ class GatePlugin extends PluginBase {
                     let currentEnvelope2 = envelope;
     
                     // Sample 3 (index i+2)
-                    let inputAbs3 = Math.abs(data[offset + i + 2]);
+                    let val3 = data[offset + i + 2];
+                    let inputAbs3 = val3 >= 0 ? val3 : -val3;
                     let coeff3 = (inputAbs3 > envelope) ? attackCoeff : releaseCoeff;
                     let oneMinusCoeff3 = (inputAbs3 > envelope) ? oneMinusAttackCoeff : oneMinusReleaseCoeff;
                     envelope = envelope * coeff3 + inputAbs3 * oneMinusCoeff3;
@@ -250,7 +253,8 @@ class GatePlugin extends PluginBase {
                     let currentEnvelope3 = envelope;
     
                     // Sample 4 (index i+3)
-                    let inputAbs4 = Math.abs(data[offset + i + 3]);
+                    let val4 = data[offset + i + 3];
+                    let inputAbs4 = val4 >= 0 ? val4 : -val4;
                     let coeff4 = (inputAbs4 > envelope) ? attackCoeff : releaseCoeff;
                     let oneMinusCoeff4 = (inputAbs4 > envelope) ? oneMinusAttackCoeff : oneMinusReleaseCoeff;
                     envelope = envelope * coeff4 + inputAbs4 * oneMinusCoeff4;
@@ -407,7 +411,8 @@ class GatePlugin extends PluginBase {
     
                 // Handle remaining samples (less than 4) using the same logic
                 for (; i < blockSize; i++) {
-                    let inputAbs = Math.abs(data[offset + i]);
+                    let val = data[offset + i];
+                    let inputAbs = val >= 0 ? val : -val;
                     let coeff = (inputAbs > envelope) ? attackCoeff : releaseCoeff;
                     let oneMinusCoeff = (inputAbs > envelope) ? oneMinusAttackCoeff : oneMinusReleaseCoeff;
                     envelope = envelope * coeff + inputAbs * oneMinusCoeff;

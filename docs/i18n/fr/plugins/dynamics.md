@@ -9,6 +9,7 @@ Une collection de plugins qui aident à équilibrer les parties fortes et douces
 - [Compressor](#compressor) - Équilibre automatiquement les niveaux de volume pour une écoute plus confortable
 - [Gate](#gate) - Réduit les bruits de fond indésirables en atténuant les signaux sous un seuil
 - [Multiband Compressor](#multiband-compressor) - Processeur de dynamique professionnel à 5 bandes avec mise en forme du son style radio FM
+- [Multiband Transient](#multiband-transient) - Processeur avancé de mise en forme des transitoires 3 bandes pour un contrôle spécifique des attaques et sustains par fréquence
 - [Transient Shaper](#transient-shaper) - Contrôle les parties d'attaque et de sustain du signal
 
 ## Auto Leveler
@@ -458,6 +459,167 @@ Cette configuration crée le son caractéristique "prêt pour la radio" :
 - Affinez le seuil de chaque bande pour le niveau de contrôle souhaité
 - Utilisez les contrôles de gain pour façonner l'équilibre final des fréquences
 - Surveillez les vumètres de réduction de gain pour assurer un traitement approprié
+
+## Multiband Transient
+
+Un processeur avancé de mise en forme des transitoires qui divise votre audio en trois bandes de fréquences (Grave, Médium, Aigu) et applique une mise en forme indépendante des transitoires à chaque bande. Cet outil sophistiqué vous permet d'améliorer ou de réduire simultanément les caractéristiques d'attaque et de sustain de différentes plages de fréquences, offrant un contrôle précis sur le punch, la clarté et le corps de votre musique.
+
+### Guide d'Amélioration de l'Écoute
+- **Musique Classique :**
+  - Améliorer l'attaque des sections de cordes pour une meilleure clarté tout en contrôlant la réverbération de salle dans les basses fréquences
+  - Façonner les transitoires de piano différemment à travers le spectre fréquentiel pour un son plus équilibré
+  - Contrôler indépendamment le punch des timbales (grave) et des cymbales (aigu) pour un équilibre orchestral optimal
+
+- **Musique Rock/Pop :**
+  - Ajouter du punch à la grosse caisse (bande grave) tout en améliorant la présence de la caisse claire (bande médium)
+  - Contrôler l'attaque de la basse guitare séparément de la clarté vocale
+  - Façonner les attaques de médiator guitare dans les hautes fréquences sans affecter la réponse des basses
+
+- **Musique Électronique :**
+  - Façonner indépendamment les drops de basse et les synthétiseurs leads
+  - Contrôler le punch des sub-bass tout en maintenant la clarté dans les hautes fréquences
+  - Ajouter de la définition aux éléments individuels à travers le spectre fréquentiel
+
+### Bandes de Fréquences
+
+Le processeur Multiband Transient divise votre audio en trois bandes de fréquences soigneusement conçues :
+
+- **Low Band** (En dessous de Freq 1)
+  - Contrôle les fréquences graves et sub-graves
+  - Idéal pour façonner les grosses caisses, instruments de basse et éléments basse fréquence
+  - Fréquence de coupure par défaut : 200 Hz
+
+- **Mid Band** (Entre Freq 1 et Freq 2)
+  - Gère les fréquences médium critiques
+  - Contient la plupart de la présence vocale et instrumentale
+  - Fréquence de coupure par défaut : 200 Hz à 4000 Hz
+
+- **High Band** (Au-dessus de Freq 2)
+  - Gère les fréquences aiguës et l'air
+  - Contrôle les cymbales, attaques de guitare et brillance
+  - Fréquence de coupure par défaut : Au-dessus de 4000 Hz
+
+### Paramètres
+
+#### Fréquences de Coupure
+- **Freq 1** (20Hz à 2000Hz)
+  - Définit le point de coupure Grave/Médium
+  - Valeurs plus basses : Plus de contenu dans les bandes médium et aigu
+  - Valeurs plus hautes : Plus de contenu dans la bande grave
+  - Par défaut : 200Hz
+
+- **Freq 2** (200Hz à 20000Hz)
+  - Définit le point de coupure Médium/Aigu
+  - Valeurs plus basses : Plus de contenu dans la bande aigu
+  - Valeurs plus hautes : Plus de contenu dans la bande médium
+  - Par défaut : 4000Hz
+
+#### Contrôles par Bande (Low, Mid, High)
+Chaque bande de fréquence a des contrôles indépendants de mise en forme des transitoires :
+
+- **Fast Attack** (0.1ms à 10.0ms)
+  - Rapidité de réponse de l'enveloppe rapide aux transitoires
+  - Valeurs plus basses : Détection plus précise des transitoires
+  - Valeurs plus hautes : Réponse transitoire plus douce
+  - Plage typique : 0.5ms à 5.0ms
+
+- **Fast Release** (1ms à 200ms)
+  - Rapidité de remise à zéro de l'enveloppe rapide
+  - Valeurs plus basses : Contrôle plus strict des transitoires
+  - Valeurs plus hautes : Décroissance transitoire plus naturelle
+  - Plage typique : 20ms à 50ms
+
+- **Slow Attack** (1ms à 100ms)
+  - Contrôle le temps de réponse de l'enveloppe lente
+  - Valeurs plus basses : Meilleure séparation transitoire vs sustain
+  - Valeurs plus hautes : Détection plus graduelle du sustain
+  - Plage typique : 10ms à 50ms
+
+- **Slow Release** (50ms à 1000ms)
+  - Durée de suivi de la partie sustain
+  - Valeurs plus basses : Détection de sustain plus courte
+  - Valeurs plus hautes : Suivi de queue de sustain plus long
+  - Plage typique : 150ms à 500ms
+
+- **Transient Gain** (-24dB à +24dB)
+  - Améliore ou réduit la partie attaque
+  - Valeurs positives : Plus de punch et de définition
+  - Valeurs négatives : Attaques plus douces, moins agressives
+  - Plage typique : 0dB à +12dB
+
+- **Sustain Gain** (-24dB à +24dB)
+  - Améliore ou réduit la partie sustain
+  - Valeurs positives : Plus de corps et de résonance
+  - Valeurs négatives : Son plus serré, plus contrôlé
+  - Plage typique : -6dB à +6dB
+
+- **Smoothing** (0.1ms à 20.0ms)
+  - Contrôle la douceur d'application des changements de gain
+  - Valeurs plus basses : Façonnage plus précis
+  - Valeurs plus hautes : Traitement plus naturel, transparent
+  - Plage typique : 3ms à 8ms
+
+### Retour Visuel
+- Trois graphiques de visualisation de gain indépendants (un par bande)
+- Affichage de l'historique de gain en temps réel pour chaque bande de fréquence
+- Marqueurs temporels de référence
+- Sélection interactive des bandes
+- Retour visuel clair de l'activité de mise en forme des transitoires
+
+### Réglages Recommandés
+
+#### Amélioration de Batterie
+- **Low Band (Grosse Caisse) :**
+  - Fast Attack: 2.0ms, Fast Release: 50ms
+  - Slow Attack: 25ms, Slow Release: 250ms
+  - Transient Gain: +6dB, Sustain Gain: -3dB
+  - Smoothing: 5.0ms
+
+- **Mid Band (Caisse Claire/Voix) :**
+  - Fast Attack: 1.0ms, Fast Release: 30ms
+  - Slow Attack: 15ms, Slow Release: 150ms
+  - Transient Gain: +9dB, Sustain Gain: 0dB
+  - Smoothing: 3.0ms
+
+- **High Band (Cymbales/Hi-hat) :**
+  - Fast Attack: 0.5ms, Fast Release: 20ms
+  - Slow Attack: 10ms, Slow Release: 100ms
+  - Transient Gain: +3dB, Sustain Gain: -6dB
+  - Smoothing: 2.0ms
+
+#### Mix Complet Équilibré
+- **Toutes les Bandes :**
+  - Fast Attack: 2.0ms, Fast Release: 30ms
+  - Slow Attack: 20ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: 0dB
+  - Smoothing: 5.0ms
+
+#### Amélioration Acoustique Naturelle
+- **Low Band :**
+  - Fast Attack: 5.0ms, Fast Release: 50ms
+  - Slow Attack: 30ms, Slow Release: 400ms
+  - Transient Gain: +2dB, Sustain Gain: +1dB
+  - Smoothing: 8.0ms
+
+- **Mid Band :**
+  - Fast Attack: 3.0ms, Fast Release: 35ms
+  - Slow Attack: 25ms, Slow Release: 300ms
+  - Transient Gain: +4dB, Sustain Gain: +1dB
+  - Smoothing: 6.0ms
+
+- **High Band :**
+  - Fast Attack: 1.5ms, Fast Release: 25ms
+  - Slow Attack: 15ms, Slow Release: 200ms
+  - Transient Gain: +3dB, Sustain Gain: -2dB
+  - Smoothing: 4.0ms
+
+### Conseils d'Application
+- Commencer avec des réglages modérés et ajuster chaque bande indépendamment
+- Utiliser le retour visuel pour surveiller la quantité de mise en forme des transitoires appliquée
+- Considérer le contenu musical lors du réglage des fréquences de coupure
+- Les bandes de hautes fréquences bénéficient généralement de temps d'attaque plus rapides
+- Les bandes de basses fréquences nécessitent souvent des temps de release plus longs pour un son naturel
+- Combiner avec d'autres processeurs de dynamique pour un contrôle compréhensif
 
 ## Transient Shaper
 
