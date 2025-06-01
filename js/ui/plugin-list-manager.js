@@ -991,9 +991,21 @@ export class PluginListManager {
             pipelineManager.selectedPlugins.add(newPlugin);
             pipelineManager.updateSelectionClasses();
 
-            // Refresh UI state
-            pipelineManager.updatePipelineUI();
-            pipelineManager.audioManager.rebuildPipeline();
+            // Update worklet directly without rebuilding pipeline (same as drag & drop)
+            pipelineManager.core.updateWorkletPlugins();
+            
+            // Save state for undo/redo
+            pipelineManager.historyManager.saveState();
+
+            // Use rAF to ensure UI update happens after event processing (same as drag & drop)
+            requestAnimationFrame(() => {
+                if (pipelineManager.core?.updatePipelineUI) {
+                    pipelineManager.core.updatePipelineUI(true); // Pass true for immediate update
+                } else {
+                    console.error("Missing core or updatePipelineUI in dblclick's rAF callback");
+                }
+            });
+            
             pipelineManager.updateURL();
             
             // Check window width and adjust plugin list collapse state

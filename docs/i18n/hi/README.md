@@ -271,6 +271,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Modulation | Wow Flutter | समय-आधारित मॉड्यूलेशन प्रभाव | [विवरण](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | अनुकूलनीय आयामों के साथ हॉर्न रेज़ोनेंस सिमुलेशन | [विवरण](plugins/resonator.md#horn-resonator) |
 | Resonator | Modal Resonator | 5 तक रेज़ोनेटर के साथ आवृत्ति रेज़ोनेंस प्रभाव | [विवरण](plugins/resonator.md#modal-resonator) |
+| Reverb    | FDN Reverb | फीडबैक डिले नेटवर्क रिवर्ब जो रिच और घने रिवर्ब टेक्सचर उत्पन्न करता है | [विवरण](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | प्राकृतिक प्रसार के साथ रैंडम स्कैटरिंग रिवर्ब | [विवरण](plugins/reverb.md#rs-reverb) |
 | Saturation | Hard Clipping | डिजिटल हार्ड क्लिपिंग प्रभाव | [विवरण](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | प्रत्येक हार्मोनिक के स्वतंत्र नियंत्रण के साथ हार्मोनिक विरूपण द्वारा अनूठा कैरेक्टर जोड़ता है | [विवरण](plugins/saturation.md#harmonic-distortion) |

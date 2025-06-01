@@ -261,6 +261,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Modulation | Wow Flutter | 시간 기반 모듈레이션 이펙트 | [세부 정보](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | 커스터마이징 가능한 치수를 갖춘 혼 공명 시뮬레이션 | [세부 정보](plugins/resonator.md#horn-resonator) |
 | Resonator | Modal Resonator | 최대 5개의 레조네이터를 갖춘 주파수 공명 효과 | [세부 정보](plugins/resonator.md#modal-resonator) |
+| Reverb    | FDN Reverb | 풍부하고 조밀한 리버브 텍스처를 생성하는 피드백 딜레이 네트워크 리버브 | [세부 정보](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 자연스러운 확산을 갖춘 랜덤 스캐터링 리버브 | [세부 정보](plugins/reverb.md#rs-reverb) |
 | Saturation| Hard Clipping | 디지털 하드 클리핑 이펙트 | [세부 정보](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 각 하모닉을 개별 제어하여 독특한 특성을 부여하는 하모닉 디스토션 | [세부 정보](plugins/saturation.md#harmonic-distortion) |

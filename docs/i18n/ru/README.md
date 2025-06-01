@@ -249,6 +249,7 @@ No audiophile myths, Just pure science.
 | Modulation | Wow Flutter | Эффект модуляции во времени | [Подробнее](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | Симуляция резонанса рупора с настраиваемыми параметрами | [Подробнее](plugins/resonator.md#horn-resonator) |
 | Resonator | Modal Resonator | Эффект резонанса частот с поддержкой до 5 резонаторов | [Подробнее](plugins/resonator.md#modal-resonator) |
+| Reverb    | FDN Reverb | Реверберация с сетью задержек с обратной связью, создающая богатые плотные текстуры | [Подробнее](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Реверберация с рандомным рассеянием и естественной диффузией | [Подробнее](plugins/reverb.md#rs-reverb) |
 | Saturation| Hard Clipping | Цифровой эффект жесткого клиппирования | [Подробнее](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Добавляет уникальный характер через гармонические искажения с независимым управлением каждой гармоникой | [Подробнее](plugins/saturation.md#harmonic-distortion) |

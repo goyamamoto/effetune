@@ -257,6 +257,7 @@
 | Modulation | Wow Flutter | تأثير التضمين الزمني | [تفاصيل](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | محاكاة رنين القرن بأبعاد قابلة للتخصيص | [تفاصيل](plugins/resonator.md#horn-resonator) |
 | Resonator | Modal Resonator | تأثير رنين ترددي مع ما يصل إلى 5 رنانات | [تفاصيل](plugins/resonator.md#modal-resonator) |
+| Reverb    | FDN Reverb | صدى شبكة التأخير المرتد ينتج نسيج صدى غني وكثيف | [تفاصيل](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | صدى منتشر عشوائي مع انتشار طبيعي | [تفاصيل](plugins/reverb.md#rs-reverb) |
 | Saturation| Hard Clipping | تأثير القص الرقمي الصلب | [تفاصيل](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | يضيف طابعًا فريدًا من خلال التشويه التوافقي مع التحكم المستقل في كل توافقي | [تفاصيل](plugins/saturation.md#harmonic-distortion) |
