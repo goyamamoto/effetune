@@ -1,6 +1,10 @@
 # Version History
 
-### Version 1.54 (May 30, 2025)
+### Version 1.55 (Jun xx, 2025)
+- Added FDN Reverb effect
+- Various minor improvements
+
+### Version 1.54 (May 31, 2025)
 - Added Multiband Transient effect
 - Various minor improvements
 

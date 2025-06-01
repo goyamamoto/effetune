@@ -62,6 +62,7 @@ modulation/wow_flutter: Wow Flutter | Modulation | WowFlutterPlugin
 others/oscillator: Oscillator | Others | OscillatorPlugin
 resonator/horn_resonator: Horn Resonator | Resonator | HornResonatorPlugin
 resonator/modal_resonator: Modal Resonator | Resonator | ModalResonatorPlugin | css
+reverb/fdn_reverb: FDN Reverb | Reverb | FDNReverbPlugin
 reverb/rs_reverb: RS Reverb | Reverb | RSReverbPlugin
 saturation/dynamic_saturation: Dynamic Saturation | Saturation | DynamicSaturationPlugin | css
 saturation/hard_clipping: Hard Clipping | Saturation | HardClippingPlugin | css
