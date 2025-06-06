@@ -7,6 +7,9 @@ class OscillatorPlugin extends PluginBase {
         this.vl = -12;    // volume: Default volume in dB
         this.pn = 0;      // panning: -1 = left, 0 = center, 1 = right
         this.wf = 'sine'; // waveform
+        this.md = 'continuous'; // mode: 'continuous' or 'pulsed'
+        this.it = 500;    // interval: Pulsed interval in ms (100-2000, step 10)
+        this.wd = 5;      // width: Pulse ramp time in ms (2-100, step 1)
         
         // Register processor function
         this.registerProcessor(`
@@ -14,13 +17,16 @@ class OscillatorPlugin extends PluginBase {
             if (!parameters.enabled) return data;
 
             // --- Parameter & Context Destructuring / Caching ---
-            const { fr: frequency, vl: volumeDb, pn: panning, wf: waveform } = parameters;
+            const { fr: frequency, vl: volumeDb, pn: panning, wf: waveform, md: mode, it: interval, wd: width } = parameters;
             const { channelCount, blockSize, sampleRate } = parameters;
 
             // Initialize or retrieve context state (phase & pink noise state)
             let currentPhase = context.phase || 0.0; // Use local variable for oscillator phase
 
-            // Initialize pink noise state only if needed and waveform is pink
+            // Initialize pulse timing context for pulsed mode
+            if (!context.pulseTime) context.pulseTime = 0.0;
+            let pulseTime = context.pulseTime;
+
             // Initialize pink noise state only if needed and waveform is pink
             if (waveform === 'pink' && (!context.pinkNoiseState || context.pinkNoiseState.length !== 7)) {
                 // Use Float32Array for potential performance benefits - 7 state variables for Paul Kellett method
@@ -48,6 +54,12 @@ class OscillatorPlugin extends PluginBase {
             const panAngle = (clampedPanning + 1.0) * Math.PI * 0.25;
             const panGainL = Math.cos(panAngle);
             const panGainR = Math.sin(panAngle);
+
+            // Pre-calculate pulse parameters for pulsed mode
+            const intervalSamples = (interval / 1000.0) * safeSampleRate;
+            const pulseWidthSamples = (width / 1000.0) * safeSampleRate;
+            const pulseDurationSamples = pulseWidthSamples * 2.0; // Width * 2 for full cosine cycle
+            const timeIncrementPerSample = 1.0 / safeSampleRate;
 
             // --- Generate Source Samples (Mono) ---
             if (!context.samples || context.blockSize !== blockSize) {
@@ -142,6 +154,28 @@ class OscillatorPlugin extends PluginBase {
 
             } // End waveform type check
 
+            // --- Apply Pulse Modulation (if pulsed mode) ---
+            if (mode === 'pulsed') {
+                for (let i = 0; i < blockSize; i++) {
+                    // Calculate position within current pulse cycle
+                    const pulsePosition = pulseTime % intervalSamples;
+                    
+                    let pulseGain = 0.0;
+                    if (pulsePosition < pulseDurationSamples) {
+                        // Within pulse duration, apply cosine gain
+                        const x = pulsePosition / pulseDurationSamples; // Normalize to 0-1
+                        pulseGain = 0.5 * (1.0 - Math.cos(TWO_PI * x));
+                    }
+                    
+                    // Apply pulse gain to sample
+                    samples[i] *= pulseGain;
+                    
+                    // Advance pulse time
+                    pulseTime += 1.0;
+                }
+                // Update context pulse time
+                context.pulseTime = pulseTime;
+            }
 
             // --- Apply Volume, Panning, and Mix with Input ---
             for (let ch = 0; ch < channelCount; ch++) {
@@ -163,6 +197,7 @@ class OscillatorPlugin extends PluginBase {
             // --- Context State Update ---
             // Note: context.phase was updated within the oscillator block
             // Note: context.pinkNoiseState (if used) was modified directly (in-place)
+            // Note: context.pulseTime was updated within the pulse modulation block
 
             return data; // Return the modified input buffer
         `);
@@ -194,6 +229,25 @@ class OscillatorPlugin extends PluginBase {
         }
     }
 
+    setMode(value) {
+        if (['continuous', 'pulsed'].includes(value)) {
+            this.md = value;
+            this.updateParameters();
+        }
+    }
+
+    setInterval(value) {
+        const parsedValue = typeof value === 'number' ? value : parseFloat(value);
+        this.it = parsedValue < 100 ? 100 : (parsedValue > 2000 ? 2000 : parsedValue);
+        this.updateParameters();
+    }
+
+    setWidth(value) {
+        const parsedValue = typeof value === 'number' ? value : parseFloat(value);
+        this.wd = parsedValue < 2 ? 2 : (parsedValue > 100 ? 100 : parsedValue);
+        this.updateParameters();
+    }
+
     // Get current parameters
     getParameters() {
         return {
@@ -202,7 +256,10 @@ class OscillatorPlugin extends PluginBase {
             fr: this.fr,
             vl: this.vl,
             pn: this.pn,
-            wf: this.wf
+            wf: this.wf,
+            md: this.md,
+            it: this.it,
+            wd: this.wd
         };
     }
 
@@ -212,6 +269,9 @@ class OscillatorPlugin extends PluginBase {
         if (params.vl !== undefined) this.setVolume(params.vl);
         if (params.pn !== undefined) this.setPanning(params.pn);
         if (params.wf !== undefined) this.setWaveform(params.wf);
+        if (params.md !== undefined) this.setMode(params.md);
+        if (params.it !== undefined) this.setInterval(params.it);
+        if (params.wd !== undefined) this.setWidth(params.wd);
         this.updateParameters();
     }
 
@@ -343,11 +403,145 @@ class OscillatorPlugin extends PluginBase {
         waveRow.appendChild(waveLabel);
         waveRow.appendChild(waveRadioGroup);
 
+        // Mode Selection
+        const modeRow = document.createElement('div');
+        modeRow.className = 'parameter-row';
+        
+        const modeLabel = document.createElement('label');
+        modeLabel.textContent = 'Mode:';
+        
+        const modeRadioGroup = document.createElement('div');
+        modeRadioGroup.className = 'radio-group';
+        
+        ['Continuous', 'Pulsed'].forEach((label, index) => {
+            const value = index === 0 ? 'continuous' : 'pulsed';
+            const radioId = `${this.id}-${this.name}-mode-${value.toLowerCase()}`;
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `${this.id}-${this.name}-mode`;
+            radio.id = radioId;
+            radio.value = value;
+            radio.checked = this.md === value;
+            radio.autocomplete = "off";
+            radio.addEventListener('change', () => {
+                this.setMode(value);
+                // Update UI element states based on mode
+                const isPulsed = value === 'pulsed';
+                intervalSlider.disabled = !isPulsed;
+                intervalValue.disabled = !isPulsed;
+                widthSlider.disabled = !isPulsed;
+                widthValue.disabled = !isPulsed;
+            });
+            
+            const radioLabel = document.createElement('label');
+            radioLabel.htmlFor = radioId;
+            radioLabel.appendChild(radio);
+            radioLabel.appendChild(document.createTextNode(label));
+            modeRadioGroup.appendChild(radioLabel);
+        });
+
+        modeRow.appendChild(modeLabel);
+        modeRow.appendChild(modeRadioGroup);
+
+        // Interval Control
+        const intervalRow = document.createElement('div');
+        intervalRow.className = 'parameter-row';
+        
+        const intervalLabel = document.createElement('label');
+        intervalLabel.textContent = 'Interval (ms):';
+        
+        const intervalSlider = document.createElement('input');
+        intervalSlider.type = 'range';
+        intervalSlider.min = '100';
+        intervalSlider.max = '2000';
+        intervalSlider.value = this.mapIntervalToSlider(this.it);
+        intervalSlider.id = `${this.id}-${this.name}-interval-slider`;
+        intervalSlider.name = `${this.id}-${this.name}-interval-slider`;
+        intervalSlider.autocomplete = "off";
+        
+        const intervalValue = document.createElement('input');
+        intervalValue.type = 'number';
+        intervalValue.min = '100';
+        intervalValue.max = '2000';
+        intervalValue.step = '10';
+        intervalValue.value = this.it;
+        intervalValue.id = `${this.id}-${this.name}-interval-value`;
+        intervalValue.name = `${this.id}-${this.name}-interval-value`;
+        intervalValue.autocomplete = "off";
+
+        intervalSlider.addEventListener('input', (e) => {
+            const interval = this.mapSliderToInterval(e.target.value);
+            intervalValue.value = interval;
+            this.setInterval(interval);
+        });
+
+        intervalValue.addEventListener('input', (e) => {
+            const interval = parseFloat(e.target.value);
+            intervalSlider.value = this.mapIntervalToSlider(interval);
+            this.setInterval(interval);
+        });
+
+        intervalRow.appendChild(intervalLabel);
+        intervalRow.appendChild(intervalSlider);
+        intervalRow.appendChild(intervalValue);
+
+        // Width Control
+        const widthRow = document.createElement('div');
+        widthRow.className = 'parameter-row';
+        
+        const widthLabel = document.createElement('label');
+        widthLabel.textContent = 'Width (ms):';
+        
+        const widthSlider = document.createElement('input');
+        widthSlider.type = 'range';
+        widthSlider.min = '2';
+        widthSlider.max = '100';
+        widthSlider.value = this.mapWidthToSlider(this.wd);
+        widthSlider.id = `${this.id}-${this.name}-width-slider`;
+        widthSlider.name = `${this.id}-${this.name}-width-slider`;
+        widthSlider.autocomplete = "off";
+        
+        const widthValue = document.createElement('input');
+        widthValue.type = 'number';
+        widthValue.min = '2';
+        widthValue.max = '100';
+        widthValue.step = '1';
+        widthValue.value = this.wd;
+        widthValue.id = `${this.id}-${this.name}-width-value`;
+        widthValue.name = `${this.id}-${this.name}-width-value`;
+        widthValue.autocomplete = "off";
+
+        widthSlider.addEventListener('input', (e) => {
+            const width = this.mapSliderToWidth(e.target.value);
+            widthValue.value = width;
+            this.setWidth(width);
+        });
+
+        widthValue.addEventListener('input', (e) => {
+            const width = parseFloat(e.target.value);
+            widthSlider.value = this.mapWidthToSlider(width);
+            this.setWidth(width);
+        });
+
+        widthRow.appendChild(widthLabel);
+        widthRow.appendChild(widthSlider);
+        widthRow.appendChild(widthValue);
+
+        // Set initial UI state based on current mode
+        const initialIsPulsed = this.md === 'pulsed';
+        intervalSlider.disabled = !initialIsPulsed;
+        intervalValue.disabled = !initialIsPulsed;
+        widthSlider.disabled = !initialIsPulsed;
+        widthValue.disabled = !initialIsPulsed;
+
         // Add all controls to container
         container.appendChild(freqRow);
         container.appendChild(volRow);
         container.appendChild(panRow);
         container.appendChild(waveRow);
+        container.appendChild(modeRow);
+        container.appendChild(intervalRow);
+        container.appendChild(widthRow);
 
         return container;
     }
@@ -367,12 +561,33 @@ class OscillatorPlugin extends PluginBase {
         return Math.round(minFreq * Math.exp((value / 100000) * scale));
     }
 
+    // Utility functions for interval mapping (linear)
+    mapIntervalToSlider(interval) {
+        return interval;
+    }
+
+    mapSliderToInterval(value) {
+        return Math.round(parseFloat(value) / 10) * 10; // Round to nearest 10ms step
+    }
+
+    // Utility functions for width mapping (linear)
+    mapWidthToSlider(width) {
+        return width;
+    }
+
+    mapSliderToWidth(value) {
+        return Math.round(parseFloat(value)); // Round to nearest 1ms step
+    }
+
     // Reset all parameters to default values
     reset() {
         this.setFrequency(880);
         this.setVolume(-12);
         this.setPanning(0);
         this.setWaveform('sine');
+        this.setMode('continuous');
+        this.setInterval(500);
+        this.setWidth(5);
     }
 }
 

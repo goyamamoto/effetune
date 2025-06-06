@@ -241,6 +241,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | EQ        | Tilt EQ | 倾斜均衡器，用于快速音色塑造 | [详情](plugins/eq.md#tilt-eq)      |
 | EQ        | Tone Control | 三频段音色控制 | [详情](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | 降低位深并应用零阶保持效果 | [详情](plugins/lofi.md#bit-crusher) |
+| Lo-Fi     | Digital Error Emulator | 模拟各种数字音频传输错误和复古数字设备特性 | [详情](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | 噪音生成与混合 | [详情](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 数字抖动模拟 | [详情](plugins/lofi.md#simple-jitter) |
 | Modulation | Doppler Distortion | 模拟因扬声器振膜微动引起的自然动态音色变化 | [详情](plugins/modulation.md#doppler-distortion) |

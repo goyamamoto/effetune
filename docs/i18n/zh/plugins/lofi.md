@@ -5,6 +5,7 @@
 ## 插件列表
 
 - [Bit Crusher](#bit-crusher) - 创造复古游戏和复古数字声音
+- [Digital Error Emulator](#digital-error-emulator) - 模拟各种数字音频传输错误
 - [Noise Blender](#noise-blender) - 添加氛围背景纹理
 - [Simple Jitter](#simple-jitter) - 创造细微的复古数字瑕疵
 
@@ -46,6 +47,99 @@
   - 不同的值创造不同的复古"个性"
   - 相同的值总是创造相同的特色
   - 完美适合找到并保存您喜爱的复古声音
+
+## Digital Error Emulator
+
+一个模拟各种数字音频传输错误声音的效果器，从细微的专业接口故障到复古CD播放器瑕疵。完美适合添加复古数字特色或创造独特的聆听体验，让您想起经典数字音频设备。
+
+### 声音特色指南
+- 专业数字接口故障:
+  - 模拟S/PDIF、AES3和MADI传输工件
+  - 添加老化专业设备的特色
+  - 完美适合复古录音室声音
+- 消费级数字丢失:
+  - 重现经典CD播放器错误纠正行为
+  - 模拟USB音频接口故障
+  - 非常适合90年代/2000年代数字音乐怀旧
+- 流媒体和无线音频工件:
+  - 模拟蓝牙传输错误
+  - 网络流媒体丢失和工件
+  - 现代数字生活瑕疵
+- 创意数字纹理:
+  - RF干扰和无线传输错误
+  - HDMI/DisplayPort音频损坏效果
+  - 独特的实验声音可能性
+
+### 参数
+- **Bit Error Rate** - 控制错误发生频率(10^-12 到 10^-2)
+  - 非常罕见(10^-10 到 10^-8):细微偶发工件
+  - 偶尔(10^-8 到 10^-6):经典消费设备行为
+  - 频繁(10^-6 到 10^-4):明显的复古特色
+  - 极端(10^-4 到 10^-2):创意实验效果
+  - 默认:10^-6(典型消费设备)
+- **Mode** - 选择要模拟的数字传输类型
+  - AES3/S-PDIF:带样本保持的专业接口位错误
+  - ADAT/TDIF/MADI:多通道突发错误(保持或静音)
+  - HDMI/DP:显示音频行损坏或静音
+  - USB/FireWire/Thunderbolt:带插值的微帧丢失
+  - Dante/AES67/AVB:网络音频包丢失(64/128/256样本)
+  - Bluetooth A2DP/LE:带隐藏的无线传输错误
+  - WiSA:无线音箱FEC块错误
+  - RF Systems:射频静噪和干扰
+  - CD Audio:CIRC 错误纠正模拟
+  - 默认:CD Audio(音乐听众最熟悉)
+- **Reference Fs (kHz)** - 设置时序计算的参考采样率
+  - 可用速率:44.1、48、88.2、96、176.4、192 kHz
+  - 影响网络音频模式的时序准确性
+  - 默认:48 kHz
+- **Wet Mix** - 控制原始和处理音频的混合(0-100%)
+  - 注意:对于真实的数字错误模拟，保持在100%
+  - 较低值创建在真实数字系统中不会发生的不现实"部分"错误
+  - 默认:100%(真实数字错误行为)
+
+### 模式详情
+
+**专业接口:**
+- AES3/S-PDIF:带前样本保持的单样本错误
+- ADAT/TDIF/MADI:32样本突发错误 - 保持最后良好样本或静音
+- HDMI/DisplayPort:带位级错误或完全静音的192样本行损坏
+
+**计算机音频:**
+- USB/FireWire/Thunderbolt:带插值隐藏的微帧丢失
+- 网络音频(Dante/AES67/AVB):带不同大小选项和隐藏的包丢失
+
+**消费级无线:**
+- Bluetooth A2DP:带颤音和衰减工件的后编解码器传输错误
+- Bluetooth LE:带高频滤波和噪声的增强隐藏
+- WiSA:无线音箱FEC块静音
+
+**专业系统:**
+- RF Systems:模拟无线干扰的可变长度静噪事件
+- CD Audio:带Reed-Solomon风格行为的CIRC错误纠正模拟
+
+### 不同风格的推荐设置
+
+1. 细微专业设备特色
+   - 模式:AES3/S-PDIF，BER:10^-8，Fs:48kHz，Wet:100%
+   - 完美适合:添加细微的专业设备老化
+
+2. 经典CD播放器体验
+   - 模式:CD Audio，BER:10^-7，Fs:44.1kHz，Wet:100%
+   - 完美适合:90年代数字音乐怀旧
+
+3. 现代流媒体故障
+   - 模式:Dante/AES67(128 samp)，BER:10^-6，Fs:48kHz，Wet:100%
+   - 完美适合:当代数字生活瑕疵
+
+4. 蓝牙聆听体验
+   - 模式:Bluetooth A2DP，BER:10^-6，Fs:48kHz，Wet:100%
+   - 完美适合:无线音频回忆
+
+5. 创意实验效果
+   - 模式:RF Systems，BER:10^-5，Fs:48kHz，Wet:100%
+   - 完美适合:独特实验声音
+
+注意:所有推荐都使用100%湿混合以获得真实的数字错误行为。较低的湿混合值可用于创意效果，但它们不代表真实数字错误实际发生的方式。
 
 ## Noise Blender
 
@@ -107,24 +201,35 @@
    - Bit Crusher: 12 位,抖动开启,位错误 1.5%,种子 42
    - Noise Blender: 粉红噪声,-60dB
    - Jitter: 轻微(10ps)
+   - Digital Error: CD Audio,BER 10^-8,Wet 25%
    - 完美适合:学习会话、放松
 
 2. 复古游戏
    - Bit Crusher: 8 位,抖动关闭,位错误 3%,种子 888
    - Noise Blender: 白噪声,-72dB
    - Jitter: 无
+   - Digital Error: AES3/S-PDIF,BER 10^-7,Wet 100%
    - 完美适合:视频游戏音乐欣赏
 
 3. 复古数字
    - Bit Crusher: 16 位,位错误 0.8%,种子 123
    - Noise Blender: 粉红噪声,-66dB
    - Jitter: 中等(50ps)
+   - Digital Error: CD Audio,BER 10^-7,Wet 100%
    - 完美适合:90 年代音乐怀旧
 
 4. 环境 Lo-Fi
    - Bit Crusher: 14 位,抖动开启,位错误 2%,种子 456
    - Noise Blender: 粉红噪声,-54dB
    - Jitter: 轻微(20ps)
+   - Digital Error: Bluetooth A2DP,BER 10^-8,Wet 100%
    - 完美适合:背景氛围
+
+5. 现代流媒体氛围
+   - Bit Crusher: 关闭或 24 位
+   - Noise Blender: 粉红噪声,-78dB
+   - Jitter: 非常轻微(5ps)
+   - Digital Error: Dante/AES67(64 samp),BER 10^-7,Wet 100%
+   - 完美适合:当代数字瑕疵
 
 记住:这些效果旨在为您的音乐添加特色和怀旧感。从细微设置开始,根据喜好调整!

@@ -263,6 +263,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | EQ        | Tilt EQ | त्वरित टोन शेपिंग के लिए टिल्ट इक्वलाइज़र | [विवरण](plugins/eq.md#tilt-eq) |
 | EQ        | Tone Control | तीन-बैंड टोन नियंत्रण | [विवरण](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | बिट डेप्थ में कमी और ज़ीरो-ऑर्डर होल्ड प्रभाव | [विवरण](plugins/lofi.md#bit-crusher) |
+| Lo-Fi     | Digital Error Emulator | विभिन्न डिजिटल ऑडियो ट्रांसमिशन त्रुटियों और विंटेज डिजिटल उपकरण विशेषताओं का सिमुलेशन | [विवरण](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | शोर उत्पन्न करना और मिलाना | [विवरण](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | डिजिटल जिटर सिमुलेशन | [विवरण](plugins/lofi.md#simple-jitter) |
 | Modulation | Doppler Distortion | सूक्ष्म स्पीकर कोन आंदोलन द्वारा उत्पन्न प्राकृतिक, डायनेमिक ध्वनि परिवर्तन का अनुकरण करता है | [विवरण](plugins/modulation.md#doppler-distortion) |

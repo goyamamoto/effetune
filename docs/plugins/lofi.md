@@ -5,6 +5,7 @@ A collection of plugins that add vintage character and nostalgic qualities to yo
 ## Plugin List
 
 - [Bit Crusher](#bit-crusher) - Creates retro gaming and vintage digital sounds
+- [Digital Error Emulator](#digital-error-emulator) - Simulates various digital audio transmission errors
 - [Noise Blender](#noise-blender) - Adds atmospheric background texture
 - [Simple Jitter](#simple-jitter) - Creates subtle vintage digital imperfections
 
@@ -46,6 +47,99 @@ An effect that recreates the sound of vintage digital devices like old gaming co
   - Different values create different vintage "personalities"
   - Same value always creates the same character
   - Perfect for finding and saving your favorite vintage sound
+
+## Digital Error Emulator
+
+An effect that simulates the sound of various digital audio transmission errors, from subtle professional interface glitches to vintage CD player imperfections. Perfect for adding vintage digital character or creating unique listening experiences that remind you of classic digital audio equipment.
+
+### Sound Character Guide
+- Professional Digital Interface Glitches:
+  - Simulates S/PDIF, AES3, and MADI transmission artifacts
+  - Adds the character of aging professional gear
+  - Perfect for vintage studio sound
+- Consumer Digital Dropouts:
+  - Recreates classic CD player error correction behavior
+  - Simulates USB audio interface glitches
+  - Great for 90s/2000s digital music nostalgia
+- Streaming & Wireless Audio Artifacts:
+  - Simulates Bluetooth transmission errors
+  - Network streaming dropouts and artifacts
+  - Modern digital life imperfections
+- Creative Digital Textures:
+  - RF interference and wireless transmission errors 
+  - HDMI/DisplayPort audio corruption effects
+  - Unique experimental sound possibilities
+
+### Parameters
+- **Bit Error Rate** - Controls how often errors occur (10^-12 to 10^-2) 
+  - Very Rare (10^-10 to 10^-8): Subtle occasional artifacts
+  - Occasional (10^-8 to 10^-6): Classic consumer equipment behavior
+  - Frequent (10^-6 to 10^-4): Noticeable vintage character
+  - Extreme (10^-4 to 10^-2): Creative experimental effects
+  - Default: 10^-6 (typical consumer equipment)
+- **Mode** - Selects the type of digital transmission to simulate
+  - AES3/S-PDIF: Professional interface bit errors with sample hold
+  - ADAT/TDIF/MADI: Multi-channel burst errors (hold or mute)
+  - HDMI/DP: Display audio row corruption or muting
+  - USB/FireWire/Thunderbolt: Micro-frame dropouts with interpolation
+  - Dante/AES67/AVB: Network audio packet loss (64/128/256 samples)
+  - Bluetooth A2DP/LE: Wireless transmission errors with concealment
+  - WiSA: Wireless speaker FEC block errors
+  - RF Systems: Radio frequency squelch and interference
+  - CD Audio: CIRC error correction simulation
+  - Default: CD Audio (most familiar to music listeners)
+- **Reference Fs (kHz)** - Sets the reference sample rate for timing calculations
+  - Available rates: 44.1, 48, 88.2, 96, 176.4, 192 kHz
+  - Affects timing accuracy for network audio modes
+  - Default: 48 kHz
+- **Wet Mix** - Controls the blend between original and processed audio (0-100%)
+  - Note: For realistic digital error simulation, keep at 100%
+  - Lower values create unrealistic "partial" errors that don't occur in real digital systems
+  - Default: 100% (authentic digital error behavior)
+
+### Mode Details
+
+**Professional Interfaces:**
+- AES3/S-PDIF: Single-sample errors with previous sample hold 
+- ADAT/TDIF/MADI: 32-sample burst errors - either hold last good samples or mute
+- HDMI/DisplayPort: 192-sample row corruption with bit-level errors or complete muting
+
+**Computer Audio:**
+- USB/FireWire/Thunderbolt: Micro-frame dropouts with interpolation concealment
+- Network Audio (Dante/AES67/AVB): Packet loss with different size options and concealment
+
+**Consumer Wireless:**
+- Bluetooth A2DP: Post-codec transmission errors with warble and decay artifacts
+- Bluetooth LE: Enhanced concealment with high-frequency filtering and noise
+- WiSA: Wireless speaker FEC block muting
+
+**Specialized Systems:**
+- RF Systems: Variable-length squelch events simulating radio interference
+- CD Audio: CIRC error correction simulation with Reed-Solomon-style behavior
+
+### Recommended Settings for Different Styles
+
+1. Subtle Professional Gear Character
+   - Mode: AES3/S-PDIF, BER: 10^-8, Fs: 48kHz, Wet: 100%
+   - Perfect for: Adding subtle professional gear aging
+
+2. Classic CD Player Experience
+   - Mode: CD Audio, BER: 10^-7, Fs: 44.1kHz, Wet: 100%
+   - Perfect for: 90s digital music nostalgia
+
+3. Modern Streaming Glitches
+   - Mode: Dante/AES67 (128 samp), BER: 10^-6, Fs: 48kHz, Wet: 100%
+   - Perfect for: Contemporary digital life imperfections
+
+4. Bluetooth Listening Experience
+   - Mode: Bluetooth A2DP, BER: 10^-6, Fs: 48kHz, Wet: 100%
+   - Perfect for: Wireless audio memories
+
+5. Creative Experimental Effects
+   - Mode: RF Systems, BER: 10^-5, Fs: 48kHz, Wet: 100%
+   - Perfect for: Unique experimental sounds
+
+Note: All recommendations use 100% Wet Mix for realistic digital error behavior. Lower wet mix values can be used for creative effects, but they don't represent how real digital errors actually occur.
 
 ## Noise Blender
 
@@ -107,24 +201,35 @@ An effect that adds subtle timing variations to create that imperfect, vintage d
    - Bit Crusher: 12 bits, dither on, bit error 1.5%, seed 42
    - Noise Blender: Pink noise, -60dB
    - Jitter: Light (10ps)
+   - Digital Error: CD Audio, BER 10^-8, Wet 25%
    - Perfect for: Study sessions, relaxation
 
 2. Retro Gaming
    - Bit Crusher: 8 bits, dither off, bit error 3%, seed 888
    - Noise Blender: White noise, -72dB
    - Jitter: None
+   - Digital Error: AES3/S-PDIF, BER 10^-7, Wet 100%
    - Perfect for: Video game music appreciation
 
 3. Vintage Digital
    - Bit Crusher: 16 bits, bit error 0.8%, seed 123
    - Noise Blender: Pink noise, -66dB
    - Jitter: Medium (50ps)
+   - Digital Error: CD Audio, BER 10^-7, Wet 100%
    - Perfect for: 90s music nostalgia
 
 4. Ambient Lo-Fi
    - Bit Crusher: 14 bits, dither on, bit error 2%, seed 456
    - Noise Blender: Pink noise, -54dB
    - Jitter: Light (20ps)
+   - Digital Error: Bluetooth A2DP, BER 10^-8, Wet 100%
    - Perfect for: Background atmosphere
+
+5. Modern Streaming Vibe
+   - Bit Crusher: Off or 24 bits
+   - Noise Blender: Pink noise, -78dB
+   - Jitter: Very light (5ps)
+   - Digital Error: Dante/AES67 (64 samp), BER 10^-7, Wet 100%
+   - Perfect for: Contemporary digital imperfections
 
 Remember: These effects are meant to add character and nostalgia to your music. Start with subtle settings and adjust to taste!

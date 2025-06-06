@@ -253,6 +253,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | EQ        | Tilt EQ | 빠른 톤 셰이핑을 위한 틸트 이퀄라이저 | [세부 정보](plugins/eq.md#tilt-eq) |
 | EQ        | Tone Control | 3밴드 톤 컨트롤 | [세부 정보](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | 비트 심도 감소 및 제로 오더 홀드 효과 | [세부 정보](plugins/lofi.md#bit-crusher) |
+| Lo-Fi     | Digital Error Emulator | 다양한 디지털 오디오 전송 오류와 빈티지 디지털 장비 특성을 시뮬레이션 | [세부 정보](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | 노이즈 생성 및 믹싱 | [세부 정보](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 디지털 지터 시뮬레이션 | [세부 정보](plugins/lofi.md#simple-jitter) |
 | Modulation | Doppler Distortion | 미묘한 스피커 콘 움직임으로 인한 자연스럽고 동적인 사운드 변화를 시뮬레이션 | [세부 정보](plugins/modulation.md#doppler-distortion) |

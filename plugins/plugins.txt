@@ -53,6 +53,7 @@ eq/narrow_range: Narrow Range | EQ | NarrowRangePlugin | css
 eq/tilt_eq: Tilt EQ | EQ | TiltEQPlugin | css
 eq/tone_control: Tone Control | EQ | ToneControlPlugin | css
 lofi/bit_crusher: Bit Crusher | Lo-Fi | BitCrusherPlugin
+lofi/digital_error_emulator: Digital Error Emulator | Lo-Fi | DigitalErrorEmulatorPlugin
 lofi/noise_blender: Noise Blender | Lo-Fi | NoiseBlenderPlugin
 lofi/simple_jitter: Simple Jitter | Lo-Fi | SimpleJitterPlugin
 modulation/doppler_distortion: Doppler Distortion | Modulation | DopplerDistortionPlugin

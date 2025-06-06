@@ -249,6 +249,7 @@
 | EQ        | Tilt EQ      | معادل مائل لتشكيل النغمة بسرعة | [تفاصيل](plugins/eq.md#tilt-eq)      |
 | EQ        | Tone Control | تحكم في النغمة بثلاث نطاقات | [تفاصيل](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | تقليل العمق الثنائي وتأثير التثبيت الصفري | [تفاصيل](plugins/lofi.md#bit-crusher) |
+| Lo-Fi     | Digital Error Emulator | يحاكي أخطاء الإرسال الصوتي الرقمي المختلفة وخصائص المعدات الرقمية القديمة | [تفاصيل](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | توليد الضوضاء ومزجها | [تفاصيل](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | محاكاة التذبذب الرقمي | [تفاصيل](plugins/lofi.md#simple-jitter) |
 | Modulation | Doppler Distortion | يحاكي التغيرات الديناميكية الطبيعية في الصوت الناتجة عن حركات مخددات السماعة الطفيفة | [تفاصيل](plugins/modulation.md#doppler-distortion) |

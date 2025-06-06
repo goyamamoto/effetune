@@ -18,6 +18,7 @@ A versatile audio signal generator that produces various waveforms with precise 
   - Sawtooth wave for bright timbres
   - White noise for system testing
   - Pink noise for acoustic measurements
+- Pulsed operation mode for burst testing and intermittent signals
 
 ### Parameters
 - **Frequency (Hz)** - Controls the pitch of the generated tone (20 Hz to 96 kHz)
@@ -37,6 +38,18 @@ A versatile audio signal generator that produces various waveforms with precise 
   - Sawtooth: Full harmonic series
   - White Noise: Equal energy per Hz
   - Pink Noise: Equal energy per octave
+- **Mode** - Controls signal generation pattern
+  - Continuous: Standard uninterrupted signal generation
+  - Pulsed: Intermittent signal with controllable timing
+- **Interval (ms)** - Time between pulse bursts in pulsed mode (100-2000 ms, step 10 ms)
+  - Shorter intervals: Rapid pulse sequences
+  - Longer intervals: Widely spaced pulses
+  - Only active when Mode is set to Pulsed
+- **Width (ms)** - Duration of pulse ramp time in pulsed mode (2-100 ms, step 1 ms)
+  - Controls the fade-in/fade-out time of each pulse
+  - Shorter widths: Sharp pulse edges
+  - Longer widths: Smoother pulse transitions
+  - Only active when Mode is set to Pulsed
 
 ### Example Uses
 
@@ -48,6 +61,9 @@ A versatile audio signal generator that produces various waveforms with precise 
      * Use pure sine waves at different frequencies
      * Listen for unwanted harmonics or distortion
      * Compare behavior at different volume levels
+   - Burst signal testing
+     * Use pulsed mode with short intervals and widths
+     * Analyze system response to intermittent signals
 
 2. Room Acoustics Analysis
    - Identify standing waves
@@ -58,6 +74,8 @@ A versatile audio signal generator that produces various waveforms with precise 
      * Use pink noise to evaluate overall room response
    - Map frequency response at different positions
      * Use sine sweeps to check consistency across listening area
+   - Echo and reflection analysis
+     * Use pulsed mode to clearly separate direct and reflected sounds
 
 3. Headphone/Earphone Testing
    - Evaluate crosstalk between channels
@@ -66,6 +84,8 @@ A versatile audio signal generator that produces various waveforms with precise 
    - Test frequency response
      * Use sine sweeps to check frequency balance
      * Compare left and right channel responses
+   - Transient response testing
+     * Use pulsed mode to evaluate system behavior with burst signals
 
 4. Hearing Tests
    - Check personal hearing range
@@ -74,6 +94,8 @@ A versatile audio signal generator that produces various waveforms with precise 
    - Determine minimum audible volume
      * Test different frequencies at varying volumes
      * Map personal equal-loudness contours
+   - Temporal processing evaluation
+     * Use pulsed mode with varying intervals to test temporal resolution
 
 5. System Calibration
    - Level matching between components
@@ -82,5 +104,8 @@ A versatile audio signal generator that produces various waveforms with precise 
    - Channel balance verification
      * Test left/right balance at different frequencies
      * Ensure proper stereo imaging
+   - Burst signal response testing
+     * Use pulsed mode to test system response to intermittent signals
+     * Evaluate gate/compressor behavior with burst signals
 
 Remember: The Oscillator is a precision tool - start with lower volumes and increase gradually to avoid potential equipment damage or hearing fatigue.
