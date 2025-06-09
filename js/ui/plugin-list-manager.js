@@ -20,6 +20,15 @@ export class PluginListManager {
         this.availableEffectsTitle = document.getElementById('availableEffectsTitle');
         this.isSearchActive = false;
 
+        // Tab switching functionality
+        this.tabSwitcher = document.getElementById('tabSwitcher');
+        this.effectsTab = document.getElementById('effectsTab');
+        this.presetsTab = document.getElementById('presetsTab');
+        this.currentTab = 'effects'; // 'effects' or 'presets'
+
+        // Preset manager
+        this.presetManager = null;
+
         // Pull tab functionality
         this.pullTab = document.getElementById('pluginListPullTab');
         this.mainContainer = document.querySelector('.main-container');
@@ -34,6 +43,7 @@ export class PluginListManager {
         
         // Setup event handlers
         this.setupSearchFunctionality();
+        this.setupTabSwitching();
         this.setupPullTabFunctionality();
         this.setupTouchSwipeFunctionality();
         
@@ -727,26 +737,350 @@ export class PluginListManager {
         this.searchButton.addEventListener('click', () => {
             this.isSearchActive = !this.isSearchActive;
             if (this.isSearchActive) {
-                this.availableEffectsTitle.style.display = 'none';
+                this.tabSwitcher.style.display = 'none';
                 this.searchInput.style.display = 'block';
                 this.searchInput.focus();
                 this.searchInput.select();
             } else {
-                this.availableEffectsTitle.style.display = 'block';
+                this.tabSwitcher.style.display = 'flex';
                 this.searchInput.style.display = 'none';
                 this.searchInput.value = '';
-                this.filterPlugins('');
+                if (this.currentTab === 'effects') {
+                    this.filterPlugins('');
+                } else if (this.currentTab === 'presets') {
+                    this.filterPresets('');
+                }
             }
         });
 
         // Search input handlers
         this.searchInput.addEventListener('input', (e) => {
-            this.filterPlugins(e.target.value);
+            if (this.currentTab === 'effects') {
+                this.filterPlugins(e.target.value);
+            } else if (this.currentTab === 'presets') {
+                this.filterPresets(e.target.value);
+            }
         });
 
         this.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.searchButton.click();
+            }
+        });
+    }
+
+    setupTabSwitching() {
+        this.effectsTab.addEventListener('click', () => {
+            if (this.currentTab !== 'effects' && !this.isSearchActive) {
+                this.switchToTab('effects');
+            }
+        });
+
+        this.presetsTab.addEventListener('click', () => {
+            if (this.currentTab !== 'presets' && !this.isSearchActive) {
+                this.switchToTab('presets');
+            }
+        });
+    }
+
+    switchToTab(tab) {
+        this.currentTab = tab;
+        
+        // Update tab buttons
+        this.effectsTab.classList.toggle('active', tab === 'effects');
+        this.presetsTab.classList.toggle('active', tab === 'presets');
+        
+        // Clear existing content
+        const existingContent = this.pluginList.querySelector('.plugin-list-content');
+        if (existingContent) {
+            existingContent.remove();
+        }
+        
+        const existingCount = this.pluginList.querySelector('#effectCount');
+        if (existingCount) {
+            existingCount.remove();
+        }
+
+        if (tab === 'effects') {
+            this.initPluginList();
+        } else if (tab === 'presets') {
+            this.initPresetList();
+        }
+    }
+
+    async initPresetManager() {
+        if (!this.presetManager) {
+            const { PresetManager } = await import('../preset-manager.js');
+            this.presetManager = new PresetManager();
+            await this.presetManager.loadPresets();
+        }
+    }
+
+    async initPresetList() {
+        try {
+            await this.initPresetManager();
+            
+            let totalPresets = 0;
+            const presetCountDiv = document.createElement('div');
+            presetCountDiv.id = 'effectCount';
+            presetCountDiv.style.textAlign = 'center';
+            presetCountDiv.style.marginTop = '10px';
+            presetCountDiv.style.color = '#666';
+            presetCountDiv.style.fontSize = '14px';
+
+            // Create content container for grid layout
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'plugin-list-content';
+
+            // Create category sections from dynamically loaded categories
+            for (const [category, {description, presets}] of Object.entries(this.presetManager.presetCategories)) {
+                // Initialize collapsed state if not already set
+                if (this.collapsedCategories[category] === undefined) {
+                    this.collapsedCategories[category] = false; // Default to expanded
+                }
+
+                // Create explicit row for the category
+                const categoryRow = document.createElement('div');
+                categoryRow.className = 'category-row';
+                categoryRow.dataset.category = category;
+
+                // Create category title with collapse indicator
+                const categoryTitle = document.createElement('h3');
+                
+                // Create collapse indicator
+                const collapseIndicator = document.createElement('span');
+                collapseIndicator.className = 'collapse-indicator';
+                collapseIndicator.textContent = this.collapsedCategories[category] ? '>' : '⌵';
+                collapseIndicator.style.marginRight = '6px';
+                collapseIndicator.style.display = 'inline-block';
+                collapseIndicator.style.width = '12px';
+                
+                // Add indicator and text to title
+                categoryTitle.appendChild(collapseIndicator);
+                categoryTitle.appendChild(document.createTextNode(category));
+                
+                // Add click event to toggle category
+                categoryTitle.addEventListener('click', () => {
+                    this.toggleCategoryCollapse(category);
+                });
+
+                // Create container for preset items
+                const presetItemsContainer = document.createElement('div');
+                presetItemsContainer.className = 'plugin-category-items';
+                
+                // Create preset count display for collapsed state
+                const presetsCountDisplay = document.createElement('div');
+                presetsCountDisplay.className = 'category-effects-count';
+                presetsCountDisplay.textContent = `${presets.length} presets`;
+                
+                // Add title and items containers to the row (in the correct order)
+                categoryRow.appendChild(categoryTitle);
+                
+                // Create a container for the right column content
+                const rightColumnContent = document.createElement('div');
+                rightColumnContent.className = 'right-column-content';
+                
+                // Add both the preset items and presets count to the right column
+                rightColumnContent.appendChild(presetsCountDisplay);
+                rightColumnContent.appendChild(presetItemsContainer);
+                categoryRow.appendChild(rightColumnContent);
+                
+                // Set initial visibility based on collapsed state
+                if (this.collapsedCategories[category]) {
+                    presetItemsContainer.style.display = 'none';
+                    presetsCountDisplay.style.display = 'block';
+                } else {
+                    presetItemsContainer.style.display = 'flex';
+                    presetsCountDisplay.style.display = 'none';
+                }
+
+                // Add presets for this category
+                presets.forEach(name => {
+                    const presetDef = this.presetManager.presetDefinitions.get(name);
+                    if (presetDef) {
+                        const item = this.createPresetItem(name, presetDef);
+                        presetItemsContainer.appendChild(item);
+                    }
+                });
+                
+                // Add row to container
+                contentContainer.appendChild(categoryRow);
+                totalPresets += presets.length;
+            }
+
+            // Add new content while preserving h2
+            this.pluginList.appendChild(contentContainer);
+
+            // Add preset count at the end of the list
+            presetCountDiv.textContent = `${totalPresets} presets available`;
+            this.pluginList.appendChild(presetCountDiv);
+
+            // Hide spinner after preset list is fully initialized
+            this.hideLoadingSpinner();
+        } catch (error) {
+            console.error('Error initializing preset list:', error);
+            this.hideLoadingSpinner();
+        }
+    }
+
+    createPresetItem(presetName, presetDef) {
+        const item = document.createElement('div');
+        item.className = 'plugin-item';
+        item.draggable = true;
+        item.textContent = presetName;
+        
+        const description = document.createElement('div');
+        description.className = 'plugin-description';
+        description.textContent = presetDef.description;
+        item.appendChild(description);
+
+        this.setupPresetItemEvents(item, presetName);
+
+        return item;
+    }
+
+    setupPresetItemEvents(item, presetName) {
+        let dragStartTime = 0;
+        let isDragging = false;
+        let clone = null;
+        let touchOffsetX = 0;
+        let touchOffsetY = 0;
+
+        // Mouse events - show drag message on mousedown (same as effects)
+        item.addEventListener('mousedown', () => {
+            // Update drag message text for presets
+            if (window.uiManager && window.uiManager.t) {
+                this.dragMessage.textContent = window.uiManager.t('ui.dragEffectMessage');
+            }
+            this.dragMessage.style.display = 'block';
+        });
+
+        item.addEventListener('mouseup', () => {
+            // Hide message if drag didn't start
+            if (!item.matches('.dragging')) {
+                this.dragMessage.style.display = 'none';
+            }
+        });
+
+        // Handle double-click to add preset
+        item.addEventListener('dblclick', async () => {
+            try {
+                await this.presetManager.addPresetToPipeline(presetName);
+            } catch (error) {
+                console.error('Error adding preset:', error);
+                if (window.uiManager) {
+                    window.uiManager.setError(`Error adding preset: ${error.message}`, true);
+                }
+            }
+        });
+
+        // Drag start
+        item.addEventListener('dragstart', (e) => {
+            dragStartTime = Date.now();
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                type: 'preset',
+                name: presetName
+            }));
+            item.classList.add('dragging');
+        });
+
+        // Drag end
+        item.addEventListener('dragend', () => {
+            this.dragMessage.style.display = 'none';
+            item.classList.remove('dragging');
+            
+            // Clear pending timeouts/rAF and hide indicator immediately
+            if (this.rafId) {
+                cancelAnimationFrame(this.rafId);
+                this.rafId = null;
+            }
+            this.insertionIndicator.style.display = 'none';
+        });
+
+        // Drag over pipeline to show insertion indicator
+        item.addEventListener('drag', (e) => {
+            if (Date.now() - dragStartTime > 100) {
+                this.throttle(() => {
+                    this.updateInsertionIndicator(e.clientX, e.clientY);
+                }, this.dragOverThrottleDelay);
+            }
+        });
+
+        // Touch events for mobile
+        item.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            
+            // Update drag message text for presets (for touch devices)
+            if (window.uiManager && window.uiManager.t) {
+                this.dragMessage.textContent = window.uiManager.t('ui.dragEffectMessage');
+            }
+            this.dragMessage.style.display = 'block';
+
+            // Calculate touch offset from item's top-left corner
+            const rect = item.getBoundingClientRect();
+            touchOffsetX = touch.clientX - rect.left;
+            touchOffsetY = touch.clientY - rect.top;
+
+            // Start dragging immediately
+            isDragging = true;
+            item.classList.add('dragging');
+
+            // Create visual clone for dragging
+            clone = item.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.zIndex = '1000';
+            clone.style.width = item.offsetWidth + 'px';
+            clone.style.opacity = '0.9';
+            clone.style.backgroundColor = '#ffffff';
+            clone.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            clone.style.pointerEvents = 'none';
+            clone.style.left = (touch.clientX - touchOffsetX) + 'px';
+            clone.style.top = (touch.clientY - touchOffsetY) + 'px';
+            document.body.appendChild(clone);
+        });
+
+        item.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+
+            if (isDragging && clone) {
+                clone.style.left = (touch.clientX - touchOffsetX) + 'px';
+                clone.style.top = (touch.clientY - touchOffsetY) + 'px';
+                
+                // Throttle dragover events
+                this.throttle(() => {
+                    this.updateInsertionIndicator(touch.clientX, touch.clientY);
+                }, this.dragOverThrottleDelay);
+            }
+        });
+
+        item.addEventListener('touchend', async (e) => {
+            if (isDragging) {
+                isDragging = false;
+                item.classList.remove('dragging');
+                this.dragMessage.style.display = 'none';
+                
+                if (clone) {
+                    document.body.removeChild(clone);
+                    clone = null;
+                }
+
+                // Try to drop the preset
+                const touch = e.changedTouches[0];
+                const insertionData = this.findPotentialInsertionTarget(touch.clientX, touch.clientY);
+                
+                if (insertionData) {
+                    try {
+                        await this.presetManager.addPresetToPipeline(presetName, insertionData.index);
+                                         } catch (error) {
+                        console.error('Error adding preset:', error);
+                        if (window.uiManager) {
+                            window.uiManager.setError(`Error adding preset: ${error.message}`, true);
+                        }
+                    }
+                }
+                
+                this.insertionIndicator.style.display = 'none';
             }
         });
     }
@@ -823,6 +1157,75 @@ export class PluginListManager {
                     `${totalVisibleEffects} effects found` :
                     `${totalVisibleEffects} effects available`;
             }
+        }
+    }
+
+    filterPresets(searchText) {
+        const contentContainer = this.pluginList.querySelector('.plugin-list-content');
+        if (!contentContainer) return;
+
+        const categoryRows = contentContainer.querySelectorAll('.category-row');
+        let totalVisiblePresets = 0;
+        
+        // For each category row
+        categoryRows.forEach(categoryRow => {
+            const categoryTitle = categoryRow.querySelector('h3');
+            const rightColumn = categoryRow.querySelector('.right-column-content');
+            if (!rightColumn) return;
+            
+            const categoryItems = rightColumn.querySelector('.plugin-category-items');
+            const presetsCount = rightColumn.querySelector('.category-effects-count');
+            const category = categoryRow.dataset.category;
+            
+            if (!categoryTitle || !categoryItems) return;
+
+            let hasVisibleItems = false;
+            const items = categoryItems.querySelectorAll('.plugin-item');
+            
+            // Check each preset in this category
+            items.forEach(item => {
+                // Get preset name (direct text content, excluding description)
+                const presetName = item.childNodes[0].textContent.trim();
+                
+                // Check if matches search criteria
+                const matchesSearch = searchText === '' || 
+                    categoryTitle.textContent.toLowerCase().includes(searchText.toLowerCase()) ||
+                    presetName.toLowerCase().includes(searchText.toLowerCase());
+                
+                // Show/hide this preset
+                item.style.display = matchesSearch ? '' : 'none';
+                if (matchesSearch) {
+                    hasVisibleItems = true;
+                    totalVisiblePresets++;
+                }
+            });
+
+            // Show/hide the entire category row based on matches
+            categoryRow.style.display = hasVisibleItems ? '' : 'none';
+            
+            // When searching, always show the items if there are matches
+            if (searchText && hasVisibleItems) {
+                categoryItems.style.display = 'flex';
+                if (presetsCount) presetsCount.style.display = 'none';
+                // Update indicator to "expanded" state but don't change the actual state in storage
+                const indicator = categoryTitle.querySelector('.collapse-indicator');
+                if (indicator) indicator.textContent = '⌵';
+            } else if (!searchText) {
+                // When not searching, restore the previous collapsed state
+                this.updateCategoryVisibility(category);
+            } else {
+                // Hide items when searching but no matches found
+                categoryItems.style.display = 'none';
+                if (presetsCount) presetsCount.style.display = 'none';
+            }
+        });
+
+        // Update preset count text based on search state
+        const effectCountDiv = this.pluginList.querySelector('#effectCount');
+        if (effectCountDiv) {
+            effectCountDiv.textContent = searchText ?
+                `${totalVisiblePresets} presets found` :
+                `${totalVisiblePresets} presets available`;
         }
     }
 

@@ -29,7 +29,11 @@
     <div class="main-container">
         <div class="plugin-list" id="pluginList">
             <div class="plugin-list-header">
-                <h2 id="availableEffectsTitle">Available Effects</h2>
+                <div class="tab-switcher" id="tabSwitcher">
+                    <button class="tab-button active" id="effectsTab">Effects</button>
+                    <button class="tab-button" id="presetsTab">Presets</button>
+                </div>
+                <h2 id="availableEffectsTitle" style="display: none;">Available Effects</h2>
                 <input type="text" id="effectSearchInput" class="effect-search-input" placeholder="Search effects..." style="display: none;">
                 <button class="header-button search-button" id="effectSearchButton" title="Search effects">🔍</button>
             </div>

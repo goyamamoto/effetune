@@ -2,7 +2,7 @@ class TremoloPlugin extends PluginBase {
     constructor() {
         super('Tremolo', 'Volume-based modulation effect');
 
-        this.rt = 10.0;       // rt: Rate - Range: 0.1-20 Hz
+        this.rt = 10.0;       // rt: Rate - Range: 0.1-50 Hz
         this.dp = 2.0;        // dp: Depth - Range: 0-12 dB
         this.rn = 6.0;        // rn: Randomness - Range: 0-96 dB
         this.rc = 200.0;      // rc: Randomness Cutoff - Range: 1-1000 Hz
@@ -167,7 +167,7 @@ class TremoloPlugin extends PluginBase {
         container.className = 'tremolo-plugin-ui plugin-parameter-ui';
 
         // Add parameter controls using the base class method
-        container.appendChild(this.createParameterControl('Rate', 0.1, 20, 0.1, this.rt, this.setRt.bind(this), 'Hz'));
+        container.appendChild(this.createParameterControl('Rate', 0.1, 50, 0.1, this.rt, this.setRt.bind(this), 'Hz'));
         container.appendChild(this.createParameterControl('Depth', 0, 12, 0.1, this.dp, this.setDp.bind(this), 'dB'));
         container.appendChild(this.createParameterControl('Ch Phase', -180, 180, 1, this.cp, this.setCp.bind(this), 'Deg.'));
         container.appendChild(this.createParameterControl('Randomness', 0, 96, 0.1, this.rn, this.setRn.bind(this), 'dB'));
@@ -194,7 +194,7 @@ class TremoloPlugin extends PluginBase {
 
     setParameters(params) {
         if (params.rt !== undefined) {
-            this.rt = params.rt < 0.1 ? 0.1 : (params.rt > 20 ? 20 : params.rt);
+            this.rt = params.rt < 0.1 ? 0.1 : (params.rt > 50 ? 50 : params.rt);
         }
         if (params.dp !== undefined) {
             this.dp = params.dp < 0 ? 0 : (params.dp > 12 ? 12 : params.dp);
@@ -223,7 +223,7 @@ class TremoloPlugin extends PluginBase {
         this.updateParameters();
     }
 
-    // Set Rate (0.1-20 Hz)
+    // Set Rate (0.1-50 Hz)
     setRt(value) {
         this.setParameters({ rt: value });
     }

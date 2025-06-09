@@ -71,8 +71,13 @@ export class PipelineCore {
                     this.handlePluginSelection(plugin, e, false);
                 }
             } else {
-                // Single selection on normal click
-                this.handlePluginSelection(plugin, e);
+                // Special handling for Section plugin - select from this section to next section
+                if (plugin.constructor.name === 'SectionPlugin') {
+                    this.handleSectionSelection(plugin, e);
+                } else {
+                    // Single selection on normal click
+                    this.handlePluginSelection(plugin, e);
+                }
             }
         };
         
@@ -330,11 +335,16 @@ export class PipelineCore {
             ? window.uiManager.t('ui.title.deleteEffect')
             : 'Delete effect';
         deleteBtn.onclick = (e) => {
-            // Use the common selection function
-            this.handlePluginSelection(plugin, e);
-            
-            // Use the common delete function
-            this.deleteSelectedPlugins();
+            // Special handling for Section plugin with Shift+Click - delete entire section
+            if (plugin.constructor.name === 'SectionPlugin' && e.shiftKey) {
+                this.deleteSectionRange(plugin);
+            } else {
+                // Use the common selection function
+                this.handlePluginSelection(plugin, e);
+                
+                // Use the common delete function
+                this.deleteSelectedPlugins();
+            }
         };
         header.appendChild(deleteBtn);
 
@@ -472,7 +482,12 @@ export class PipelineCore {
             }
 
             // Handle selection for regular click
-            this.handlePluginSelection(plugin, e);
+            // Special handling for Section plugin - select from this section to next section
+            if (plugin.constructor.name === 'SectionPlugin') {
+                this.handleSectionSelection(plugin, e);
+            } else {
+                this.handlePluginSelection(plugin, e);
+            }
             
             // Handle Shift+Click to collapse/expand effects
             if (e.shiftKey) {
@@ -748,6 +763,99 @@ export class PipelineCore {
         }
         this.selectedPlugins.add(plugin);
         this.updateSelectionClasses();
+    }
+
+    /**
+     * Handle Section plugin selection - select all effects from this section to the next section
+     * @param {Object} sectionPlugin - The Section plugin that was clicked
+     * @param {Event} e - The event object
+     */
+    handleSectionSelection(sectionPlugin, e) {
+        // Clear existing selection
+        this.selectedPlugins.clear();
+        
+        const pipeline = this.audioManager.pipeline;
+        const sectionIndex = pipeline.findIndex(p => p.id === sectionPlugin.id);
+        
+        if (sectionIndex === -1) {
+            // Section not found, fallback to regular selection
+            this.handlePluginSelection(sectionPlugin, e);
+            return;
+        }
+        
+        // Find the next Section plugin or end of pipeline
+        let endIndex = pipeline.length;
+        for (let i = sectionIndex + 1; i < pipeline.length; i++) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                endIndex = i;
+                break;
+            }
+        }
+        
+        // Select all plugins from the clicked Section to the next Section (exclusive)
+        for (let i = sectionIndex; i < endIndex; i++) {
+            this.selectedPlugins.add(pipeline[i]);
+        }
+        
+        this.updateSelectionClasses();
+    }
+
+    /**
+     * Delete Section range - delete all effects from the section to the next section
+     * @param {Object} sectionPlugin - The Section plugin that was clicked
+     */
+    deleteSectionRange(sectionPlugin) {
+        const pipeline = this.audioManager.pipeline;
+        const sectionIndex = pipeline.findIndex(p => p.id === sectionPlugin.id);
+        
+        if (sectionIndex === -1) {
+            // Section not found, do nothing
+            return;
+        }
+        
+        // Find the next Section plugin or end of pipeline
+        let endIndex = pipeline.length;
+        for (let i = sectionIndex + 1; i < pipeline.length; i++) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                endIndex = i;
+                break;
+            }
+        }
+        
+        // Clear existing selection
+        this.selectedPlugins.clear();
+        
+        // Collect plugins to delete
+        const pluginsToDelete = [];
+        for (let i = sectionIndex; i < endIndex; i++) {
+            pluginsToDelete.push(pipeline[i]);
+        }
+        
+        // Clean up plugin resources and remove from pipeline
+        for (let i = pluginsToDelete.length - 1; i >= 0; i--) {
+            const plugin = pluginsToDelete[i];
+            const index = pipeline.indexOf(plugin);
+            
+            if (index > -1) {
+                // Clean up plugin resources before removing
+                if (typeof plugin.cleanup === 'function') {
+                    plugin.cleanup();
+                }
+                
+                pipeline.splice(index, 1);
+                this.selectedPlugins.delete(plugin);
+            }
+        }
+        
+        this.updatePipelineUI();
+        
+        // Update worklet directly without rebuilding pipeline
+        this.updateWorkletPlugins();
+        
+        // Save state for undo/redo
+        if (this.pipelineManager && this.pipelineManager.historyManager) {
+            this.pipelineManager.historyManager.saveState();
+        }
     }
 
     /**

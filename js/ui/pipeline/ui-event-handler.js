@@ -729,7 +729,7 @@ export class UIEventHandler {
      * Handles dropping a new plugin
      * @param {DragEvent} e - The drop event
      */
-    handleNewPluginDrop(e) {
+    async handleNewPluginDrop(e) {
         // Ensure PluginListManager reference is valid using the safe access pattern
         const pluginListManager = this.pipelineManager?.pluginListManager || window.uiManager?.pluginListManager;
         if (!pluginListManager) {
@@ -743,7 +743,21 @@ export class UIEventHandler {
             return;
         }
 
-        const pluginName = e.dataTransfer.getData('text/plain');
+        const dataText = e.dataTransfer.getData('text/plain');
+        
+        // Try to parse as JSON to check if it's a preset
+        try {
+            const data = JSON.parse(dataText);
+            if (data.type === 'preset' && data.name) {
+                // Handle preset drop
+                await this.handlePresetDrop(e, data.name);
+                return;
+            }
+        } catch (error) {
+            // Not JSON, continue with plugin handling
+        }
+
+        const pluginName = dataText;
         // Access pluginManager safely
         if (pluginName && this.pipelineManager.pluginManager?.pluginClasses[pluginName]) {
             // Access createPlugin safely
@@ -798,6 +812,38 @@ export class UIEventHandler {
             pluginListManager.checkWindowWidthAndAdjust();
         } else {
             // This can happen if the drag source is not a valid plugin
+        }
+    }
+
+    async handlePresetDrop(e, presetName) {
+        try {
+            const pluginListManager = this.pipelineManager?.pluginListManager || window.uiManager?.pluginListManager;
+            if (!pluginListManager) {
+                console.error("PluginListManager not found in handlePresetDrop");
+                return;
+            }
+
+            // Calculate insertion index
+            const rawDropEventX = e.clientX;
+            const rawDropEventY = e.clientY;
+
+            const targetIndex = pluginListManager.findInsertionIndex(
+                rawDropEventX, 
+                rawDropEventY, 
+                this.pipelineManager.audioManager.pipeline
+            );
+
+            // Get preset manager from plugin list manager
+            await pluginListManager.initPresetManager();
+            await pluginListManager.presetManager.addPresetToPipeline(presetName, targetIndex);
+
+            // Check window width and adjust plugin list collapse state after adding a preset
+            pluginListManager.checkWindowWidthAndAdjust();
+        } catch (error) {
+            console.error('Error handling preset drop:', error);
+            if (window.uiManager) {
+                window.uiManager.setError(`Error adding preset: ${error.message}`, true);
+            }
         }
     }
 

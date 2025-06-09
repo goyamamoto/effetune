@@ -1,7 +1,8 @@
 # Version History
 
-### Version 1.55 (Jun xx, 2025)
-- Added FDN Reverb effect
+### Version 1.55 (Jun 9, 2025)
+- Added system presets feature
+- Added Digital Error Emulator and FDN Reverb effects
 - Various minor improvements
 
 ### Version 1.54 (May 31, 2025)

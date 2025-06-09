@@ -185,6 +185,10 @@ class App {
         // Pass first launch flag to audio manager for audio workaround
         // Use a default value of false if window.isFirstLaunchConfirmed is not set
         this.audioManager.isFirstLaunch = false;
+
+        // Make managers globally accessible for preset functionality
+        window.pluginManager = this.pluginManager;
+        window.pipelineManager = this.uiManager.pipelineManager;
     }
 
     async initialize() {
