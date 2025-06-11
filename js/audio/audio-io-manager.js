@@ -15,6 +15,13 @@ export class AudioIOManager {
         this.defaultDestinationConnection = null;
         this.silenceNode = null;
         this.useMultichannelOutput = false;
+        this.outputDeviceId = null;
+
+        this.handleDeviceChange = this.handleDeviceChange.bind(this);
+
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
+            navigator.mediaDevices.addEventListener('devicechange', this.handleDeviceChange);
+        }
     }
     
     /**
@@ -241,10 +248,12 @@ export class AudioIOManager {
                                 
                                 if (outputDevice) {
                                     await this.audioElement.setSinkId(preferences.outputDeviceId);
+                                    this.outputDeviceId = preferences.outputDeviceId;
                                 } else {
                                     // Try to use the saved device ID directly even if we couldn't verify it
                                     try {
                                         await this.audioElement.setSinkId(preferences.outputDeviceId);
+                                        this.outputDeviceId = preferences.outputDeviceId;
                                     } catch (directSinkError) {
                                         console.warn('Failed to set audio output to saved device, using default:', directSinkError);
                                         // Fall back to default device
@@ -317,6 +326,7 @@ export class AudioIOManager {
                             // Set to default device explicitly
                             try {
                                 await this.audioElement.setSinkId('default');
+                                this.outputDeviceId = 'default';
                                 console.log('Audio output set to default device');
                             } catch (sinkError) {
                                 console.warn('Failed to set audio output to default device:', sinkError);
@@ -519,14 +529,57 @@ export class AudioIOManager {
         const bufferSource = this.contextManager.audioContext.createBufferSource();
         bufferSource.buffer = silentBuffer;
         bufferSource.loop = true;
-        
+
         const gainNode = this.contextManager.audioContext.createGain();
         gainNode.gain.value = 0;
-        
+
         bufferSource.connect(gainNode);
         bufferSource.start();
-        
+
         return gainNode;
+    }
+
+    /**
+     * Handle devicechange events to restore output
+     */
+    async handleDeviceChange() {
+        try {
+            if (!navigator.mediaDevices || typeof navigator.mediaDevices.enumerateDevices !== 'function') {
+                return;
+            }
+
+            const preferences = window.electronAPI && window.electronIntegration ?
+                await window.electronIntegration.loadAudioPreferences() : null;
+
+            if (!preferences || !preferences.outputDeviceId || !this.audioElement) {
+                return;
+            }
+
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const deviceExists = devices.some(d => d.kind === 'audiooutput' && d.deviceId === preferences.outputDeviceId);
+
+            if (deviceExists) {
+                try {
+                    await this.audioElement.setSinkId(preferences.outputDeviceId);
+                    await this.audioElement.play().catch(() => {});
+                    this.outputDeviceId = preferences.outputDeviceId;
+                    console.log('Restored output device:', preferences.outputDeviceId);
+                } catch (err) {
+                    console.warn('Failed to restore output device:', err);
+                }
+            } else {
+                try {
+                    await this.audioElement.setSinkId('default');
+                    await this.audioElement.play().catch(() => {});
+                    this.outputDeviceId = 'default';
+                    console.log('Switched to default output device');
+                } catch (err) {
+                    console.warn('Failed to switch to default device:', err);
+                }
+            }
+        } catch (error) {
+            console.warn('Error handling devicechange event:', error);
+        }
     }
     
     /**
@@ -538,6 +591,10 @@ export class AudioIOManager {
             this.audioElement.pause();
             this.audioElement.srcObject = null;
             this.audioElement = null;
+        }
+
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.removeEventListener === 'function') {
+            navigator.mediaDevices.removeEventListener('devicechange', this.handleDeviceChange);
         }
         
         // Disconnect from default destination if connected
