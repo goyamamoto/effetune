@@ -570,6 +570,13 @@ class App {
                 this.audioManager.audioContext.resume();
             }
         });
+
+        // Handle audio device changes (e.g., USB device reconnected)
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
+            navigator.mediaDevices.addEventListener('devicechange', () => {
+                this.handleOutputDeviceChange();
+            });
+        }
     }
 
     /**
@@ -589,6 +596,42 @@ class App {
             // Show a non-blocking warning message to the user
             this.uiManager.setError(this.uiManager.t('error.microphoneAccessDenied'), false);
             setTimeout(() => window.uiManager.clearError(), 3000);
+        }
+    }
+
+    /**
+     * Handle output device change events
+     */
+    async handleOutputDeviceChange() {
+        if (!window.electronIntegration ||
+            !window.electronIntegration.isElectronEnvironment ||
+            !window.electronIntegration.isElectronEnvironment()) {
+            return;
+        }
+
+        const prefs = await window.electronIntegration.loadAudioPreferences();
+        if (!prefs || !prefs.outputDeviceId) return;
+
+        let devices;
+        try {
+            devices = await navigator.mediaDevices.enumerateDevices();
+        } catch (err) {
+            console.warn('Failed to enumerate devices on devicechange:', err);
+            return;
+        }
+
+        const found = devices.some(d => d.kind === 'audiooutput' && d.deviceId === prefs.outputDeviceId);
+        const currentSink = this.audioManager.ioManager.audioElement?.sinkId;
+
+        if (found) {
+            if (currentSink !== prefs.outputDeviceId) {
+                const success = await this.audioManager.ioManager.reapplyOutputDevice(prefs.outputDeviceId);
+                if (!success) {
+                    await this.audioManager.reset(prefs);
+                }
+            }
+        } else if (currentSink === prefs.outputDeviceId) {
+            await this.audioManager.reset(prefs);
         }
     }
 
