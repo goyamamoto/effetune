@@ -15,6 +15,7 @@ export class AudioIOManager {
         this.defaultDestinationConnection = null;
         this.silenceNode = null;
         this.useMultichannelOutput = false;
+        this.currentOutputDeviceId = null;
     }
     
     /**
@@ -241,14 +242,17 @@ export class AudioIOManager {
                                 
                                 if (outputDevice) {
                                     await this.audioElement.setSinkId(preferences.outputDeviceId);
+                                    this.currentOutputDeviceId = preferences.outputDeviceId;
                                 } else {
                                     // Try to use the saved device ID directly even if we couldn't verify it
                                     try {
                                         await this.audioElement.setSinkId(preferences.outputDeviceId);
+                                        this.currentOutputDeviceId = preferences.outputDeviceId;
                                     } catch (directSinkError) {
                                         console.warn('Failed to set audio output to saved device, using default:', directSinkError);
                                         // Fall back to default device
                                         await this.audioElement.setSinkId('default');
+                                        this.currentOutputDeviceId = 'default';
                                     }
                                 }
                                 
@@ -318,6 +322,7 @@ export class AudioIOManager {
                             try {
                                 await this.audioElement.setSinkId('default');
                                 console.log('Audio output set to default device');
+                                this.currentOutputDeviceId = 'default';
                             } catch (sinkError) {
                                 console.warn('Failed to set audio output to default device:', sinkError);
                             }
@@ -525,8 +530,36 @@ export class AudioIOManager {
         
         bufferSource.connect(gainNode);
         bufferSource.start();
-        
+
         return gainNode;
+    }
+
+    /**
+     * Reapply the currently saved output device to the audio element
+     * @param {string} deviceId - Output device ID
+     * @returns {Promise<boolean>} Success status
+     */
+    async reapplyOutputDevice(deviceId) {
+        if (!this.audioElement || typeof this.audioElement.setSinkId !== 'function') {
+            return false;
+        }
+        try {
+            await this.audioElement.setSinkId(deviceId);
+            this.currentOutputDeviceId = deviceId;
+            if (this.destinationNode && this.destinationNode.stream) {
+                this.audioElement.srcObject = this.destinationNode.stream;
+            }
+            try {
+                await this.audioElement.play();
+            } catch (e) {
+                // Ignore play errors
+            }
+            console.log('Reapplied output device:', deviceId);
+            return true;
+        } catch (error) {
+            console.warn('Failed to reapply output device:', error);
+            return false;
+        }
     }
     
     /**
