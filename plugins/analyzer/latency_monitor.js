@@ -7,6 +7,8 @@ class LatencyMonitorPlugin extends PluginBase {
         this.displayIntervalId = null;
         this.processingSamples = [];
         this.maxProcessingSamples = 10; // 1 second of 100ms samples
+        this.outputSamples = [];
+        this.maxOutputSamples = 10; // average over 10 seconds
         this.processingListener = null;
         this.listenerAttached = false;
         this.displayElements = {};
@@ -17,20 +19,20 @@ class LatencyMonitorPlugin extends PluginBase {
         let latency = NaN;
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
-            if (ts && ts.performanceTime !== undefined) {
-                const diff = ts.performanceTime - performance.now();
-                if (diff > 0) {
-                    latency = diff / 1000; // seconds
+            if (ts && ts.performanceTime != null && ts.contextTime != null) {
+                const diff = ts.performanceTime / 1000 - ts.contextTime;
+                if (Number.isFinite(diff) && diff > 0) {
+                    latency = diff;
                 }
             }
         }
-        if (isNaN(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
-            latency = ctx.outputLatency; // seconds
+        if (!Number.isFinite(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
+            latency = ctx.outputLatency;
         }
         if (audioElement && typeof audioElement.currentTime === 'number') {
             const elementLag = audioElement.currentTime - ctx.currentTime;
-            if (!isNaN(elementLag) && elementLag > 0) {
-                latency = (isNaN(latency) ? 0 : latency) + elementLag;
+            if (Number.isFinite(elementLag) && elementLag > 0) {
+                latency = (Number.isFinite(latency) ? latency : 0) + elementLag;
             }
         }
         return latency;
@@ -82,7 +84,12 @@ class LatencyMonitorPlugin extends PluginBase {
             if (ctx) {
                 const outputLatency = this.getOutputLatency(ctx, audioEl);
                 if (Number.isFinite(outputLatency) && outputLatency > 0) {
-                    this.outputLatency = outputLatency * 1000;
+                    this.outputSamples.push(outputLatency);
+                    if (this.outputSamples.length > this.maxOutputSamples) {
+                        this.outputSamples.shift();
+                    }
+                    const sum = this.outputSamples.reduce((a, b) => a + b, 0);
+                    this.outputLatency = (sum / this.outputSamples.length) * 1000;
                 }
                 const inputLatency = this.getInputLatency(ctx, outputLatency);
                 if (Number.isFinite(inputLatency) && inputLatency > 0) {
