@@ -6,10 +6,10 @@ class LatencyMonitorPlugin extends PluginBase {
         this.outputLatency = null;
         this.displayIntervalId = null;
         this.processingSamples = [];
-        // moving average of up to five samples from once-per-second updates
+        // moving average of up to five samples from updates every three seconds
         this.maxProcessingSamples = 5;
         this.outputSamples = [];
-        this.maxOutputSamples = 10; // average output latency over ten seconds
+        this.maxOutputSamples = 10; // average output latency over roughly thirty seconds
         this.processingListener = null;
         this.listenerAttached = false;
         this.displayElements = {};
@@ -124,7 +124,7 @@ class LatencyMonitorPlugin extends PluginBase {
                 }
             }
             this.updateDisplay();
-        }, 1000);
+        }, 3000);
     }
 
     stopMonitoring() {
