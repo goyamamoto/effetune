@@ -4,10 +4,10 @@ class LatencyMonitorPlugin extends PluginBase {
         this.inputLatency = 0;
         this.processingLatency = 0;
         this.outputLatency = 0;
-        this.intervalId = null;
         this.displayIntervalId = null;
         this.processingSamples = [];
         this.maxProcessingSamples = 10; // 1 second of 100ms samples
+        this.processingListener = null;
         this.displayElements = {};
     }
 
@@ -30,44 +30,51 @@ class LatencyMonitorPlugin extends PluginBase {
         if (ctx.inputLatency !== undefined) {
             return ctx.inputLatency;
         }
+        const track = window.audioManager?.ioManager?.stream?.getAudioTracks?.()[0];
+        if (track && track.getSettings) {
+            const settings = track.getSettings();
+            if (settings.latency !== undefined) {
+                return settings.latency;
+            }
+        }
         const baseLat = ctx.baseLatency || 0;
         return Math.max(0, baseLat - outputLatency);
     }
 
     startMonitoring() {
-        if (this.intervalId) return;
-        // Sample processing latency every 100 ms
-        this.intervalId = setInterval(() => {
-            const ctx = window.audioContext;
-            if (!ctx) return;
-            const outputLatency = this.getOutputLatency(ctx);
-            const inputLatency = this.getInputLatency(ctx, outputLatency);
-            const baseLat = ctx.baseLatency || 0;
-            const processingSample = Math.max(0, baseLat - inputLatency - outputLatency);
-            this.inputLatency = inputLatency * 1000;
-            this.outputLatency = outputLatency * 1000;
-            this.processingSamples.push(processingSample * 1000);
+        if (this.displayIntervalId) return;
+        this.processingListener = (data) => {
+            this.processingSamples.push(data.processingTime);
             if (this.processingSamples.length > this.maxProcessingSamples) {
                 this.processingSamples.shift();
             }
             const sum = this.processingSamples.reduce((a, b) => a + b, 0);
             this.processingLatency = sum / this.processingSamples.length;
-        }, 100);
+        };
+        if (window.audioManager) {
+            window.audioManager.addEventListener('processingLatency', this.processingListener);
+        }
 
-        // Update displayed values once per second
         this.displayIntervalId = setInterval(() => {
+            const ctx = window.audioContext;
+            if (ctx) {
+                const outputLatency = this.getOutputLatency(ctx);
+                const inputLatency = this.getInputLatency(ctx, outputLatency);
+                this.inputLatency = inputLatency * 1000;
+                this.outputLatency = outputLatency * 1000;
+            }
             this.updateDisplay();
         }, 1000);
     }
 
     stopMonitoring() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
         if (this.displayIntervalId) {
             clearInterval(this.displayIntervalId);
             this.displayIntervalId = null;
+        }
+        if (this.processingListener && window.audioManager) {
+            window.audioManager.removeEventListener('processingLatency', this.processingListener);
+            this.processingListener = null;
         }
     }
 

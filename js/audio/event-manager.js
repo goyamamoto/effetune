@@ -11,7 +11,8 @@ export class EventManager {
         
         // Event listeners for audio state changes
         this.eventListeners = {
-            sleepModeChanged: []
+            sleepModeChanged: [],
+            processingLatency: []
         };
         
         // Setup user activity detection
