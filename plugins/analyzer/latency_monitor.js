@@ -20,17 +20,23 @@ class LatencyMonitorPlugin extends PluginBase {
     // Retrieve output latency using platform information when possible
     getOutputLatency(ctx, audioElement) {
         let latency = NaN;
+
+        if (typeof ctx.baseLatency === 'number' && ctx.baseLatency > 0) {
+            latency = ctx.baseLatency;
+        }
+
+        if (typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
+            latency = !Number.isFinite(latency) || ctx.outputLatency > latency ? ctx.outputLatency : latency;
+        }
+
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
             if (ts && ts.performanceTime != null && ts.contextTime != null) {
                 const diff = ts.performanceTime / 1000 - ts.contextTime;
                 if (Number.isFinite(diff) && diff > 0) {
-                    latency = diff;
+                    latency = !Number.isFinite(latency) || diff > latency ? diff : latency;
                 }
             }
-        }
-        if (!Number.isFinite(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
-            latency = ctx.outputLatency;
         }
 
         if (audioElement !== this.lastAudioElement) {
@@ -55,22 +61,20 @@ class LatencyMonitorPlugin extends PluginBase {
         return latency;
     }
 
-    // Retrieve input latency if provided, otherwise estimate using base latency
-    getInputLatency(ctx, outputLatency) {
+    // Retrieve input latency if provided by browser APIs
+    getInputLatency(ctx) {
         if (typeof ctx.inputLatency === 'number' && ctx.inputLatency > 0) {
-            return ctx.inputLatency; // in seconds
+            return ctx.inputLatency; // seconds
         }
+
         const track = window.audioManager?.ioManager?.stream?.getAudioTracks?.()[0];
         if (track && track.getSettings) {
             const settings = track.getSettings();
             if (typeof settings.latency === 'number' && settings.latency > 0) {
-                return settings.latency; // in seconds
+                return settings.latency; // seconds
             }
         }
-        const baseLat = ctx.baseLatency;
-        if (typeof baseLat === 'number' && baseLat > 0 && baseLat > outputLatency) {
-            return baseLat - outputLatency;
-        }
+
         return NaN;
     }
 
@@ -114,7 +118,7 @@ class LatencyMonitorPlugin extends PluginBase {
                     const sum = this.outputSamples.reduce((a, b) => a + b, 0);
                     this.outputLatency = sum / this.outputSamples.length;
                 }
-                const inputLatency = this.getInputLatency(ctx, outputLatency);
+                const inputLatency = this.getInputLatency(ctx);
                 if (Number.isFinite(inputLatency) && inputLatency > 0) {
                     this.inputLatency = inputLatency * 1e6;
                 }
