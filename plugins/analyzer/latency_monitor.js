@@ -6,9 +6,9 @@ class LatencyMonitorPlugin extends PluginBase {
         this.outputLatency = null;
         this.displayIntervalId = null;
         this.processingSamples = [];
-        this.maxProcessingSamples = 10; // 1 second of 100ms samples
+        this.maxProcessingSamples = 10; // one second worth of 100 ms samples
         this.outputSamples = [];
-        this.maxOutputSamples = 10; // average over 10 seconds
+        this.maxOutputSamples = 10; // average output latency over ten seconds
         this.processingListener = null;
         this.listenerAttached = false;
         this.displayElements = {};
@@ -50,13 +50,13 @@ class LatencyMonitorPlugin extends PluginBase {
     // Retrieve input latency if provided, otherwise estimate using base latency
     getInputLatency(ctx, outputLatency) {
         if (typeof ctx.inputLatency === 'number' && ctx.inputLatency > 0) {
-            return ctx.inputLatency; // seconds
+            return ctx.inputLatency; // in seconds
         }
         const track = window.audioManager?.ioManager?.stream?.getAudioTracks?.()[0];
         if (track && track.getSettings) {
             const settings = track.getSettings();
             if (typeof settings.latency === 'number' && settings.latency > 0) {
-                return settings.latency; // seconds
+                return settings.latency; // in seconds
             }
         }
         const baseLat = ctx.baseLatency;
