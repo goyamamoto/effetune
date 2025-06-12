@@ -6,13 +6,15 @@ class LatencyMonitorPlugin extends PluginBase {
         this.outputLatency = null;
         this.displayIntervalId = null;
         this.processingSamples = [];
-        this.maxProcessingSamples = 10; // one second worth of 100 ms samples
+        // moving average of up to five samples from once-per-second updates
+        this.maxProcessingSamples = 5;
         this.outputSamples = [];
         this.maxOutputSamples = 10; // average output latency over ten seconds
         this.processingListener = null;
         this.listenerAttached = false;
         this.displayElements = {};
         this.lastElementLag = null;
+        this.lastAudioElement = null;
     }
 
     // Retrieve output latency using platform information when possible
@@ -30,10 +32,16 @@ class LatencyMonitorPlugin extends PluginBase {
         if (!Number.isFinite(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
             latency = ctx.outputLatency;
         }
+
+        if (audioElement !== this.lastAudioElement) {
+            this.lastElementLag = null;
+            this.lastAudioElement = audioElement;
+        }
+
         let elementLag = NaN;
         if (audioElement && typeof audioElement.currentTime === 'number') {
             const diff = audioElement.currentTime - ctx.currentTime;
-            if (Number.isFinite(diff) && diff > 0) {
+            if (Number.isFinite(diff) && diff > 0 && diff < 1) {
                 elementLag = diff;
                 this.lastElementLag = diff;
             }
@@ -91,6 +99,10 @@ class LatencyMonitorPlugin extends PluginBase {
             attachListener();
             const ctx = window.audioContext;
             const audioEl = window.audioManager?.ioManager?.audioElement;
+            if (audioEl !== this.lastAudioElement) {
+                this.lastElementLag = null;
+                this.lastAudioElement = audioEl;
+            }
             if (ctx) {
                 const outputLatency = this.getOutputLatency(ctx, audioEl);
                 if (Number.isFinite(outputLatency) && outputLatency > 0) {
