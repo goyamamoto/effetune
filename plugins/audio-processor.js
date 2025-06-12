@@ -45,8 +45,8 @@ class PluginProcessor extends AudioWorkletProcessor {
             _silenceThresholdAmplitude: Math.pow(10, -84 / 20)
         };
 
-        // Processing latency sampling - send average once per second
-        this.latencySampleInterval = 1.0; // seconds
+        // Processing latency sampling - send average every three seconds
+        this.latencySampleInterval = 3.0; // seconds
         this.latencyAccumulator = 0;
         this.latencySamples = 0;
         this.lastLatencySampleTime = 0;
