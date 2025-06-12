@@ -9,7 +9,7 @@ A collection of plugins that let you see your music in fascinating ways. These v
 - [Spectrogram](#spectrogram) - Creates beautiful visual patterns from your music
 - [Spectrum Analyzer](#spectrum-analyzer) - Shows the different frequencies in your music
 - [Stereo Meter](#stereo-meter) - Visualizes stereo balance and phase relationships
-- [Latency Monitor](#latency-monitor) - Displays audio latency values
+- [Latency Monitor](#latency-monitor) - Displays audio latency with moving average
 
 ## Level Meter
 
@@ -186,11 +186,11 @@ Remember: These tools are meant to enhance your enjoyment of music by adding a v
 
 ## Latency Monitor
 
-Displays estimated audio input, processing, and output latency. The values are refreshed every second so you can keep an eye on how much delay is introduced by your system and effect chain.
+Shows audio input, processing, and output latency. Input and output values are taken directly from your system whenever possible. Processing latency is sampled every 100&nbsp;ms and displayed as a moving average. Values refresh once per second.
 
 ### What It Shows
 - **Input Latency**: Time from the audio source to the processing stage
-- **Processing Latency**: Estimated total latency reported by the browser
+- **Processing Latency**: Average latency introduced by the effect chain
 - **Output Latency**: Time from processing to your speakers or headphones
 
 Use this tool to troubleshoot large delays or confirm that your setup is performing as expected.
