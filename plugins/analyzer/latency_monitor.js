@@ -5,28 +5,57 @@ class LatencyMonitorPlugin extends PluginBase {
         this.processingLatency = 0;
         this.outputLatency = 0;
         this.intervalId = null;
+        this.displayIntervalId = null;
+        this.processingSamples = [];
+        this.maxProcessingSamples = 10; // 1 second of 100ms samples
         this.displayElements = {};
+    }
+
+    // Retrieve output latency from the AudioContext or estimate if unavailable
+    getOutputLatency(ctx) {
+        let outputLatency = 0;
+        if (typeof ctx.getOutputTimestamp === 'function') {
+            const ts = ctx.getOutputTimestamp();
+            if (ts && ts.contextTime !== undefined) {
+                outputLatency = Math.max(0, ts.contextTime - ctx.currentTime);
+            }
+        } else if (ctx.outputLatency) {
+            outputLatency = ctx.outputLatency;
+        }
+        return outputLatency;
+    }
+
+    // Retrieve input latency if provided, otherwise estimate using base latency
+    getInputLatency(ctx, outputLatency) {
+        if (ctx.inputLatency !== undefined) {
+            return ctx.inputLatency;
+        }
+        const baseLat = ctx.baseLatency || 0;
+        return Math.max(0, baseLat - outputLatency);
     }
 
     startMonitoring() {
         if (this.intervalId) return;
+        // Sample processing latency every 100 ms
         this.intervalId = setInterval(() => {
             const ctx = window.audioContext;
             if (!ctx) return;
-            let outputLatency = 0;
-            if (typeof ctx.getOutputTimestamp === 'function') {
-                const ts = ctx.getOutputTimestamp();
-                if (ts && ts.contextTime !== undefined) {
-                    outputLatency = Math.max(0, ts.contextTime - ctx.currentTime);
-                }
-            } else if (ctx.outputLatency) {
-                outputLatency = ctx.outputLatency;
-            }
+            const outputLatency = this.getOutputLatency(ctx);
+            const inputLatency = this.getInputLatency(ctx, outputLatency);
             const baseLat = ctx.baseLatency || 0;
-            const inLatency = Math.max(0, baseLat - outputLatency);
-            this.inputLatency = inLatency * 1000;
-            this.processingLatency = baseLat * 1000;
+            const processingSample = Math.max(0, baseLat - inputLatency - outputLatency);
+            this.inputLatency = inputLatency * 1000;
             this.outputLatency = outputLatency * 1000;
+            this.processingSamples.push(processingSample * 1000);
+            if (this.processingSamples.length > this.maxProcessingSamples) {
+                this.processingSamples.shift();
+            }
+            const sum = this.processingSamples.reduce((a, b) => a + b, 0);
+            this.processingLatency = sum / this.processingSamples.length;
+        }, 100);
+
+        // Update displayed values once per second
+        this.displayIntervalId = setInterval(() => {
             this.updateDisplay();
         }, 1000);
     }
@@ -35,6 +64,10 @@ class LatencyMonitorPlugin extends PluginBase {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
+        }
+        if (this.displayIntervalId) {
+            clearInterval(this.displayIntervalId);
+            this.displayIntervalId = null;
         }
     }
 
