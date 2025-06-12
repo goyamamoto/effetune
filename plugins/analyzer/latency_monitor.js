@@ -47,7 +47,7 @@ class LatencyMonitorPlugin extends PluginBase {
         let elementLag = NaN;
         if (audioElement && typeof audioElement.currentTime === 'number') {
             const diff = audioElement.currentTime - ctx.currentTime;
-            if (Number.isFinite(diff) && diff > 0 && diff < 1) {
+            if (Number.isFinite(diff) && diff > 0 && diff < 5) {
                 elementLag = diff;
                 this.lastElementLag = diff;
             }
