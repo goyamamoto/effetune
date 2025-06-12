@@ -175,9 +175,11 @@ class PluginProcessor extends AudioWorkletProcessor {
 
     // Optimized process method
     process(inputs, outputs, parameters) {
-        const cpuStart = (globalThis.performance && performance.now)
-            ? performance.now()
-            : 0;
+        const frameStart = this.currentFrame;
+        const cpuStart = (globalThis.performance &&
+            typeof globalThis.performance.now === 'function')
+            ? globalThis.performance.now()
+            : (frameStart / globalThis.sampleRate) * 1000;
         const input = inputs[0];
         const output = outputs[0];
 
@@ -676,9 +678,10 @@ class PluginProcessor extends AudioWorkletProcessor {
         }
 
         // --- 12. Return Status ---
-        const cpuEnd = (globalThis.performance && performance.now)
-            ? performance.now()
-            : cpuStart;
+        const cpuEnd = (globalThis.performance &&
+            typeof globalThis.performance.now === 'function')
+            ? globalThis.performance.now()
+            : (this.currentFrame / globalThis.sampleRate) * 1000;
         this.latencyAccumulator += cpuEnd - cpuStart;
         this.latencySamples += 1;
         if (cpuEnd - this.lastLatencySampleTime >= this.latencySampleInterval * 1000) {

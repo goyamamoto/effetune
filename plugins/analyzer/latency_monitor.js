@@ -8,6 +8,7 @@ class LatencyMonitorPlugin extends PluginBase {
         this.processingSamples = [];
         this.maxProcessingSamples = 10; // 1 second of 100ms samples
         this.processingListener = null;
+        this.listenerAttached = false;
         this.displayElements = {};
     }
 
@@ -52,11 +53,18 @@ class LatencyMonitorPlugin extends PluginBase {
             const sum = this.processingSamples.reduce((a, b) => a + b, 0);
             this.processingLatency = sum / this.processingSamples.length;
         };
-        if (window.audioManager) {
-            window.audioManager.addEventListener('processingLatency', this.processingListener);
-        }
+
+        this.listenerAttached = false;
+        const attachListener = () => {
+            if (!this.listenerAttached && window.audioManager) {
+                window.audioManager.addEventListener('processingLatency', this.processingListener);
+                this.listenerAttached = true;
+            }
+        };
+        attachListener();
 
         this.displayIntervalId = setInterval(() => {
+            attachListener();
             const ctx = window.audioContext;
             if (ctx) {
                 const outputLatency = this.getOutputLatency(ctx);
@@ -73,8 +81,9 @@ class LatencyMonitorPlugin extends PluginBase {
             clearInterval(this.displayIntervalId);
             this.displayIntervalId = null;
         }
-        if (this.processingListener && window.audioManager) {
+        if (this.processingListener && this.listenerAttached && window.audioManager) {
             window.audioManager.removeEventListener('processingLatency', this.processingListener);
+            this.listenerAttached = false;
             this.processingListener = null;
         }
     }
