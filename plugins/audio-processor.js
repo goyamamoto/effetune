@@ -45,6 +45,12 @@ class PluginProcessor extends AudioWorkletProcessor {
             _silenceThresholdAmplitude: Math.pow(10, -84 / 20)
         };
 
+        // Processing latency sampling - send average every three seconds
+        this.latencySampleInterval = 3.0; // seconds
+        this.latencyAccumulator = 0;
+        this.latencySamples = 0;
+        this.lastLatencySampleTime = 0;
+
         // Message handler
         this.port.onmessage = (event) => {
             const data = event.data;
@@ -169,6 +175,11 @@ class PluginProcessor extends AudioWorkletProcessor {
 
     // Optimized process method
     process(inputs, outputs, parameters) {
+        const frameStart = this.currentFrame;
+        const cpuStart = (globalThis.performance &&
+            typeof globalThis.performance.now === 'function')
+            ? globalThis.performance.now()
+            : (frameStart / globalThis.sampleRate) * 1000;
         const input = inputs[0];
         const output = outputs[0];
 
@@ -667,6 +678,23 @@ class PluginProcessor extends AudioWorkletProcessor {
         }
 
         // --- 12. Return Status ---
+        const cpuEnd = (globalThis.performance &&
+            typeof globalThis.performance.now === 'function')
+            ? globalThis.performance.now()
+            : (this.currentFrame / globalThis.sampleRate) * 1000;
+        this.latencyAccumulator += cpuEnd - cpuStart;
+        this.latencySamples += 1;
+        if (cpuEnd - this.lastLatencySampleTime >= this.latencySampleInterval * 1000) {
+            const avg = this.latencyAccumulator / this.latencySamples;
+            // Send processing latency in microseconds
+            this.port.postMessage({
+                type: 'processingLatency',
+                processingTime: avg * 1000
+            });
+            this.latencyAccumulator = 0;
+            this.latencySamples = 0;
+            this.lastLatencySampleTime = cpuEnd;
+        }
         // Return true to keep the processor alive
         return true;
     }

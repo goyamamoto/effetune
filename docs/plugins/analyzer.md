@@ -9,6 +9,7 @@ A collection of plugins that let you see your music in fascinating ways. These v
 - [Spectrogram](#spectrogram) - Creates beautiful visual patterns from your music
 - [Spectrum Analyzer](#spectrum-analyzer) - Shows the different frequencies in your music
 - [Stereo Meter](#stereo-meter) - Visualizes stereo balance and phase relationships
+- [Latency Monitor](#latency-monitor) - Displays audio latency with moving average
 
 ## Level Meter
 
@@ -182,3 +183,14 @@ A fascinating visualization tool that lets you see how your music creates a sens
    - Watch how different listening positions change the display
 
 Remember: These tools are meant to enhance your enjoyment of music by adding a visual dimension to your listening experience. Have fun exploring and discovering new ways to see your favorite music!
+
+## Latency Monitor
+
+Shows audio input, processing, and output latency. Input and output values are read from browser APIs when available. Output latency now uses `AudioContext.getOutputTimestamp()` when supported and falls back to the context's `outputLatency` or `baseLatency`. The plugin also measures the buffering delay of a `MediaStreamDestination` driving an `<audio>` element. If a reading isn't possible, the last valid value is reused. Input latency comes from the browser's `inputLatency` property or the media track's settings when present. All latency values are sampled in microseconds and displayed in milliseconds. Output latency samples are averaged over roughly thirty seconds to smooth spikes. Processing latency is reported by the audio engine once every three seconds as a moving average. Values refresh every three seconds, and "N/A" shows until a measurement is available.
+
+### What It Shows
+- **Input Latency**: Time from the audio source to the processing stage
+- **Processing Latency**: Average latency introduced by the effect chain
+- **Output Latency**: Time from processing to your speakers or headphones
+
+Use this tool to troubleshoot large delays or confirm that your setup is performing as expected.
