@@ -21,22 +21,22 @@ class LatencyMonitorPlugin extends PluginBase {
     getOutputLatency(ctx, audioElement) {
         let latency = NaN;
 
-        if (typeof ctx.baseLatency === 'number' && ctx.baseLatency > 0) {
-            latency = ctx.baseLatency;
-        }
-
-        if (typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
-            latency = !Number.isFinite(latency) || ctx.outputLatency > latency ? ctx.outputLatency : latency;
-        }
-
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
             if (ts && ts.performanceTime != null && ts.contextTime != null) {
                 const diff = ts.performanceTime / 1000 - ts.contextTime;
-                if (Number.isFinite(diff) && diff > 0) {
-                    latency = !Number.isFinite(latency) || diff > latency ? diff : latency;
+                if (Number.isFinite(diff) && diff >= 0) {
+                    latency = diff;
                 }
             }
+        }
+
+        if (!Number.isFinite(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
+            latency = ctx.outputLatency;
+        }
+
+        if (!Number.isFinite(latency) && typeof ctx.baseLatency === 'number' && ctx.baseLatency > 0) {
+            latency = ctx.baseLatency;
         }
 
         if (audioElement !== this.lastAudioElement) {
@@ -52,12 +52,15 @@ class LatencyMonitorPlugin extends PluginBase {
                 this.lastElementLag = diff;
             }
         }
+
         if (!Number.isFinite(elementLag) && Number.isFinite(this.lastElementLag)) {
             elementLag = this.lastElementLag;
         }
+
         if (Number.isFinite(elementLag)) {
             latency = (Number.isFinite(latency) ? latency : 0) + elementLag;
         }
+
         return latency;
     }
 
