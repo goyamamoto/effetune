@@ -686,7 +686,11 @@ class PluginProcessor extends AudioWorkletProcessor {
         this.latencySamples += 1;
         if (cpuEnd - this.lastLatencySampleTime >= this.latencySampleInterval * 1000) {
             const avg = this.latencyAccumulator / this.latencySamples;
-            this.port.postMessage({ type: 'processingLatency', processingTime: avg });
+            // Send processing latency in microseconds
+            this.port.postMessage({
+                type: 'processingLatency',
+                processingTime: avg * 1000
+            });
             this.latencyAccumulator = 0;
             this.latencySamples = 0;
             this.lastLatencySampleTime = cpuEnd;

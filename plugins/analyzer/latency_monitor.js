@@ -12,6 +12,7 @@ class LatencyMonitorPlugin extends PluginBase {
         this.processingListener = null;
         this.listenerAttached = false;
         this.displayElements = {};
+        this.lastElementLag = null;
     }
 
     // Retrieve output latency using platform information when possible
@@ -29,11 +30,19 @@ class LatencyMonitorPlugin extends PluginBase {
         if (!Number.isFinite(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
             latency = ctx.outputLatency;
         }
+        let elementLag = NaN;
         if (audioElement && typeof audioElement.currentTime === 'number') {
-            const elementLag = audioElement.currentTime - ctx.currentTime;
-            if (Number.isFinite(elementLag) && elementLag > 0) {
-                latency = (Number.isFinite(latency) ? latency : 0) + elementLag;
+            const diff = audioElement.currentTime - ctx.currentTime;
+            if (Number.isFinite(diff) && diff > 0) {
+                elementLag = diff;
+                this.lastElementLag = diff;
             }
+        }
+        if (!Number.isFinite(elementLag) && Number.isFinite(this.lastElementLag)) {
+            elementLag = this.lastElementLag;
+        }
+        if (Number.isFinite(elementLag)) {
+            latency = (Number.isFinite(latency) ? latency : 0) + elementLag;
         }
         return latency;
     }
@@ -60,6 +69,7 @@ class LatencyMonitorPlugin extends PluginBase {
     startMonitoring() {
         if (this.displayIntervalId) return;
         this.processingListener = (data) => {
+            // data.processingTime is in microseconds
             this.processingSamples.push(data.processingTime);
             if (this.processingSamples.length > this.maxProcessingSamples) {
                 this.processingSamples.shift();
@@ -84,16 +94,17 @@ class LatencyMonitorPlugin extends PluginBase {
             if (ctx) {
                 const outputLatency = this.getOutputLatency(ctx, audioEl);
                 if (Number.isFinite(outputLatency) && outputLatency > 0) {
-                    this.outputSamples.push(outputLatency);
+                    const outputUs = outputLatency * 1e6;
+                    this.outputSamples.push(outputUs);
                     if (this.outputSamples.length > this.maxOutputSamples) {
                         this.outputSamples.shift();
                     }
                     const sum = this.outputSamples.reduce((a, b) => a + b, 0);
-                    this.outputLatency = (sum / this.outputSamples.length) * 1000;
+                    this.outputLatency = sum / this.outputSamples.length;
                 }
                 const inputLatency = this.getInputLatency(ctx, outputLatency);
                 if (Number.isFinite(inputLatency) && inputLatency > 0) {
-                    this.inputLatency = inputLatency * 1000;
+                    this.inputLatency = inputLatency * 1e6;
                 }
             }
             this.updateDisplay();
@@ -115,21 +126,24 @@ class LatencyMonitorPlugin extends PluginBase {
     updateDisplay() {
         if (this.displayElements.input) {
             if (this.inputLatency != null) {
-                this.displayElements.input.textContent = `${this.inputLatency.toFixed(2)} ms`;
+                const ms = this.inputLatency / 1000;
+                this.displayElements.input.textContent = `${ms.toFixed(2)} ms`;
             } else {
                 this.displayElements.input.textContent = 'N/A';
             }
         }
         if (this.displayElements.processing) {
             if (this.processingLatency != null) {
-                this.displayElements.processing.textContent = `${this.processingLatency.toFixed(2)} ms`;
+                const ms = this.processingLatency / 1000;
+                this.displayElements.processing.textContent = `${ms.toFixed(2)} ms`;
             } else {
                 this.displayElements.processing.textContent = 'N/A';
             }
         }
         if (this.displayElements.output) {
             if (this.outputLatency != null) {
-                this.displayElements.output.textContent = `${this.outputLatency.toFixed(2)} ms`;
+                const ms = this.outputLatency / 1000;
+                this.displayElements.output.textContent = `${ms.toFixed(2)} ms`;
             } else {
                 this.displayElements.output.textContent = 'N/A';
             }
