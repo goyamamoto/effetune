@@ -186,7 +186,7 @@ Remember: These tools are meant to enhance your enjoyment of music by adding a v
 
 ## Latency Monitor
 
-Shows audio input, processing, and output latency. Input and output values are read from browser APIs when available. Output latency relies on `AudioContext.getOutputTimestamp` or the `outputLatency` property and also measures the extra delay introduced when using a `MediaStreamDestination` with an `<audio>` element. Processing latency is sampled by the audio engine every 100&nbsp;ms and displayed as a moving average. Values refresh once per second.
+Shows audio input, processing, and output latency. Input and output values are read from browser APIs when available. Output latency relies on `AudioContext.getOutputTimestamp` or the `outputLatency` property and also measures the extra delay introduced when using a `MediaStreamDestination` with an `<audio>` element. Processing latency is sampled by the audio engine every 100&nbsp;ms and displayed as a moving average. Values refresh once per second. Latency numbers keep the last successful measurement, and "N/A" is shown until one is available.
 
 ### What It Shows
 - **Input Latency**: Time from the audio source to the processing stage

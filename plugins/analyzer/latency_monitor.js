@@ -1,9 +1,9 @@
 class LatencyMonitorPlugin extends PluginBase {
     constructor() {
         super('Latency Monitor', 'Monitors audio latency');
-        this.inputLatency = 0;
-        this.processingLatency = 0;
-        this.outputLatency = 0;
+        this.inputLatency = null;
+        this.processingLatency = null;
+        this.outputLatency = null;
         this.displayIntervalId = null;
         this.processingSamples = [];
         this.maxProcessingSamples = 10; // 1 second of 100ms samples
@@ -14,7 +14,7 @@ class LatencyMonitorPlugin extends PluginBase {
 
     // Retrieve output latency using platform information when possible
     getOutputLatency(ctx, audioElement) {
-        let latency = 0;
+        let latency = NaN;
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
             if (ts && ts.performanceTime !== undefined) {
@@ -24,13 +24,13 @@ class LatencyMonitorPlugin extends PluginBase {
                 }
             }
         }
-        if (latency === 0 && typeof ctx.outputLatency === 'number') {
+        if (isNaN(latency) && typeof ctx.outputLatency === 'number' && ctx.outputLatency > 0) {
             latency = ctx.outputLatency; // seconds
         }
         if (audioElement && typeof audioElement.currentTime === 'number') {
             const elementLag = audioElement.currentTime - ctx.currentTime;
             if (!isNaN(elementLag) && elementLag > 0) {
-                latency += elementLag;
+                latency = (isNaN(latency) ? 0 : latency) + elementLag;
             }
         }
         return latency;
@@ -38,18 +38,21 @@ class LatencyMonitorPlugin extends PluginBase {
 
     // Retrieve input latency if provided, otherwise estimate using base latency
     getInputLatency(ctx, outputLatency) {
-        if (typeof ctx.inputLatency === 'number') {
+        if (typeof ctx.inputLatency === 'number' && ctx.inputLatency > 0) {
             return ctx.inputLatency; // seconds
         }
         const track = window.audioManager?.ioManager?.stream?.getAudioTracks?.()[0];
         if (track && track.getSettings) {
             const settings = track.getSettings();
-            if (typeof settings.latency === 'number') {
+            if (typeof settings.latency === 'number' && settings.latency > 0) {
                 return settings.latency; // seconds
             }
         }
-        const baseLat = ctx.baseLatency || 0;
-        return Math.max(0, baseLat - outputLatency);
+        const baseLat = ctx.baseLatency;
+        if (typeof baseLat === 'number' && baseLat > 0 && baseLat > outputLatency) {
+            return baseLat - outputLatency;
+        }
+        return NaN;
     }
 
     startMonitoring() {
@@ -78,9 +81,13 @@ class LatencyMonitorPlugin extends PluginBase {
             const audioEl = window.audioManager?.ioManager?.audioElement;
             if (ctx) {
                 const outputLatency = this.getOutputLatency(ctx, audioEl);
+                if (Number.isFinite(outputLatency) && outputLatency > 0) {
+                    this.outputLatency = outputLatency * 1000;
+                }
                 const inputLatency = this.getInputLatency(ctx, outputLatency);
-                this.inputLatency = inputLatency * 1000;
-                this.outputLatency = outputLatency * 1000;
+                if (Number.isFinite(inputLatency) && inputLatency > 0) {
+                    this.inputLatency = inputLatency * 1000;
+                }
             }
             this.updateDisplay();
         }, 1000);
@@ -100,13 +107,25 @@ class LatencyMonitorPlugin extends PluginBase {
 
     updateDisplay() {
         if (this.displayElements.input) {
-            this.displayElements.input.textContent = `${this.inputLatency.toFixed(2)} ms`;
+            if (this.inputLatency != null) {
+                this.displayElements.input.textContent = `${this.inputLatency.toFixed(2)} ms`;
+            } else {
+                this.displayElements.input.textContent = 'N/A';
+            }
         }
         if (this.displayElements.processing) {
-            this.displayElements.processing.textContent = `${this.processingLatency.toFixed(2)} ms`;
+            if (this.processingLatency != null) {
+                this.displayElements.processing.textContent = `${this.processingLatency.toFixed(2)} ms`;
+            } else {
+                this.displayElements.processing.textContent = 'N/A';
+            }
         }
         if (this.displayElements.output) {
-            this.displayElements.output.textContent = `${this.outputLatency.toFixed(2)} ms`;
+            if (this.outputLatency != null) {
+                this.displayElements.output.textContent = `${this.outputLatency.toFixed(2)} ms`;
+            } else {
+                this.displayElements.output.textContent = 'N/A';
+            }
         }
     }
 
