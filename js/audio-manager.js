@@ -110,6 +110,10 @@ export class AudioManager {
                             isSleepMode: data.isSleepMode,
                             sampleRate: this.audioContext.sampleRate
                         });
+                    } else if (data.type === 'processingLatency') {
+                        this.dispatchEvent('processingLatency', {
+                            processingTime: data.processingTime
+                        });
                     }
                 };
             }
