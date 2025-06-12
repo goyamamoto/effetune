@@ -13,18 +13,27 @@ class LatencyMonitorPlugin extends PluginBase {
     }
 
     // Retrieve output latency using platform information when possible
-    getOutputLatency(ctx) {
+    getOutputLatency(ctx, audioElement) {
+        let latency = 0;
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
             if (ts && ts.performanceTime !== undefined) {
                 const diff = ts.performanceTime - performance.now();
-                return diff > 0 ? diff / 1000 : 0; // seconds
+                if (diff > 0) {
+                    latency = diff / 1000; // seconds
+                }
             }
         }
-        if (typeof ctx.outputLatency === 'number') {
-            return ctx.outputLatency; // seconds
+        if (latency === 0 && typeof ctx.outputLatency === 'number') {
+            latency = ctx.outputLatency; // seconds
         }
-        return 0;
+        if (audioElement && typeof audioElement.currentTime === 'number') {
+            const elementLag = audioElement.currentTime - ctx.currentTime;
+            if (!isNaN(elementLag) && elementLag > 0) {
+                latency += elementLag;
+            }
+        }
+        return latency;
     }
 
     // Retrieve input latency if provided, otherwise estimate using base latency
@@ -66,8 +75,9 @@ class LatencyMonitorPlugin extends PluginBase {
         this.displayIntervalId = setInterval(() => {
             attachListener();
             const ctx = window.audioContext;
+            const audioEl = window.audioManager?.ioManager?.audioElement;
             if (ctx) {
-                const outputLatency = this.getOutputLatency(ctx);
+                const outputLatency = this.getOutputLatency(ctx, audioEl);
                 const inputLatency = this.getInputLatency(ctx, outputLatency);
                 this.inputLatency = inputLatency * 1000;
                 this.outputLatency = outputLatency * 1000;
