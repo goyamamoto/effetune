@@ -11,30 +11,31 @@ class LatencyMonitorPlugin extends PluginBase {
         this.displayElements = {};
     }
 
-    // Retrieve output latency from the AudioContext or estimate if unavailable
+    // Retrieve output latency using platform information when possible
     getOutputLatency(ctx) {
-        let outputLatency = 0;
         if (typeof ctx.getOutputTimestamp === 'function') {
             const ts = ctx.getOutputTimestamp();
-            if (ts && ts.contextTime !== undefined) {
-                outputLatency = Math.max(0, ts.contextTime - ctx.currentTime);
+            if (ts && ts.performanceTime !== undefined) {
+                const diff = ts.performanceTime - performance.now();
+                return diff > 0 ? diff / 1000 : 0; // seconds
             }
-        } else if (ctx.outputLatency) {
-            outputLatency = ctx.outputLatency;
         }
-        return outputLatency;
+        if (typeof ctx.outputLatency === 'number') {
+            return ctx.outputLatency; // seconds
+        }
+        return 0;
     }
 
     // Retrieve input latency if provided, otherwise estimate using base latency
     getInputLatency(ctx, outputLatency) {
-        if (ctx.inputLatency !== undefined) {
-            return ctx.inputLatency;
+        if (typeof ctx.inputLatency === 'number') {
+            return ctx.inputLatency; // seconds
         }
         const track = window.audioManager?.ioManager?.stream?.getAudioTracks?.()[0];
         if (track && track.getSettings) {
             const settings = track.getSettings();
-            if (settings.latency !== undefined) {
-                return settings.latency;
+            if (typeof settings.latency === 'number') {
+                return settings.latency; // seconds
             }
         }
         const baseLat = ctx.baseLatency || 0;
