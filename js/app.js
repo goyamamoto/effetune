@@ -622,9 +622,8 @@ class App {
 
         const found = devices.some(d => d.kind === 'audiooutput' && d.deviceId === prefs.outputDeviceId);
         const currentSink = this.audioManager.ioManager.audioElement?.sinkId;
-        const outputChannels = prefs.outputChannels || 2;
 
-        if (outputChannels > 2) {
+        if (typeof currentSink === 'undefined') {
             if (found) {
                 await this.audioManager.reset(prefs);
             }
