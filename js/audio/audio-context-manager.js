@@ -64,7 +64,9 @@ export class AudioContextManager {
                     }
                     
                     // Add latencyHint from preferences if available
-                    if (preferences && preferences.latencyHint) {
+                    if (preferences && preferences.forceInteractiveHint) {
+                        audioContextOptions.latencyHint = 'interactive';
+                    } else if (preferences && preferences.latencyHint) {
                         audioContextOptions.latencyHint = preferences.latencyHint;
                     } else {
                         // Default to interactive if not specified
@@ -182,11 +184,19 @@ export class AudioContextManager {
                 throw new Error('AudioWorklet is not supported in this browser. Please use a modern browser.');
             }
             
+            // Determine low latency mode from preferences
+            let preferences = window.audioPreferences;
+            if (!preferences && window.electronAPI && window.electronIntegration) {
+                preferences = await window.electronIntegration.loadAudioPreferences();
+            }
+            const lowLatency = preferences?.lowLatencyOutput || false;
+
             // Create worklet node
             this.workletNode = new AudioWorkletNode(this.audioContext, 'plugin-processor', {
                 outputChannelCount: [this.audioContext.destination.channelCount],
                 processorOptions: {
-                    initialOutputChannelCount: this.audioContext.destination.channelCount
+                    initialOutputChannelCount: this.audioContext.destination.channelCount,
+                    lowLatencyMode: lowLatency
                 },
                 channelCountMode: 'explicit',
                 channelInterpretation: 'discrete'
@@ -201,6 +211,12 @@ export class AudioContextManager {
                 });
                 this._pendingAudioConfig = null;
             }
+
+            // Inform processor about low latency mode
+            this.workletNode.port.postMessage({
+                type: 'setLowLatencyMode',
+                enabled: lowLatency
+            });
             
             // We'll set up the message handler in the AudioManager class
             // to ensure proper event dispatching

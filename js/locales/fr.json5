@@ -146,6 +146,7 @@
   "dialog.audioConfig.latency.high": "Élevée (Plus stable)",
   "dialog.audioConfig.useInputWithPlayer": "Entrée audio même lors de l'utilisation du lecteur",
   "dialog.audioConfig.lowLatencyOutput": "Sortie à faible latence (directe)",
+  "dialog.audioConfig.forceInteractiveHint": "Forcer l'indice de latence interactive",
   "dialog.audioConfig.cancel": "Annuler",
   "dialog.audioConfig.apply": "Appliquer",
   "dialog.audioConfig.updatedTitle": "Configuration audio mise à jour",
