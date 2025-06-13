@@ -189,6 +189,10 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
             <input type="checkbox" id="low-latency-output" ${audioPreferences?.lowLatencyOutput ? 'checked' : ''}>
             <label for="low-latency-output">${t('dialog.audioConfig.lowLatencyOutput')}</label>
           </div>
+          <div class="checkbox-container">
+            <input type="checkbox" id="force-interactive-hint" ${audioPreferences?.forceInteractiveHint ? 'checked' : ''}>
+            <label for="force-interactive-hint">${t('dialog.audioConfig.forceInteractiveHint')}</label>
+          </div>
         </div>
         <div class="device-section">
           <label for="sample-rate">${t('dialog.audioConfig.sampleRate')}</label>
@@ -321,6 +325,7 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
       const useInputWithPlayerCheckbox = document.getElementById('use-input-with-player');
       const outputChannelsSelect = document.getElementById('output-channels');
       const lowLatencyOutputCheckbox = document.getElementById('low-latency-output');
+      const forceInteractiveHintCheckbox = document.getElementById('force-interactive-hint');
       const latencySelect = document.getElementById('latency');
       
       const inputDevice = inputDevices.find(d => d.deviceId === inputDeviceSelect.value);
@@ -329,6 +334,7 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
       const useInputWithPlayer = useInputWithPlayerCheckbox.checked;
       const outputChannels = parseInt(outputChannelsSelect.value, 10);
       const lowLatencyOutput = lowLatencyOutputCheckbox.checked;
+      const forceInteractiveHint = forceInteractiveHintCheckbox.checked;
       const selectedLatency = latencySelect.value;
       
       // Save preferences
@@ -340,6 +346,7 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
         sampleRate: selectedSampleRate,
         useInputWithPlayer: useInputWithPlayer,
         lowLatencyOutput: lowLatencyOutput,
+        forceInteractiveHint: forceInteractiveHint,
         outputChannels: outputChannels,
         latencyHint: selectedLatency
       };
