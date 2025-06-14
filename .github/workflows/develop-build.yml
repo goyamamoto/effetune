@@ -1,8 +1,8 @@
-name: Stable Build and Release
+name: Develop Build and Release
 
 on:
   push:
-    branches: [ stable ]
+    branches: [ develop ]
 
 permissions:
   contents: write               # for tag & release
