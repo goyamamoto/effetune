@@ -2,74 +2,63 @@ name: Stable Build and Release
 
 on:
   push:
-    branches:
-      - stable
+    branches: [ stable ]
 
 permissions:
-  contents: write   # needed for tag / release creation
+  contents: write               # for tag & release
 
-# ─────────────────────────────────────────────
-# 1) Prepare: bump version, commit, tag, push
-# ─────────────────────────────────────────────
+# ──────────────────────────────
+# 1) Prepare: add “-y-stable”, tag, push
+# ──────────────────────────────
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.set_version.outputs.new_version }}
+      new_version: ${{ steps.bump.outputs.new_version }}
+
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
 
       - run: npm ci
 
-      - name: Add “-y-stable” suffix, commit, tag
-        id: set_version
+      - name: Bump version and tag
+        id: bump
         shell: bash
         run: |
-          version=$(node -p "require('./package.json').version")
-          if [[ "$version" != *-y-stable ]]; then
-            new_version="${version}-y-stable"
-            jq ".version = \"${new_version}\"" package.json > tmp.json && mv tmp.json package.json
+          ver=$(node -p "require('./package.json').version")
+          [[ "$ver" == *-y-stable ]] && new="$ver" || new="${ver}-y-stable"
+          echo "new_version=$new" >> "$GITHUB_OUTPUT"
 
-            git config user.name  "github-actions"
-            git config user.email "github-actions@github.com"
-            git commit -am "Bump version to ${new_version}"
-            git tag "v${new_version}"
-            git push origin HEAD:stable --follow-tags
-          else
-            new_version="$version"
-          fi
-          echo "new_version=${new_version}" >> "$GITHUB_OUTPUT"
+          jq ".version=\"${new}\"" package.json > pkg.tmp && mv pkg.tmp package.json
+
+          git config user.name  "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -am "Bump version to $new" || echo "nothing to commit"
+          git tag "v$new"
+          git push origin HEAD:stable --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ─────────────────────────────────────────────
-  # 2) Build matrix runs after prepare is done
-  # ─────────────────────────────────────────────
+  # ──────────────────────────────
+  # 2) Matrix build (native target per OS)
+  # ──────────────────────────────
   build:
-    name: Build ${{ matrix.os }}
     needs: prepare
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
 
       - run: npm ci
-        env:
-          NODE_ENV: development
-
-      - name: Build Electron app
-        run: npm run build
+      - run: npm run build          # uses native default target
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,20 +72,19 @@ jobs:
             dist/**/*.dmg
             dist/**/*.AppImage
 
-  # ─────────────────────────────────────────────
-  # 3) Release (only if all builds succeed)
-  # ─────────────────────────────────────────────
+  # ──────────────────────────────
+  # 3) Draft release
+  # ──────────────────────────────
   release:
-    name: Draft GitHub Release
     needs: [prepare, build]
-    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
+    if: needs.build.result == 'success'
+
     steps:
       - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+        with: { path: artifacts }
 
-      - name: Create GitHub Release (draft)
+      - name: Create draft GitHub release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ needs.prepare.outputs.new_version }}
