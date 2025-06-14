@@ -6,20 +6,56 @@ on:
       - stable
 
 permissions:
-  contents: write  # Required for tagging and release creation
+  contents: write   # needed for tag / release creation
 
+# ─────────────────────────────────────────────
+# 1) Prepare: bump version, commit, tag, push
+# ─────────────────────────────────────────────
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.set_version.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Add “-y-stable” suffix, commit, tag
+        id: set_version
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [[ "$version" != *-y-stable ]]; then
+            new_version="${version}-y-stable"
+            jq ".version = \"${new_version}\"" package.json > tmp.json && mv tmp.json package.json
+
+            git config user.name  "github-actions"
+            git config user.email "github-actions@github.com"
+            git commit -am "Bump version to ${new_version}"
+            git tag "v${new_version}"
+            git push origin HEAD:stable --follow-tags
+          else
+            new_version="$version"
+          fi
+          echo "new_version=${new_version}" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────
+  # 2) Build matrix runs after prepare is done
+  # ─────────────────────────────────────────────
   build:
     name: Build ${{ matrix.os }}
+    needs: prepare
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-
-    outputs:
-      new_version: ${{ steps.set_version_windows.outputs.new_version || steps.set_version_unix.outputs.new_version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,47 +68,13 @@ jobs:
         env:
           NODE_ENV: development
 
-      # Windows: Add "-y-stable" suffix and create git tag
-      - name: Set version suffix and tag (Windows only)
-        if: matrix.os == 'windows-latest'
-        id: set_version_windows
-        shell: pwsh
-        run: |
-          $version = node -p "require('./package.json').version"
-          if ($version -notlike '*-y-stable') {
-            $new = "$version-y-stable"
-          } else {
-            $new = $version
-          }
-          echo "new_version=$new" >> $env:GITHUB_OUTPUT
-
-          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
-          $pkg.version = $new
-          $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
-
-          git config user.name  "github-actions"
-          git config user.email "github-actions@github.com"
-          git commit -am "Bump version to $new" || echo "nothing to commit"
-          git tag "v$new"
-          git push origin HEAD:stable --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Non-Windows: Read version without modifying or tagging
-      - name: Read version (non-Windows)
-        if: matrix.os != 'windows-latest'
-        id: set_version_unix
-        run: echo "new_version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
-
-      # Build the Electron app
-      - name: Build Electron App
+      - name: Build Electron app
         run: npm run build
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload artifacts by platform
-      - name: Upload build artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-artifacts
@@ -81,32 +83,24 @@ jobs:
             dist/**/*.dmg
             dist/**/*.AppImage
 
+  # ─────────────────────────────────────────────
+  # 3) Release (only if all builds succeed)
+  # ─────────────────────────────────────────────
   release:
-    name: Create Draft Release
-    if: always()
+    name: Draft GitHub Release
+    needs: [prepare, build]
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
-    needs: build
-
     steps:
-      - name: Fail if build failed
-        if: needs.build.result != 'success'
-        run: |
-          echo "Build failed on one or more platforms." >&2
-          exit 1
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
       - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ needs.build.outputs.new_version }}
+          tag_name: v${{ needs.prepare.outputs.new_version }}
           draft: true
-          files: |
-            artifacts/**/*.exe
-            artifacts/**/*.dmg
-            artifacts/**/*.AppImage
+          files: artifacts/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
