@@ -6,11 +6,21 @@ on:
       - stable
 
 permissions:
-  contents: write
+  contents: write  # Required for tagging and release creation
 
 jobs:
-  stable-build:
-    runs-on: windows-latest
+
+  # ─────────────────────────────────────────────
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    outputs:
+      new_version: ${{ steps.set_version.outputs.new_version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -20,60 +30,83 @@ jobs:
           node-version: 20
 
       - run: npm ci
+        env:
+          NODE_ENV: development
 
-      - name: Append "-y-stable" to version (Unix)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          version=$(node -p "require('./package.json').version")
-          if [[ "$version" != *-y-stable ]]; then
-            new_version="${version}-y-stable"
-          else
-            new_version="$version"
-          fi
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
-          sudo apt-get update && sudo apt-get install -y jq
-          jq ".version = \"$new_version\"" package.json > tmp.json && mv tmp.json package.json
-
-      - name: Append "-y-stable" to version (Windows)
-        if: runner.os == 'Windows'
-        id: versioning
+      # Only run version tagging on Windows
+      - name: Set version suffix (-y-stable) & commit (Windows only)
+        id: set_version
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          $version = node -p "require('./package.json').version"
-          if ($version -notlike "*-y-stable") {
-            $newVersion = "$version-y-stable"
+          $version     = node -p "require('./package.json').version"
+          if ($version -notlike '*-y-stable') {
+            $new = "$version-y-stable"
           } else {
-            $newVersion = $version
+            $new = $version
           }
-          echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
+          echo "new_version=$new" >> $env:GITHUB_OUTPUT
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
-          $pkg.version = $newVersion
+          $pkg.version = $new
           $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
 
+          git config user.name  "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -am "Bump version to $new" || echo "nothing to commit"
+          git tag "v$new"
+          git push origin HEAD:stable --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pass-through version output for non-Windows platforms
+      - name: Pass-through version (non-Windows)
+        id: set_version
+        if: matrix.os != 'windows-latest'
+        run: echo "new_version=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+
+      # Electron build
       - name: Build Electron App
-        run: |
-          npm run clean
-          npm run build
+        run: npm run build
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Git Tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git commit -am "Tag release ${{ steps.versioning.outputs.new_version }}" || echo "No changes"
-          git tag "v${{ steps.versioning.outputs.new_version }}"
-          git push origin stable --follow-tags
+      # Upload artifacts per OS
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-artifacts
+          path: |
+            dist/**/*.exe
+            dist/**/*.dmg
+            dist/**/*.AppImage
 
-      - name: Create GitHub Release
+  # ─────────────────────────────────────────────
+  release:
+    if: always()  # Proceed regardless of previous build results
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Ensure build success
+        if: needs.build.result != 'success'
+        run: |
+          echo "Build failed on some platforms." >&2
+          exit 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.versioning.outputs.new_version }}
+          tag_name: v${{ needs.build.outputs.new_version }}
+          draft: true
           files: |
-            dist/**/*.dmg
-            dist/**/*.exe
-            dist/**/*.AppImage
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
