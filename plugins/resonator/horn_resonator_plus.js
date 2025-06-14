@@ -127,9 +127,10 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4; // Heuristic cutoff
                 const f_norm = Math.min(fc_mouth, sr * 0.45) / sr;
                 const pole = 0.99 * Math.exp(-TWO_PI * f_norm);
-                context.rm_b0 = -Math.pow(1 - pole, 2);
+                // context.rm_b0 = -Math.pow(1 - pole, 2);
                 context.rm_a1 = -2 * pole;
                 context.rm_a2 = pole * pole;
+                context.rm_b0 = -1 - context.rm_a1 - context.rm_a2;
 
                 // Allocate or resize state buffers for mouth reflection filter
                 if (!context.rm_y1_states || context.rm_y1_states.length !== chs) {
