@@ -26,7 +26,11 @@ jobs:
         shell: bash
         run: |
           version=$(node -p "require('./package.json').version")
-          new_version="${version}-y-stable"
+          if [[ "$version" != *-y-stable ]]; then
+            new_version="${version}-y-stable"
+          else
+            new_version="$version"
+          fi
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
           sudo apt-get update && sudo apt-get install -y jq
           jq ".version = \"$new_version\"" package.json > tmp.json && mv tmp.json package.json
@@ -37,7 +41,11 @@ jobs:
         shell: pwsh
         run: |
           $version = node -p "require('./package.json').version"
-          $newVersion = "$version-y-stable"
+          if ($version -notlike "*-y-stable") {
+            $newVersion = "$version-y-stable"
+          } else {
+            $newVersion = $version
+          }
           echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
           $pkg.version = $newVersion
