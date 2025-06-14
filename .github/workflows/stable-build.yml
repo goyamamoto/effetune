@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           ver=$(node -p "require('./package.json').version")
-          [[ "$ver" == *-y-stable ]] && new="$ver" || new="${ver}-y-stable"
+          [[ "$ver" == *+y-stable ]] && new="$ver" || new="${ver}+y-stable"
           echo "new_version=$new" >> "$GITHUB_OUTPUT"
 
           jq ".version=\"${new}\"" package.json > pkg.tmp && mv pkg.tmp package.json
