@@ -23,7 +23,6 @@ jobs:
 
       - name: Append "-y-stable" to version (Unix)
         if: runner.os != 'Windows'
-        id: versioning
         shell: bash
         run: |
           version=$(node -p "require('./package.json').version")
