@@ -30,10 +30,11 @@ jobs:
           sudo apt-get update && sudo apt-get install -y jq
           jq ".version = \"$new_version\"" package.json > tmp.json && mv tmp.json package.json
 
+
       - name: Build Electron App
         run: |
           npm run clean
-          npx electron-builder --publish never
+          npm run build
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
