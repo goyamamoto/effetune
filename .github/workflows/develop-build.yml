@@ -1,0 +1,108 @@
+name: Stable Build and Release
+
+on:
+  push:
+    branches: [ stable ]
+
+permissions:
+  contents: write               # for tag & release
+
+# ──────────────────────────────
+# 1) Prepare: add “-y-stable”, tag, push
+# ──────────────────────────────
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - run: npm ci
+
+      - name: Bump version and tag
+        id: bump
+        shell: bash
+        run: |
+          ver=$(node -p "require('./package.json').version")
+          [[ "$ver" == *-y-dev ]] && new="$ver" || new="${ver}-y-dev"
+          echo "new_version=$new" >> "$GITHUB_OUTPUT"
+
+          jq ".version=\"${new}\"" package.json > pkg.tmp && mv pkg.tmp package.json
+
+          git config user.name  "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -am "Bump version to $new" || echo "nothing to commit"
+          git tag "v$new"
+          git push origin HEAD:stable --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ──────────────────────────────
+  # 2) Matrix build (native target per OS)
+  # ──────────────────────────────
+  build:
+    needs: prepare
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - run: npm ci
+      - run: |
+          npm run clean
+          npx electron-builder --publish never
+        env:
+          USE_HARD_LINKS: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows Artifacts
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: dist/**/*.exe
+
+      - name: Upload macOS artifacts
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: dist/**/*.dmg
+
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: dist/**/*.AppImage
+
+  # ──────────────────────────────
+  # 3) Draft release
+  # ──────────────────────────────
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    if: needs.build.result == 'success'
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+
+      - name: Create draft GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.prepare.outputs.new_version }}
+          draft: true
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
