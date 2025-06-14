@@ -58,19 +58,33 @@ jobs:
         with: { node-version: 20 }
 
       - run: npm ci
-      - run: npm run build          # uses native default target
+      - run: |
+          npm run clean
+          npx electron-builder --publish never
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: Upload Windows Artifacts
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-artifacts
-          path: |
-            dist/**/*.exe
-            dist/**/*.dmg
-            dist/**/*.AppImage
+          name: windows-artifacts
+          path: dist/**/*.exe
+
+      - name: Upload macOS artifacts
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: dist/**/*.dmg
+
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: dist/**/*.AppImage
 
   # ──────────────────────────────
   # 3) Draft release
