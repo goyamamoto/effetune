@@ -44,11 +44,11 @@ A plugin that simulates the resonance of a horn-loaded speaker using a digital w
 
 ## Horn Resonator Plus
 
-An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequency-dependent throat reflection for smoother, more realistic resonance.
+An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequency-dependent throat reflection for smoother resonance.
 
 ### Quick Start Guide
 
-Use the same controls as the classic Horn Resonator. Increase **Throat Reflection** to hear the new throat filter shape the tone.
+Use the same controls as the Horn Resonator.
 
 ## Modal Resonator
 
