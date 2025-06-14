@@ -21,8 +21,10 @@ jobs:
 
       - run: npm ci
 
-      - name: Append "-y-stable" to version
+      - name: Append "-y-stable" to version (Unix)
+        if: runner.os != 'Windows'
         id: versioning
+        shell: bash
         run: |
           version=$(node -p "require('./package.json').version")
           new_version="${version}-y-stable"
@@ -30,6 +32,17 @@ jobs:
           sudo apt-get update && sudo apt-get install -y jq
           jq ".version = \"$new_version\"" package.json > tmp.json && mv tmp.json package.json
 
+      - name: Append "-y-stable" to version (Windows)
+        if: runner.os == 'Windows'
+        id: versioning
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $newVersion = "$version-y-stable"
+          echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          $pkg.version = $newVersion
+          $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
 
       - name: Build Electron App
         run: |
