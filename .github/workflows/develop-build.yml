@@ -52,9 +52,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            target: win
           - os: macos-latest
-            target: mac
           - os: ubuntu-latest
             target: linux-x64
           - os: ubuntu-latest
