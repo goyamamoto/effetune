@@ -317,7 +317,6 @@ class PluginProcessor extends AudioWorkletProcessor {
 
         // --- 8. Bus Buffer Management ---
         const busBuffers = this.busBuffers; // Local reference
-        busBuffers.clear(); // Clear previous buffers
 
         // Determine which buses are actively used by enabled plugins
         const usedBuses = new Set([0]); // Main bus (0) is implicitly used for input/output
@@ -343,17 +342,28 @@ class PluginProcessor extends AudioWorkletProcessor {
             usedBuses.add(plugin.outputBus);
         }
 
+        // Remove buffers for buses that are no longer used
+        for (const index of Array.from(busBuffers.keys())) {
+            if (!usedBuses.has(index)) {
+                busBuffers.delete(index);
+            }
+        }
+
         // Set the main bus (0) buffer to our prepared combinedBuffer
         busBuffers.set(0, combinedBuffer);
 
-        // Allocate and zero-fill buffers for other used buses
+        // Allocate or reuse buffers for other used buses
         for (const busIndex of usedBuses) {
-            if (busIndex !== 0) {
-                // Create a new buffer for each auxiliary bus for this processing block
-                // Assuming auxiliary buses start empty each block unless specific plugins maintain state across blocks (which would need context)
-                const busBuffer = new Float32Array(totalSize);
-                // Float32Array is initialized to 0, no need for explicit fill(0)
+            if (busIndex === 0) continue;
+
+            let busBuffer = busBuffers.get(busIndex);
+            if (!busBuffer || busBuffer.length !== totalSize) {
+                // Allocate new buffer on first use or if size changed
+                busBuffer = new Float32Array(totalSize);
                 busBuffers.set(busIndex, busBuffer);
+            } else {
+                // Reuse existing buffer by zero-filling
+                busBuffer.fill(0);
             }
         }
 
