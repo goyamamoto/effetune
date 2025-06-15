@@ -107,6 +107,9 @@ jobs:
         with:
           tag_name: v${{ needs.prepare.outputs.new_version }}
           draft: true
-          files: artifacts/**/*
+          files: |
+            artifacts/windows-artifacts/*
+            artifacts/macos-artifacts/*
+            artifacts/linux-artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
