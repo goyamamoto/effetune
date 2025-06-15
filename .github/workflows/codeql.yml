@@ -2,7 +2,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ stable, develop ]
   pull_request:
     # The branches for which pull requests will be monitored.
     branches: [ main, master ]
