@@ -360,6 +360,13 @@ class PluginProcessor extends AudioWorkletProcessor {
             }
         }
 
+        // Remove buffers for buses no longer in use
+        for (const existing of [...busBuffers.keys()]) {
+            if (!usedBuses.has(existing)) {
+                busBuffers.delete(existing);
+            }
+        }
+
         // --- 9. Process Audio Through Plugins ---
         // Reset section state for the processing loop
         activeSectionEnabled = true;
