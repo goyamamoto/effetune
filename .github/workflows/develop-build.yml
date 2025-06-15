@@ -52,6 +52,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+            target: win
           - os: macos-latest
             target: mac
           - os: ubuntu-latest
@@ -73,9 +74,23 @@ jobs:
       - run: npm ci
 
       - name: Build Electron App
+        shell: bash
         run: |
           npm run clean
-          npx electron-builder --publish never
+          case "${{ matrix.target }}" in
+            win)
+              npx electron-builder --windows --publish never
+              ;;
+            mac)
+              npx electron-builder --mac --publish never
+              ;;
+            linux-x64)
+              npx electron-builder --linux --x64 --publish never
+              ;;
+            linux-arm64)
+              npx electron-builder --linux --arm64 --publish never
+              ;;
+          esac
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
