@@ -18,6 +18,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: stable
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
 
@@ -36,8 +39,9 @@ jobs:
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
           git commit -am "Bump version to $new" || echo "nothing to commit"
-          git tag "v$new"
-          git push origin HEAD:stable --follow-tags
+          git tag -f "v$new"
+          git push origin HEAD:stable
+          git push origin -f "v$new"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -106,6 +110,9 @@ jobs:
         with:
           tag_name: v${{ needs.prepare.outputs.new_version }}
           draft: true
-          files: artifacts/**/*
+          files: |
+            artifacts/windows-artifacts/*
+            artifacts/macos-artifacts/*
+            artifacts/linux-artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
