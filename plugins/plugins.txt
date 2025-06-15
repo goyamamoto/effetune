@@ -58,6 +58,7 @@ lofi/noise_blender: Noise Blender | Lo-Fi | NoiseBlenderPlugin
 lofi/simple_jitter: Simple Jitter | Lo-Fi | SimpleJitterPlugin
 modulation/doppler_distortion: Doppler Distortion | Modulation | DopplerDistortionPlugin
 modulation/pitch_shifter: Pitch Shifter | Modulation | PitchShifterPlugin
+modulation/hq_pitch_shifter: HQ Pitch Shifter | Modulation | HQPitchShifterPlugin
 modulation/tremolo: Tremolo | Modulation | TremoloPlugin
 modulation/wow_flutter: Wow Flutter | Modulation | WowFlutterPlugin
 others/oscillator: Oscillator | Others | OscillatorPlugin
