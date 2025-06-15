@@ -5,12 +5,12 @@ on:
     branches: [ develop ]
 
 permissions:
-  contents: write               # for tag & release
+  contents: write  # for tag & release
 
-# ──────────────────────────────
-# 1) Prepare: add “-y-dev”, tag, push
-# ──────────────────────────────
 jobs:
+  # ──────────────────────────────
+  # 1) Prepare: add “-y-dev”, tag, push
+  # ──────────────────────────────
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -19,7 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
 
       - run: npm ci
 
@@ -49,7 +50,15 @@ jobs:
     needs: prepare
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            target: win
+          - os: macos-latest
+            target: mac
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: ubuntu-latest
+            target: linux-arm64
 
     runs-on: ${{ matrix.os }}
 
@@ -59,36 +68,59 @@ jobs:
           ref: develop
           fetch-depth: 0
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
 
       - run: npm ci
-      - run: |
+
+      - name: Build Electron App
+        run: |
           npm run clean
-          npx electron-builder --publish never
+          case "${{ matrix.target }}" in
+            win)
+              npx electron-builder --windows --publish never
+              ;;
+            mac)
+              npx electron-builder --mac --publish never
+              ;;
+            linux-x64)
+              npx electron-builder --linux --x64 --publish never
+              ;;
+            linux-arm64)
+              npx electron-builder --linux --arm64 --publish never
+              ;;
+          esac
         env:
           USE_HARD_LINKS: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Windows Artifacts
-        if: matrix.os == 'windows-latest'
+        if: matrix.target == 'win'
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
           path: dist/**/*.exe
 
       - name: Upload macOS artifacts
-        if: matrix.os == 'macos-latest'
+        if: matrix.target == 'mac'
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifacts
           path: dist/**/*.dmg
 
-      - name: Upload Linux artifacts
-        if: matrix.os == 'ubuntu-latest'
+      - name: Upload Linux x64 artifacts
+        if: matrix.target == 'linux-x64'
         uses: actions/upload-artifact@v4
         with:
           name: linux-artifacts
-          path: dist/**/*.AppImage
+          path: dist/**/*x64*.AppImage
+
+      - name: Upload Linux ARM64 artifacts
+        if: matrix.target == 'linux-arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64-artifacts
+          path: dist/**/*arm64*.AppImage
 
   # ──────────────────────────────
   # 3) Draft release
@@ -100,7 +132,8 @@ jobs:
 
     steps:
       - uses: actions/download-artifact@v4
-        with: { path: artifacts }
+        with:
+          path: artifacts
 
       - name: Create draft GitHub release
         uses: softprops/action-gh-release@v1
@@ -111,5 +144,6 @@ jobs:
             artifacts/windows-artifacts/*
             artifacts/macos-artifacts/*
             artifacts/linux-artifacts/*
+            artifacts/linux-arm64-artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
