@@ -6,6 +6,7 @@ A collection of plugins that add movement and variation to your music through mo
 
 - [Doppler Distortion](#doppler-distortion) - Simulates the natural, dynamic shifts in sound from subtle speaker cone movement.
 - [Pitch Shifter](#pitch-shifter) - Changes the pitch of your music without affecting playback speed
+- [HQ Pitch Shifter](#hq-pitch-shifter) - Higher-quality pitch shifting using a phase vocoder
 - [Tremolo](#tremolo) - Creates rhythmic volume variations for a pulsing, dynamic sound
 - [Wow Flutter](#wow-flutter) - Recreates the gentle pitch variations of vinyl records and tape players
 
@@ -61,6 +62,16 @@ An effect that changes the pitch of your music without affecting its playback sp
   - Affects how smoothly the pitch-shifted segments blend together
   - Lower values may sound more immediate but potentially less smooth
   - Higher values create smoother transitions between segments, but may increase sound wavering and create an overlapping sensation
+
+## HQ Pitch Shifter
+
+A higher-quality pitch shifter that uses a phase vocoder algorithm for smoother results. It preserves timing while allowing for wider pitch ranges.
+
+### Parameters
+- **Pitch Shift** - Adjusts the pitch in semitones (-12 to +12)
+- **Fine Tune** - Fine adjustment in cents (-50 to +50)
+- **Window Size** - Analysis window in milliseconds (20 to 100ms)
+- **Oversample** - Processing oversampling factor (2 to 16)
 
 ## Tremolo
 
