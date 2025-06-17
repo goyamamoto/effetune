@@ -102,6 +102,9 @@ class PluginProcessor extends AudioWorkletProcessor {
                     this.lowLatencyMode = !!data.enabled;
                     this.MESSAGE_INTERVAL = this.lowLatencyMode ? 8 : 16;
                     break;
+                case 'clearPluginContext':
+                    this.pluginContexts.delete(data.id);
+                    break;
             }
         };
     }
