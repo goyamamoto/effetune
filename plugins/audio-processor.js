@@ -498,12 +498,17 @@ class PluginProcessor extends AudioWorkletProcessor {
             if (processMode === 'skip') continue; // Skip plugin if channel spec is invalid for current config
 
             // --- 9b. Prepare Buffers for Plugin Execution ---
-             const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
+            const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
 
             if (processMode === 'all') {
                 if (requiresCopy) {
-                    // Need to copy input to a temporary buffer if output is a different bus
-                    tempBuffer = new Float32Array(inputBuffer); // Full copy
+                    // Reuse or allocate a full multichannel temp buffer
+                    const size = totalSize;
+                    if (!pluginContext._tempAll || pluginContext._tempAll.length !== size) {
+                        pluginContext._tempAll = new Float32Array(size);
+                    }
+                    tempBuffer = pluginContext._tempAll;
+                    tempBuffer.set(inputBuffer); // Full copy
                     processingBuffer = tempBuffer;
                 } else {
                     // Process directly in the input/output buffer (which are the same)
@@ -511,21 +516,27 @@ class PluginProcessor extends AudioWorkletProcessor {
                 }
                 resultTargetBuffer = outputBuffer; // Result goes directly to the output bus buffer
             } else if (processMode === 'pair') {
-                // Always use a temporary stereo buffer for pair processing
+                // Use a persistent stereo buffer for pair processing
                 const stereoSize = blockSize * 2;
-                tempBuffer = new Float32Array(stereoSize);
+                if (!pluginContext._tempStereo || pluginContext._tempStereo.length !== stereoSize) {
+                    pluginContext._tempStereo = new Float32Array(stereoSize);
+                }
+                tempBuffer = pluginContext._tempStereo;
                 // Copy the selected pair from inputBuffer to the temporary stereo buffer efficiently
                 tempBuffer.set(inputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize), 0); // Ch 1
                 tempBuffer.set(inputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize), blockSize); // Ch 2
                 processingBuffer = tempBuffer; // Plugin processes this temp buffer
                 // Result will be written back from tempBuffer to the correct place in outputBuffer later
             } else if (processMode === 'single') {
-                // Always use a temporary mono buffer for single channel processing
-                tempBuffer = new Float32Array(blockSize);
+                // Use a persistent mono buffer for single channel processing
+                if (!pluginContext._tempMono || pluginContext._tempMono.length !== blockSize) {
+                    pluginContext._tempMono = new Float32Array(blockSize);
+                }
+                tempBuffer = pluginContext._tempMono;
                 // Copy the selected channel from inputBuffer to the temporary mono buffer
                 tempBuffer.set(inputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize));
                 processingBuffer = tempBuffer; // Plugin processes this temp buffer
-                 // Result will be written back from tempBuffer later
+                // Result will be written back from tempBuffer later
             }
 
             // --- 9c. Prepare Parameters for Plugin ---
