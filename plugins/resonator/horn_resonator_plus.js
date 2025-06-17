@@ -34,6 +34,7 @@ class HornResonatorPlusPlugin extends PluginBase {
             const SQRT2 = Math.SQRT2;
             const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
             const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
+            const MAX_SEGMENTS = 160; // Pre-allocate arrays to this length to reduce GC
 
             // If the plugin is disabled, bypass processing.
             if (!parameters.en) return data;
@@ -66,7 +67,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 // --- Horn Geometry Calculation ---
                 const dx = C / sr; // Spatial step size based on sample rate
                 const L  = context.ln / 100; // Horn length in meters
-                const N  = Math.max(1, Math.round(L / dx)); // Number of waveguide segments
+                let N  = Math.max(1, Math.round(L / dx)); // Number of waveguide segments
+                if (N > MAX_SEGMENTS) N = MAX_SEGMENTS;
                 context.N = N;
 
                 const curveExponent = Math.pow(10, context.cv / 100); // Curve parameter exponent
@@ -74,9 +76,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const mouthRadius = context.mo / 200;  // Mouth radius [m]
 
                 // Allocate or resize impedance and reflection coefficient arrays if N changed
-                if (!context.Z || context.Z.length !== N + 1) {
-                    context.Z = new Float32Array(N + 1); // Impedance at section boundaries
-                    context.R = new Float32Array(N);     // Reflection coefficients between sections
+                if (!context.Z) {
+                    context.Z = new Float32Array(MAX_SEGMENTS + 1);
+                    context.R = new Float32Array(MAX_SEGMENTS);
                 }
                 const Z = context.Z;
                 const R = context.R;
@@ -142,9 +144,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
 
                 // --- Waveguide delay line buffer initialization ---
-                if (!context.fwd || context.fwd.length !== chs || context.fwd[0]?.length !== N + 1) {
-                    context.fwd = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
-                    context.rev = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                if (!context.fwd || context.fwd.length !== chs || context.fwd[0]?.length !== MAX_SEGMENTS + 1) {
+                    context.fwd = Array.from({length: chs}, () => new Float32Array(MAX_SEGMENTS + 1).fill(0));
+                    context.rev = Array.from({length: chs}, () => new Float32Array(MAX_SEGMENTS + 1).fill(0));
                 } else {
                     for(let ch = 0; ch < chs; ++ch) { // Clear buffers
                         context.fwd[ch].fill(0);
@@ -152,9 +154,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                     }
                 }
                 // Temporary buffers for wave propagation calculation
-                if (!context.fw_temp || context.fw_temp.length !== N + 1) {
-                    context.fw_temp = new Float32Array(N + 1);
-                    context.rv_temp = new Float32Array(N + 1);
+                if (!context.fw_temp) {
+                    context.fw_temp = new Float32Array(MAX_SEGMENTS + 1);
+                    context.rv_temp = new Float32Array(MAX_SEGMENTS + 1);
                 }
 
                 /* ---- Crossover Filter (Linkwitz-Riley 4th order) Initialization ---- */
@@ -193,8 +195,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
 
                 // Initialize low-band delay buffer (delay = N samples)
-                if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length !== N) {
-                    context.lowDelay = Array.from({length: chs}, () => new Float32Array(N).fill(0));
+                if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length !== MAX_SEGMENTS) {
+                    context.lowDelay = Array.from({length: chs}, () => new Float32Array(MAX_SEGMENTS).fill(0));
                     context.lowDelayIdx = new Uint32Array(chs).fill(0); // Reset indices
                 } else {
                     for(let ch = 0; ch < chs; ++ch) { // Reset delay buffer
