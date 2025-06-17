@@ -68,15 +68,18 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const L  = context.ln / 100; // Horn length in meters
                 const N  = Math.max(1, Math.round(L / dx)); // Number of waveguide segments
                 context.N = N;
+                // Track the maximum required segment count so buffers can be reused
+                if (!context.maxN || context.maxN < N) context.maxN = N;
+                const capN = context.maxN;
 
                 const curveExponent = Math.pow(10, context.cv / 100); // Curve parameter exponent
                 const throatRadius = context.th / 200; // Throat radius [m]
                 const mouthRadius = context.mo / 200;  // Mouth radius [m]
 
-                // Allocate or resize impedance and reflection coefficient arrays if N changed
-                if (!context.Z || context.Z.length !== N + 1) {
-                    context.Z = new Float32Array(N + 1); // Impedance at section boundaries
-                    context.R = new Float32Array(N);     // Reflection coefficients between sections
+                // Allocate or expand impedance and reflection coefficient arrays
+                if (!context.Z || context.Z.length < capN + 1) {
+                    context.Z = new Float32Array(capN + 1); // Impedance at section boundaries
+                    context.R = new Float32Array(capN);     // Reflection coefficients between sections
                 }
                 const Z = context.Z;
                 const R = context.R;
@@ -142,9 +145,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
 
                 // --- Waveguide delay line buffer initialization ---
-                if (!context.fwd || context.fwd.length !== chs || context.fwd[0]?.length !== N + 1) {
-                    context.fwd = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
-                    context.rev = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                if (!context.fwd || context.fwd.length !== chs || context.fwd[0]?.length < capN + 1) {
+                    context.fwd = Array.from({length: chs}, () => new Float32Array(capN + 1).fill(0));
+                    context.rev = Array.from({length: chs}, () => new Float32Array(capN + 1).fill(0));
                 } else {
                     for(let ch = 0; ch < chs; ++ch) { // Clear buffers
                         context.fwd[ch].fill(0);
@@ -152,9 +155,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                     }
                 }
                 // Temporary buffers for wave propagation calculation
-                if (!context.fw_temp || context.fw_temp.length !== N + 1) {
-                    context.fw_temp = new Float32Array(N + 1);
-                    context.rv_temp = new Float32Array(N + 1);
+                if (!context.fw_temp || context.fw_temp.length < capN + 1) {
+                    context.fw_temp = new Float32Array(capN + 1);
+                    context.rv_temp = new Float32Array(capN + 1);
                 }
 
                 /* ---- Crossover Filter (Linkwitz-Riley 4th order) Initialization ---- */
@@ -193,8 +196,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
 
                 // Initialize low-band delay buffer (delay = N samples)
-                if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length !== N) {
-                    context.lowDelay = Array.from({length: chs}, () => new Float32Array(N).fill(0));
+                if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length < capN) {
+                    context.lowDelay = Array.from({length: chs}, () => new Float32Array(capN).fill(0));
                     context.lowDelayIdx = new Uint32Array(chs).fill(0); // Reset indices
                 } else {
                     for(let ch = 0; ch < chs; ++ch) { // Reset delay buffer
