@@ -176,19 +176,29 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const a2_c = (omega2 - k + 1.0) * invDen;
                 context.lrCoeffs = { b0_lp, b1_lp, b2_lp, b0_hp, b1_hp, b2_hp, a1_c, a2_c };
 
-                // Initialize crossover filter states
-                const createCrossoverStage = () => Array.from({length: chs}, () => ({x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET}));
-                if (!context.lrStates || !context.lrStates.low || context.lrStates.low[0].length !== chs) {
+                // Initialize crossover filter states using typed arrays to minimise GC
+                const createCrossoverStage = () => ({
+                    x1: new Float32Array(chs).fill(DC_OFFSET),
+                    x2: new Float32Array(chs).fill(-DC_OFFSET),
+                    y1: new Float32Array(chs).fill(DC_OFFSET),
+                    y2: new Float32Array(chs).fill(-DC_OFFSET)
+                });
+                if (!context.lrStates || !context.lrStates.low || context.lrStates.low[0].x1.length !== chs) {
                     context.lrStates = {
-                        low: [ createCrossoverStage(), createCrossoverStage() ], // 2 stages LP
+                        low: [ createCrossoverStage(), createCrossoverStage() ],  // 2 stages LP
                         high: [ createCrossoverStage(), createCrossoverStage() ] // 2 stages HP
                     };
                 } else {
-                    for (let stage = 0; stage < 2; ++stage) { // Reset states
-                        for (let ch = 0; ch < chs; ++ch) {
-                            context.lrStates.low[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
-                            context.lrStates.high[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
-                        }
+                    for (let stage = 0; stage < 2; ++stage) { // Reset states without reallocating
+                        context.lrStates.low[stage].x1.fill(DC_OFFSET);
+                        context.lrStates.low[stage].x2.fill(-DC_OFFSET);
+                        context.lrStates.low[stage].y1.fill(DC_OFFSET);
+                        context.lrStates.low[stage].y2.fill(-DC_OFFSET);
+
+                        context.lrStates.high[stage].x1.fill(DC_OFFSET);
+                        context.lrStates.high[stage].x2.fill(-DC_OFFSET);
+                        context.lrStates.high[stage].y1.fill(DC_OFFSET);
+                        context.lrStates.high[stage].y2.fill(-DC_OFFSET);
                     }
                 }
 
@@ -260,10 +270,28 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 let rt_y1 = rt_y1_states[ch];
 
-                const lpState1 = lpStages[0][ch]; // Crossover filter states
-                const lpState2 = lpStages[1][ch];
-                const hpState1 = hpStages[0][ch];
-                const hpState2 = hpStages[1][ch];
+                const lpStage1 = lpStages[0];
+                const lpStage2 = lpStages[1];
+                const hpStage1 = hpStages[0];
+                const hpStage2 = hpStages[1];
+
+                const lp1x1 = lpStage1.x1;
+                const lp1x2 = lpStage1.x2;
+                const lp1y1 = lpStage1.y1;
+                const lp1y2 = lpStage1.y2;
+                const lp2x1 = lpStage2.x1;
+                const lp2x2 = lpStage2.x2;
+                const lp2y1 = lpStage2.y1;
+                const lp2y2 = lpStage2.y2;
+
+                const hp1x1 = hpStage1.x1;
+                const hp1x2 = hpStage1.x2;
+                const hp1y1 = hpStage1.y1;
+                const hp1y2 = hpStage1.y2;
+                const hp2x1 = hpStage2.x1;
+                const hp2x2 = hpStage2.x2;
+                const hp2y1 = hpStage2.y1;
+                const hp2y2 = hpStage2.y2;
 
                 let currentLowDelayWriteIdx = lowDelayIdx[ch]; // Low-band delay state
                 const currentLowDelayLine = lowDelay[ch];
@@ -277,18 +305,18 @@ class HornResonatorPlusPlugin extends PluginBase {
                     let outputLow, outputHigh;
 
                     // Low-pass path - Stage 1 (DF-II Transposed)
-                    y1_lp = b0_lp * inputSample + b1_lp * lpState1.x1 + b2_lp * lpState1.x2 - a1_c * lpState1.y1 - a2_c * lpState1.y2;
-                    lpState1.x2 = lpState1.x1; lpState1.x1 = inputSample; lpState1.y2 = lpState1.y1; lpState1.y1 = y1_lp;
+                    y1_lp = b0_lp * inputSample + b1_lp * lp1x1[ch] + b2_lp * lp1x2[ch] - a1_c * lp1y1[ch] - a2_c * lp1y2[ch];
+                    lp1x2[ch] = lp1x1[ch]; lp1x1[ch] = inputSample; lp1y2[ch] = lp1y1[ch]; lp1y1[ch] = y1_lp;
                     // Low-pass path - Stage 2
-                    outputLow = b0_lp * y1_lp + b1_lp * lpState2.x1 + b2_lp * lpState2.x2 - a1_c * lpState2.y1 - a2_c * lpState2.y2;
-                    lpState2.x2 = lpState2.x1; lpState2.x1 = y1_lp; lpState2.y2 = lpState2.y1; lpState2.y1 = outputLow;
+                    outputLow = b0_lp * y1_lp + b1_lp * lp2x1[ch] + b2_lp * lp2x2[ch] - a1_c * lp2y1[ch] - a2_c * lp2y2[ch];
+                    lp2x2[ch] = lp2x1[ch]; lp2x1[ch] = y1_lp; lp2y2[ch] = lp2y1[ch]; lp2y1[ch] = outputLow;
 
                     // High-pass path - Stage 1
-                    y1_hp = b0_hp * inputSample + b1_hp * hpState1.x1 + b2_hp * hpState1.x2 - a1_c * hpState1.y1 - a2_c * hpState1.y2;
-                    hpState1.x2 = hpState1.x1; hpState1.x1 = inputSample; hpState1.y2 = hpState1.y1; hpState1.y1 = y1_hp;
+                    y1_hp = b0_hp * inputSample + b1_hp * hp1x1[ch] + b2_hp * hp1x2[ch] - a1_c * hp1y1[ch] - a2_c * hp1y2[ch];
+                    hp1x2[ch] = hp1x1[ch]; hp1x1[ch] = inputSample; hp1y2[ch] = hp1y1[ch]; hp1y1[ch] = y1_hp;
                     // High-pass path - Stage 2
-                    outputHigh = b0_hp * y1_hp + b1_hp * hpState2.x1 + b2_hp * hpState2.x2 - a1_c * hpState2.y1 - a2_c * hpState2.y2;
-                    hpState2.x2 = hpState2.x1; hpState2.x1 = y1_hp; hpState2.y2 = hpState2.y1; hpState2.y1 = outputHigh;
+                    outputHigh = b0_hp * y1_hp + b1_hp * hp2x1[ch] + b2_hp * hp2x2[ch] - a1_c * hp2y1[ch] - a2_c * hp2y2[ch];
+                    hp2x2[ch] = hp2x1[ch]; hp2x1[ch] = y1_hp; hp2y2[ch] = hp2y1[ch]; hp2y1[ch] = outputHigh;
 
                     // --- Propagate waves along the horn segments ---
                     // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
