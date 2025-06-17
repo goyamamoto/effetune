@@ -13,6 +13,10 @@ class PluginProcessor extends AudioWorkletProcessor {
         this.pluginContexts = new Map();
         this.masterBypass = false;
 
+        // Allocate buffers with a small amount of headroom to avoid frequent
+        // reallocations when sizes fluctuate slightly
+        this.BUFFER_HEADROOM = 1.1; // 10% headroom
+
         // Audio configuration
         this.outputChannelCount = options?.processorOptions?.initialOutputChannelCount ?? 2;
         this.lowLatencyMode = options?.processorOptions?.lowLatencyMode ?? false;
@@ -292,14 +296,15 @@ class PluginProcessor extends AudioWorkletProcessor {
 
         // --- 7. Prepare Combined Multichannel Buffer ---
         const totalSize = blockSize * outputChannelCount;
-        // Reuse or create the combined buffer
-        if (!this.combinedBuffer || this.combinedBuffer.length !== totalSize) {
-            this.combinedBuffer = new Float32Array(totalSize);
+        // Reuse or create the combined buffer with some headroom
+        if (!this.combinedBuffer || this.combinedBuffer.length < totalSize) {
+            const allocSize = Math.ceil(totalSize * this.BUFFER_HEADROOM);
+            this.combinedBuffer = new Float32Array(allocSize);
             // Float32Array is initialized to 0, so no explicit zeroing needed here
-            console.log(`Reallocated combinedBuffer: ${outputChannelCount} channels, size ${totalSize}`);
+            console.log(`Reallocated combinedBuffer: ${outputChannelCount} channels, size ${allocSize}`);
         }
-        // Use a local variable for potentially faster access within the function scope
-        const combinedBuffer = this.combinedBuffer;
+        // Use a slice view of the allocated buffer for this frame
+        const combinedBuffer = this.combinedBuffer.subarray(0, totalSize);
 
         // Copy input data (up to 2 channels) to the combined buffer.
         // This assumes a standard stereo input source or taking the first 2 channels.
@@ -346,20 +351,21 @@ class PluginProcessor extends AudioWorkletProcessor {
         }
 
         // --- 8a. Main bus ---
-        busBuffers.set(0, combinedBuffer);
+        busBuffers.set(0, { buffer: this.combinedBuffer, view: combinedBuffer });
 
         // --- 8b. Auxiliary buses ---
         for (const busIndex of usedBuses) {
             if (busIndex === 0) continue;
 
-            let buf = busBuffers.get(busIndex);
-            if (!buf || buf.length !== totalSize) {
-                // (Re)allocate when bus not present or channel count changed
-                buf = new Float32Array(totalSize);
-                busBuffers.set(busIndex, buf);
+            let bufObj = busBuffers.get(busIndex);
+            if (!bufObj || bufObj.buffer.length < totalSize) {
+                const allocSize = Math.ceil(totalSize * this.BUFFER_HEADROOM);
+                const buffer = new Float32Array(allocSize);
+                bufObj = { buffer, view: buffer.subarray(0, totalSize) };
+                busBuffers.set(busIndex, bufObj);
             } else {
-                // Reuse existing buffer: just clear
-                buf.fill(0);
+                bufObj.view = bufObj.buffer.subarray(0, totalSize);
+                bufObj.view.fill(0);
             }
         }
 
@@ -415,8 +421,11 @@ class PluginProcessor extends AudioWorkletProcessor {
             const outputBus = plugin.outputBus; // Use normalized property
 
             // Get the corresponding buffers
-            const inputBuffer = busBuffers.get(inputBus);
-            const outputBuffer = busBuffers.get(outputBus);
+            const inputBufObj = busBuffers.get(inputBus);
+            const outputBufObj = busBuffers.get(outputBus);
+
+            const inputBuffer = inputBufObj && inputBufObj.view;
+            const outputBuffer = outputBufObj && outputBufObj.view;
 
             // Skip if buses are invalid (should not happen if usedBuses logic is correct)
             if (!inputBuffer || !outputBuffer) {
@@ -505,12 +514,13 @@ class PluginProcessor extends AudioWorkletProcessor {
 
             if (processMode === 'all') {
                 if (requiresCopy) {
-                    // Reuse or allocate a full multichannel temp buffer
+                    // Reuse or allocate a full multichannel temp buffer with some headroom
                     const size = totalSize;
-                    if (!pluginContext._tempAll || pluginContext._tempAll.length !== size) {
-                        pluginContext._tempAll = new Float32Array(size);
+                    if (!pluginContext._tempAll || pluginContext._tempAll.length < size) {
+                        const allocSize = Math.ceil(size * this.BUFFER_HEADROOM);
+                        pluginContext._tempAll = new Float32Array(allocSize);
                     }
-                    tempBuffer = pluginContext._tempAll;
+                    tempBuffer = pluginContext._tempAll.subarray(0, size);
                     tempBuffer.set(inputBuffer); // Full copy
                     processingBuffer = tempBuffer;
                 } else {
@@ -521,10 +531,11 @@ class PluginProcessor extends AudioWorkletProcessor {
             } else if (processMode === 'pair') {
                 // Use a persistent stereo buffer for pair processing
                 const stereoSize = blockSize * 2;
-                if (!pluginContext._tempStereo || pluginContext._tempStereo.length !== stereoSize) {
-                    pluginContext._tempStereo = new Float32Array(stereoSize);
+                if (!pluginContext._tempStereo || pluginContext._tempStereo.length < stereoSize) {
+                    const allocSize = Math.ceil(stereoSize * this.BUFFER_HEADROOM);
+                    pluginContext._tempStereo = new Float32Array(allocSize);
                 }
-                tempBuffer = pluginContext._tempStereo;
+                tempBuffer = pluginContext._tempStereo.subarray(0, stereoSize);
                 // Copy the selected pair from inputBuffer to the temporary stereo buffer efficiently
                 tempBuffer.set(inputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize), 0); // Ch 1
                 tempBuffer.set(inputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize), blockSize); // Ch 2
@@ -532,10 +543,11 @@ class PluginProcessor extends AudioWorkletProcessor {
                 // Result will be written back from tempBuffer to the correct place in outputBuffer later
             } else if (processMode === 'single') {
                 // Use a persistent mono buffer for single channel processing
-                if (!pluginContext._tempMono || pluginContext._tempMono.length !== blockSize) {
-                    pluginContext._tempMono = new Float32Array(blockSize);
+                if (!pluginContext._tempMono || pluginContext._tempMono.length < blockSize) {
+                    const allocSize = Math.ceil(blockSize * this.BUFFER_HEADROOM);
+                    pluginContext._tempMono = new Float32Array(allocSize);
                 }
-                tempBuffer = pluginContext._tempMono;
+                tempBuffer = pluginContext._tempMono.subarray(0, blockSize);
                 // Copy the selected channel from inputBuffer to the temporary mono buffer
                 tempBuffer.set(inputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize));
                 processingBuffer = tempBuffer; // Plugin processes this temp buffer
@@ -647,7 +659,8 @@ class PluginProcessor extends AudioWorkletProcessor {
         this.lastMessageTime = lastMessageTime;
 
         // --- 10. Final Output Generation ---
-        const mainBusBuffer = busBuffers.get(0); // Get the final state of the main bus
+        const mainBufObj = busBuffers.get(0); // Get the final state of the main bus
+        const mainBusBuffer = mainBufObj && mainBufObj.view;
 
         if (mainBusBuffer) {
             // Determine the number of channels to actually copy to the physical output
