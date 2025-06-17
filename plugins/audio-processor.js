@@ -13,9 +13,9 @@ class PluginProcessor extends AudioWorkletProcessor {
         this.pluginContexts = new Map();
         this.masterBypass = false;
 
-        // Allocate buffers with a small amount of headroom to avoid frequent
+        // Allocate buffers with extra headroom to avoid frequent
         // reallocations when sizes fluctuate slightly
-        this.BUFFER_HEADROOM = 1.1; // 10% headroom
+        this.BUFFER_HEADROOM = 1.5; // 50% headroom
 
         // Audio configuration
         this.outputChannelCount = options?.processorOptions?.initialOutputChannelCount ?? 2;
