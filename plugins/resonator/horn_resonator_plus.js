@@ -73,9 +73,11 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const throatRadius = context.th / 200; // Throat radius [m]
                 const mouthRadius = context.mo / 200;  // Mouth radius [m]
 
-                // Allocate or resize impedance and reflection coefficient arrays if N changed
-                if (!context.Z || context.Z.length !== N + 1) {
+                // Allocate or grow impedance/reflection arrays only when needed
+                if (!context.Z || context.Z.length < N + 1) {
                     context.Z = new Float32Array(N + 1); // Impedance at section boundaries
+                }
+                if (!context.R || context.R.length < N) {
                     context.R = new Float32Array(N);     // Reflection coefficients between sections
                 }
                 const Z = context.Z;
@@ -142,17 +144,22 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
 
                 // --- Waveguide delay line buffer initialization ---
-                if (!context.fwd || context.fwd.length !== chs || context.fwd[0]?.length !== N + 1) {
+                if (!context.fwd || context.fwd.length < chs) {
                     context.fwd = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
                     context.rev = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
                 } else {
-                    for(let ch = 0; ch < chs; ++ch) { // Clear buffers
-                        context.fwd[ch].fill(0);
-                        context.rev[ch].fill(0);
+                    for (let ch = 0; ch < chs; ++ch) {
+                        if (!context.fwd[ch] || context.fwd[ch].length < N + 1) {
+                            context.fwd[ch] = new Float32Array(N + 1);
+                            context.rev[ch] = new Float32Array(N + 1);
+                        } else {
+                            context.fwd[ch].fill(0);
+                            context.rev[ch].fill(0);
+                        }
                     }
                 }
                 // Temporary buffers for wave propagation calculation
-                if (!context.fw_temp || context.fw_temp.length !== N + 1) {
+                if (!context.fw_temp || context.fw_temp.length < N + 1) {
                     context.fw_temp = new Float32Array(N + 1);
                     context.rv_temp = new Float32Array(N + 1);
                 }
@@ -178,7 +185,7 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 // Initialize crossover filter states
                 const createCrossoverStage = () => Array.from({length: chs}, () => ({x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET}));
-                if (!context.lrStates || !context.lrStates.low || context.lrStates.low[0].length !== chs) {
+                if (!context.lrStates || !context.lrStates.low || context.lrStates.low[0].length < chs) {
                     context.lrStates = {
                         low: [ createCrossoverStage(), createCrossoverStage() ], // 2 stages LP
                         high: [ createCrossoverStage(), createCrossoverStage() ] // 2 stages HP
@@ -186,21 +193,39 @@ class HornResonatorPlusPlugin extends PluginBase {
                 } else {
                     for (let stage = 0; stage < 2; ++stage) { // Reset states
                         for (let ch = 0; ch < chs; ++ch) {
-                            context.lrStates.low[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
-                            context.lrStates.high[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
+                            const lpObj = context.lrStates.low[stage][ch];
+                            const hpObj = context.lrStates.high[stage][ch];
+                            if (lpObj) {
+                                lpObj.x1 = DC_OFFSET; lpObj.x2 = -DC_OFFSET; lpObj.y1 = DC_OFFSET; lpObj.y2 = -DC_OFFSET;
+                            } else {
+                                context.lrStates.low[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
+                            }
+                            if (hpObj) {
+                                hpObj.x1 = DC_OFFSET; hpObj.x2 = -DC_OFFSET; hpObj.y1 = DC_OFFSET; hpObj.y2 = -DC_OFFSET;
+                            } else {
+                                context.lrStates.high[stage][ch] = {x1: DC_OFFSET, x2: -DC_OFFSET, y1: DC_OFFSET, y2: -DC_OFFSET};
+                            }
                         }
                     }
                 }
 
                 // Initialize low-band delay buffer (delay = N samples)
-                if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length !== N) {
+                if (!context.lowDelay || context.lowDelay.length < chs) {
                     context.lowDelay = Array.from({length: chs}, () => new Float32Array(N).fill(0));
                     context.lowDelayIdx = new Uint32Array(chs).fill(0); // Reset indices
                 } else {
-                    for(let ch = 0; ch < chs; ++ch) { // Reset delay buffer
-                        context.lowDelay[ch].fill(0);
+                    for (let ch = 0; ch < chs; ++ch) {
+                        if (!context.lowDelay[ch] || context.lowDelay[ch].length < N) {
+                            context.lowDelay[ch] = new Float32Array(N);
+                        } else {
+                            context.lowDelay[ch].fill(0);
+                        }
                     }
-                    context.lowDelayIdx.fill(0); // Reset indices
+                    if (!context.lowDelayIdx || context.lowDelayIdx.length < chs) {
+                        context.lowDelayIdx = new Uint32Array(chs).fill(0);
+                    } else {
+                        context.lowDelayIdx.fill(0);
+                    }
                 }
 
                 context.initialized = true;
@@ -239,14 +264,20 @@ class HornResonatorPlusPlugin extends PluginBase {
             const lowDelay = context.lowDelay;       // [chs][N] Delay buffer
             const lowDelayIdx = context.lowDelayIdx; // [chs] Current write indices
 
-            // Output gain (linear)
-            const outputGain = Math.pow(10, parameters.wg / 20);
+            // --- Precompute output gain when parameter changes ---
+            if (context.prevWg !== parameters.wg) {
+                context.prevWg = parameters.wg;
+                context.outputGain = Math.pow(10, parameters.wg / 20);
+            }
+            const outputGain = context.outputGain;
 
             // --- Channel Loop ---
             for (let ch = 0; ch < chs; ch++) {
                 const channelOffset = ch * bs; // Offset for current channel in data buffer
-                const fw_current = fwd[ch]; // Current forward wave states [N+1]
-                const rv_current = rev[ch]; // Current reverse wave states [N+1]
+                let fw_curr = fwd[ch]; // Current forward wave states [N+1]
+                let rv_curr = rev[ch]; // Current reverse wave states [N+1]
+                let fw_next = fw_temp;  // Buffer for next forward wave
+                let rv_next = rv_temp;  // Buffer for next reverse wave
 
                 // --- Load channel-specific states ---
                 let rm_y1 = rm_y1_states[ch];
@@ -288,19 +319,19 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
                     for (let j = 0; j < N; j++) {
                         const Rj = R[j];           // Reflection coefficient at junction j
-                        const f_in = fw_current[j];   // Forward wave arriving at j from left
-                        const r_in = rv_current[j+1]; // Reverse wave arriving at j from right
+                        const f_in = fw_curr[j];   // Forward wave arriving at j from left
+                        const r_in = rv_curr[j+1]; // Reverse wave arriving at j from right
                         const scatterDiff = Rj * (f_in - r_in); // Scattering difference term
-                        fw_temp[j+1] = g * (f_in + scatterDiff); // Wave leaving j to the right
-                        rv_temp[j] = g * (r_in + scatterDiff);   // Wave leaving j to the left
+                        fw_next[j+1] = g * (f_in + scatterDiff); // Wave leaving j to the right
+                        rv_next[j] = g * (r_in + scatterDiff);   // Wave leaving j to the left
                     }
 
                     /* ---- Mouth Node Boundary Condition (j=N) ---- */
-                    const fwN = fw_temp[N]; // Forward wave arriving at mouth boundary
+                    const fwN = fw_next[N]; // Forward wave arriving at mouth boundary
 
                     // Apply 2nd order mouth reflection filter H_R(z)
                     const reflectedMouthWave = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
-                    rv_temp[N] = reflectedMouthWave; // Update reverse wave at mouth
+                    rv_next[N] = reflectedMouthWave; // Update reverse wave at mouth
 
                     // Update mouth reflection filter states
                     rm_y2 = rm_y1;
@@ -308,13 +339,15 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                     /* ---- Throat Node Boundary Condition (j=0) ---- */
                     // Inject high-pass input signal and add throat reflection.
-                    const throatFiltered = rt_b0 * rv_temp[0] - rt_a1 * rt_y1;
+                    const throatFiltered = rt_b0 * rv_next[0] - rt_a1 * rt_y1;
                     rt_y1 = throatFiltered;
-                    fw_temp[0] = outputHigh + trCoeff * throatFiltered;
+                    fw_next[0] = outputHigh + trCoeff * throatFiltered;
 
                     /* ---- Update Waveguide State for the Next Sample ---- */
-                    fw_current.set(fw_temp);
-                    rv_current.set(rv_temp);
+                    {
+                        let tmp = fw_curr; fw_curr = fw_next; fw_next = tmp;
+                        tmp = rv_curr; rv_curr = rv_next; rv_next = tmp;
+                    }
 
                     /* ---- Calculate Output Signal ---- */
                     // High-frequency output is transmitted wave at mouth.
@@ -339,6 +372,10 @@ class HornResonatorPlusPlugin extends PluginBase {
                 rt_y1_states[ch] = rt_y1;
                 // Crossover states updated in-place
                 lowDelayIdx[ch] = currentLowDelayWriteIdx; // Store updated delay index
+                fwd[ch] = fw_curr;
+                rev[ch] = rv_curr;
+                context.fw_temp = fw_next;
+                context.rv_temp = rv_next;
 
             } // --- End of Channel Loop ---
 
