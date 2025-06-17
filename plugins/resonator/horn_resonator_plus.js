@@ -47,7 +47,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                                 context.sr  !== sr ||
                                 context.chs !== chs ||
                                 // List of parameters that necessitate recalculation
-                                ['ln','th','mo','cv','dp','tr','co']
+                                ['ln','th','mo','cv','dp','tr','co','wg']
                                 .some(key => context[key] !== parameters[key]);
 
             /* ---------- 1. Recalculate geometry & filter coefficients if needed -------- */
@@ -62,6 +62,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.dp = parameters.dp;
                 context.tr = parameters.tr;
                 context.co = parameters.co;
+                context.wg = parameters.wg;
 
                 // --- Horn Geometry Calculation ---
                 const dx = C / sr; // Spatial step size based on sample rate
@@ -200,8 +201,11 @@ class HornResonatorPlusPlugin extends PluginBase {
                     for(let ch = 0; ch < chs; ++ch) { // Reset delay buffer
                         context.lowDelay[ch].fill(0);
                     }
-                    context.lowDelayIdx.fill(0); // Reset indices
+                context.lowDelayIdx.fill(0); // Reset indices
                 }
+
+                // Pre-compute output gain in linear scale
+                context.outputGain = Math.pow(10, context.wg / 20);
 
                 context.initialized = true;
             } // End of needsRecalc block
@@ -240,7 +244,7 @@ class HornResonatorPlusPlugin extends PluginBase {
             const lowDelayIdx = context.lowDelayIdx; // [chs] Current write indices
 
             // Output gain (linear)
-            const outputGain = Math.pow(10, parameters.wg / 20);
+            const outputGain = context.outputGain;
 
             // --- Channel Loop ---
             for (let ch = 0; ch < chs; ch++) {
