@@ -412,6 +412,14 @@ class PluginBase {
         if (this.enabled !== enabled) {
             this.enabled = enabled;
             this.updateParameters();
+
+            // Clear processor-side context when disabling to reduce memory
+            if (!enabled && window.workletNode) {
+                window.workletNode.port.postMessage({
+                    type: 'clearPluginContext',
+                    id: this.id
+                });
+            }
         }
     }
 
