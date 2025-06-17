@@ -398,8 +398,23 @@ class PluginProcessor extends AudioWorkletProcessor {
             // Get or initialize plugin state/context
             let pluginContext = pluginContexts.get(plugin.id);
             if (!pluginContext) {
-                pluginContext = {}; // Initialize empty context
+                pluginContext = {};
                 pluginContexts.set(plugin.id, pluginContext);
+            }
+
+            // Prepare reusable temporary buffers for this plugin to avoid
+            // per-block allocations that could trigger garbage collection.
+            let tempBuffers = pluginContext.tempBuffers;
+            if (!tempBuffers || tempBuffers.blockSize !== blockSize ||
+                tempBuffers.channels !== outputChannelCount) {
+                tempBuffers = {
+                    blockSize,
+                    channels: outputChannelCount,
+                    full: new Float32Array(blockSize * outputChannelCount),
+                    stereo: new Float32Array(blockSize * 2),
+                    mono: new Float32Array(blockSize)
+                };
+                pluginContext.tempBuffers = tempBuffers;
             }
             // Prepare the context object for the processor call.
             // Avoid spreading unless necessary; pass specific needed properties.
@@ -498,34 +513,26 @@ class PluginProcessor extends AudioWorkletProcessor {
             if (processMode === 'skip') continue; // Skip plugin if channel spec is invalid for current config
 
             // --- 9b. Prepare Buffers for Plugin Execution ---
-             const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
+            const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
 
             if (processMode === 'all') {
                 if (requiresCopy) {
-                    // Need to copy input to a temporary buffer if output is a different bus
-                    tempBuffer = new Float32Array(inputBuffer); // Full copy
+                    tempBuffer = tempBuffers.full;
+                    tempBuffer.set(inputBuffer); // Copy entire input
                     processingBuffer = tempBuffer;
                 } else {
-                    // Process directly in the input/output buffer (which are the same)
-                    processingBuffer = inputBuffer; // Reference, no copy
+                    processingBuffer = inputBuffer;
                 }
-                resultTargetBuffer = outputBuffer; // Result goes directly to the output bus buffer
+                resultTargetBuffer = outputBuffer;
             } else if (processMode === 'pair') {
-                // Always use a temporary stereo buffer for pair processing
-                const stereoSize = blockSize * 2;
-                tempBuffer = new Float32Array(stereoSize);
-                // Copy the selected pair from inputBuffer to the temporary stereo buffer efficiently
-                tempBuffer.set(inputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize), 0); // Ch 1
-                tempBuffer.set(inputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize), blockSize); // Ch 2
-                processingBuffer = tempBuffer; // Plugin processes this temp buffer
-                // Result will be written back from tempBuffer to the correct place in outputBuffer later
+                tempBuffer = tempBuffers.stereo;
+                tempBuffer.set(inputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize), 0); // Ch1
+                tempBuffer.set(inputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize), blockSize); // Ch2
+                processingBuffer = tempBuffer;
             } else if (processMode === 'single') {
-                // Always use a temporary mono buffer for single channel processing
-                tempBuffer = new Float32Array(blockSize);
-                // Copy the selected channel from inputBuffer to the temporary mono buffer
+                tempBuffer = tempBuffers.mono;
                 tempBuffer.set(inputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize));
-                processingBuffer = tempBuffer; // Plugin processes this temp buffer
-                 // Result will be written back from tempBuffer later
+                processingBuffer = tempBuffer;
             }
 
             // --- 9c. Prepare Parameters for Plugin ---
