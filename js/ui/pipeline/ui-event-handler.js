@@ -441,24 +441,24 @@ export class UIEventHandler {
             console.error("Cannot setup drag events: Pipeline not available.");
             return;
         }
-        const initialIndex = pipeline.indexOf(plugin);
-        if (initialIndex === -1) {
+        if (pipeline.indexOf(plugin) === -1) {
              console.warn("Plugin not found in pipeline for drag setup:", plugin.name);
-             return; 
+             return;
         }
 
         let isTouchDragging = false; // Flag for touch drag state
         this.draggingPluginInfo = null; // Initialize dragging info storage
 
         // --- Mouse Drag Events ---
-        handle.addEventListener('dragstart', (e) => { 
-           e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
-           e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
+        handle.addEventListener('dragstart', (e) => {
+           e.stopPropagation();
+           const currentIndex = pipeline.indexOf(plugin);
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
+           e.dataTransfer.setData('application/plugin-index', currentIndex.toString());
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
            // Start indicator updates via pipelineListElement's dragenter
-        });
+       });
 
         handle.addEventListener('dragend', (e) => { 
             e.stopPropagation();
@@ -470,12 +470,13 @@ export class UIEventHandler {
         handle.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             // Prevent default scroll/zoom behavior ONLY for the handle
-            e.preventDefault(); 
+            e.preventDefault();
 
             isTouchDragging = true;
+            const currentIndex = pipeline.indexOf(plugin);
             this.draggingPluginInfo = { // Store info for touchend
                 id: plugin.id.toString(),
-                index: initialIndex 
+                index: currentIndex
             };
             item.classList.add('dragging');
 
