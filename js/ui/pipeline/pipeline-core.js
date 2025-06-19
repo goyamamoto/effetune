@@ -353,6 +353,8 @@ export class PipelineCore {
         // Plugin UI container
         const ui = document.createElement('div');
         ui.className = 'plugin-ui' + (this.expandedPlugins.has(plugin) ? ' expanded' : '');
+        // Ensure each plugin UI has a unique id for reliable DOM queries
+        ui.id = `plugin-ui-${plugin.id}`;
         
         // Optimize parameter update handling to avoid unnecessary pipeline rebuilds
         if (plugin.updateParameters) {
