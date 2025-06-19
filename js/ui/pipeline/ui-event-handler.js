@@ -441,11 +441,13 @@ export class UIEventHandler {
             console.error("Cannot setup drag events: Pipeline not available.");
             return;
         }
-        const initialIndex = pipeline.indexOf(plugin);
-        if (initialIndex === -1) {
-             console.warn("Plugin not found in pipeline for drag setup:", plugin.name);
-             return; 
-        }
+        const getCurrentIndex = () => {
+            const idx = pipeline.indexOf(plugin);
+            if (idx === -1) {
+                console.warn("Plugin not found in pipeline for drag setup:", plugin.name);
+            }
+            return idx;
+        };
 
         let isTouchDragging = false; // Flag for touch drag state
         this.draggingPluginInfo = null; // Initialize dragging info storage
@@ -453,8 +455,9 @@ export class UIEventHandler {
         // --- Mouse Drag Events ---
         handle.addEventListener('dragstart', (e) => { 
            e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
-           e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
+           const currentIndex = getCurrentIndex();
+           e.dataTransfer.setData('application/plugin-index', currentIndex.toString());
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
            // Start indicator updates via pipelineListElement's dragenter
@@ -473,9 +476,10 @@ export class UIEventHandler {
             e.preventDefault(); 
 
             isTouchDragging = true;
+            const currentIndex = getCurrentIndex();
             this.draggingPluginInfo = { // Store info for touchend
                 id: plugin.id.toString(),
-                index: initialIndex 
+                index: currentIndex
             };
             item.classList.add('dragging');
 
