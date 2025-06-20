@@ -316,6 +316,7 @@ For optimal performance with nonlinear effects, it is recommended to use EffeTun
 
 Want to create your own audio plugins? Check out our [Plugin Development Guide](docs/plugin-development.md).
 Want to build a desktop app? Check out our [Build Guide](build.md).
+The `Horn Resonator Plus` effect now has an optional WebAssembly backend written in Rust. See `rust/horn_resonator_plus/README.md` for build instructions.
 
 ## Links
 
