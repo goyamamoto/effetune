@@ -25,7 +25,10 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.wasm = null;
         if (typeof WebAssembly === 'object') {
             import('./wasm/horn_resonator_plus.js')
-                .then(mod => { this.wasm = mod; })
+                .then(mod => { 
+                    this.wasm = mod;
+                    globalThis.hrpWasm = mod;       // allow registerProcessor to use WASM
+                })
                 .catch(() => {/* fall back to JS */});
         }
 
