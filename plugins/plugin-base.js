@@ -119,7 +119,7 @@ class PluginBase {
     // The 'with' statement is maintained to preserve functionality.
     _compileProcessor(processorStr) {
         try {
-            return new Function('context', 'data', 'parameters', 'time', `
+            return new Function('context', 'data', 'parameters', 'time', 'wasm', `
                 with (context) {
                     const result = (function() {
                         ${processorStr}
@@ -137,7 +137,7 @@ class PluginBase {
     }
 
     // Register the processor function with the audio worklet and store it for offline processing.
-    registerProcessor(processorFunction) {
+    registerProcessor(processorFunction, wasmPath = null) {
         this.processorString = processorFunction.toString();
         this.compiledFunction = this._compileProcessor(this.processorString);
 
@@ -146,19 +146,20 @@ class PluginBase {
                 type: 'registerProcessor',
                 pluginType: this.constructor.name,
                 processor: this.processorString,
-                process: this.process.toString()
+                process: this.process.toString(),
+                wasmPath
             });
         }
     }
 
     // Execute the compiled processor function for offline processing.
-    executeProcessor(context, data, parameters, time) {
+    executeProcessor(context, data, parameters, time, wasmInstance = null) {
         if (!this.compiledFunction) {
             console.warn('No compiled function available for plugin:', this.name);
             return data;
         }
         try {
-            return this.compiledFunction.call(null, context, data, parameters, time);
+            return this.compiledFunction.call(null, context, data, parameters, time, wasmInstance);
         } catch (error) {
             console.error('Failed to execute processor:', {
                 type: this.constructor.name,
