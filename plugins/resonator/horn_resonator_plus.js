@@ -403,7 +403,7 @@ class HornResonatorPlusPlugin extends PluginBase {
      */
     createUI() {
         const c = document.createElement('div');
-        c.className = 'plugin-parameter-ui horn-resonator-ui';
+        c.className = 'horn-resonator-plus-ui';
 
         // Add sliders using the base class createParameterControl helper
         c.appendChild(this.createParameterControl('Crossover', 20, 5000, 10, this.co, (v) => this.setParameters({ co: v }), 'Hz'));
