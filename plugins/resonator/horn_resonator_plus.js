@@ -144,24 +144,20 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 // --- Waveguide delay line buffer initialization ---
                 const needsNewBuffers =
-                    !context.fwd || context.fwd.length !== chs ||
-                    !context.fwd[0] || context.fwd[0][0]?.length !== N + 1;
+                    !context.fwd0 || context.fwd0.length !== chs ||
+                    !context.fwd0[0] || context.fwd0[0].length !== N + 1;
                 if (needsNewBuffers) {
-                    context.fwd = Array.from({length: chs}, () => [
-                        new Float32Array(N + 1).fill(0),
-                        new Float32Array(N + 1).fill(0)
-                    ]);
-                    context.rev = Array.from({length: chs}, () => [
-                        new Float32Array(N + 1).fill(0),
-                        new Float32Array(N + 1).fill(0)
-                    ]);
+                    context.fwd0 = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                    context.fwd1 = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                    context.rev0 = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                    context.rev1 = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
                     context.bufIdx = new Uint8Array(chs).fill(0);
                 } else {
                     for (let ch = 0; ch < chs; ++ch) {
-                        context.fwd[ch][0].fill(0);
-                        context.fwd[ch][1].fill(0);
-                        context.rev[ch][0].fill(0);
-                        context.rev[ch][1].fill(0);
+                        context.fwd0[ch].fill(0);
+                        context.fwd1[ch].fill(0);
+                        context.rev0[ch].fill(0);
+                        context.rev1[ch].fill(0);
                     }
                     context.bufIdx.fill(0);
                 }
@@ -224,8 +220,10 @@ class HornResonatorPlusPlugin extends PluginBase {
             const g = context.g;             // Damping gain per segment
             const trCoeff = context.trCoeff; // Throat reflection coefficient
 
-            const fwd = context.fwd; // [chs][2][N+1] Forward wave states
-            const rev = context.rev; // [chs][2][N+1] Reverse wave states
+            const fwd0 = context.fwd0; // [chs][N+1] Forward wave states buffer 0
+            const fwd1 = context.fwd1; // [chs][N+1] Forward wave states buffer 1
+            const rev0 = context.rev0; // [chs][N+1] Reverse wave states buffer 0
+            const rev1 = context.rev1; // [chs][N+1] Reverse wave states buffer 1
 
             // Mouth reflection filter coefficients and states
             const rm_b0 = context.rm_b0;
@@ -255,10 +253,10 @@ class HornResonatorPlusPlugin extends PluginBase {
             for (let ch = 0; ch < chs; ch++) {
                 const channelOffset = ch * bs; // Offset for current channel in data buffer
                 let bufIndex = context.bufIdx[ch];
-                let fw_current = fwd[ch][bufIndex];   // Current forward wave states
-                let rv_current = rev[ch][bufIndex];   // Current reverse wave states
-                let fw_next    = fwd[ch][bufIndex ^ 1]; // Buffer to write next state
-                let rv_next    = rev[ch][bufIndex ^ 1];
+                let fw_current = bufIndex ? fwd1[ch] : fwd0[ch];   // Current forward wave states
+                let rv_current = bufIndex ? rev1[ch] : rev0[ch];   // Current reverse wave states
+                let fw_next    = bufIndex ? fwd0[ch] : fwd1[ch];   // Buffer to write next state
+                let rv_next    = bufIndex ? rev0[ch] : rev1[ch];
 
                 // --- Load channel-specific states ---
                 let rm_y1 = rm_y1_states[ch];
@@ -327,10 +325,10 @@ class HornResonatorPlusPlugin extends PluginBase {
                     /* ---- Update Waveguide State for the Next Sample ---- */
                     // Swap buffer pointers for next sample
                     bufIndex ^= 1;
-                    fw_current = fwd[ch][bufIndex];
-                    rv_current = rev[ch][bufIndex];
-                    fw_next    = fwd[ch][bufIndex ^ 1];
-                    rv_next    = rev[ch][bufIndex ^ 1];
+                    fw_current = bufIndex ? fwd1[ch] : fwd0[ch];
+                    rv_current = bufIndex ? rev1[ch] : rev0[ch];
+                    fw_next    = bufIndex ? fwd0[ch] : fwd1[ch];
+                    rv_next    = bufIndex ? rev0[ch] : rev1[ch];
 
                     /* ---- Calculate Output Signal ---- */
                     // High-frequency output is transmitted wave at mouth.
