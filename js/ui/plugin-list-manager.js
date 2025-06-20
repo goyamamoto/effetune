@@ -981,6 +981,7 @@ export class PluginListManager {
                 type: 'preset',
                 name: presetName
             }));
+            document.querySelectorAll('.pipeline-item.dragging, .plugin-item.dragging').forEach(el => el.classList.remove('dragging'));
             item.classList.add('dragging');
         });
 
@@ -1434,6 +1435,7 @@ export class PluginListManager {
 
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', plugin.name);
+            document.querySelectorAll('.pipeline-item.dragging, .plugin-item.dragging').forEach(el => el.classList.remove('dragging'));
             item.classList.add('dragging');
         });
 

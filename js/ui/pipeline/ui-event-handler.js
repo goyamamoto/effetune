@@ -451,10 +451,11 @@ export class UIEventHandler {
         this.draggingPluginInfo = null; // Initialize dragging info storage
 
         // --- Mouse Drag Events ---
-        handle.addEventListener('dragstart', (e) => { 
-           e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
+        handle.addEventListener('dragstart', (e) => {
+           e.stopPropagation();
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
            e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
+           document.querySelectorAll('.pipeline-item.dragging, .plugin-item.dragging').forEach(el => el.classList.remove('dragging'));
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
            // Start indicator updates via pipelineListElement's dragenter
@@ -470,13 +471,14 @@ export class UIEventHandler {
         handle.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             // Prevent default scroll/zoom behavior ONLY for the handle
-            e.preventDefault(); 
+            e.preventDefault();
 
             isTouchDragging = true;
             this.draggingPluginInfo = { // Store info for touchend
                 id: plugin.id.toString(),
-                index: initialIndex 
+                index: initialIndex
             };
+            document.querySelectorAll('.pipeline-item.dragging, .plugin-item.dragging').forEach(el => el.classList.remove('dragging'));
             item.classList.add('dragging');
 
             // Show indicator and start the rAF loop
