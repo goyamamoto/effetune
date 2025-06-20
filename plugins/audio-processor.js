@@ -110,8 +110,24 @@ class PluginProcessor extends AudioWorkletProcessor {
         let wasmInstance = null;
         if (wasmPath) {
             try {
-                const resp = await fetch(wasmPath);
-                const bytes = await resp.arrayBuffer();
+                let bytes;
+                if (wasmPath.startsWith('data:')) {
+                    const base64Index = wasmPath.indexOf('base64,');
+                    if (base64Index !== -1) {
+                        const base64 = wasmPath.slice(base64Index + 7);
+                        const binStr = atob(base64);
+                        bytes = new Uint8Array(binStr.length);
+                        for (let i = 0; i < binStr.length; i++) {
+                            bytes[i] = binStr.charCodeAt(i);
+                        }
+                    } else {
+                        const resp = await fetch(wasmPath);
+                        bytes = new Uint8Array(await resp.arrayBuffer());
+                    }
+                } else {
+                    const resp = await fetch(wasmPath);
+                    bytes = new Uint8Array(await resp.arrayBuffer());
+                }
                 const mod = await WebAssembly.instantiate(bytes, {});
                 wasmInstance = mod.instance;
             } catch (e) {
