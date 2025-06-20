@@ -451,18 +451,22 @@ export class UIEventHandler {
         this.draggingPluginInfo = null; // Initialize dragging info storage
 
         // --- Mouse Drag Events ---
-        handle.addEventListener('dragstart', (e) => { 
-           e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
+        handle.addEventListener('dragstart', (e) => {
+           e.stopPropagation();
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
            e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
+           // Ensure only the current item has the dragging class
+           document.querySelectorAll('.pipeline-item.dragging').forEach(el => el.classList.remove('dragging'));
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
            // Start indicator updates via pipelineListElement's dragenter
         });
 
-        handle.addEventListener('dragend', (e) => { 
+        handle.addEventListener('dragend', (e) => {
             e.stopPropagation();
             item.classList.remove('dragging');
+            // Remove dragging class from any other items just in case
+            document.querySelectorAll('.pipeline-item.dragging').forEach(el => el.classList.remove('dragging'));
             // Indicator updates stop via pipelineListElement's dragleave/drop
         });
 
@@ -470,13 +474,15 @@ export class UIEventHandler {
         handle.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             // Prevent default scroll/zoom behavior ONLY for the handle
-            e.preventDefault(); 
+            e.preventDefault();
 
             isTouchDragging = true;
             this.draggingPluginInfo = { // Store info for touchend
                 id: plugin.id.toString(),
-                index: initialIndex 
+                index: initialIndex
             };
+            // Ensure only the current item shows as dragging
+            document.querySelectorAll('.pipeline-item.dragging').forEach(el => el.classList.remove('dragging'));
             item.classList.add('dragging');
 
             // Show indicator and start the rAF loop
@@ -520,6 +526,8 @@ export class UIEventHandler {
 
             isTouchDragging = false;
             item.classList.remove('dragging');
+            // Remove dragging class from any other items just in case
+            document.querySelectorAll('.pipeline-item.dragging').forEach(el => el.classList.remove('dragging'));
             this.isDraggingOver = false; // Reset flag to stop rAF loop
 
             // Hide indicator immediately
@@ -577,13 +585,15 @@ export class UIEventHandler {
         });
 
         // Handle touch cancel (e.g., interrupted by system UI)
-         handle.addEventListener('touchcancel', (e) => {
-             if (!isTouchDragging) return;
-             e.stopPropagation();
+        handle.addEventListener('touchcancel', (e) => {
+            if (!isTouchDragging) return;
+            e.stopPropagation();
 
-             isTouchDragging = false;
-             item.classList.remove('dragging');
-             this.isDraggingOver = false; // Reset flag
+            isTouchDragging = false;
+            item.classList.remove('dragging');
+            // Remove dragging class from any other items just in case
+            document.querySelectorAll('.pipeline-item.dragging').forEach(el => el.classList.remove('dragging'));
+            this.isDraggingOver = false; // Reset flag
 
              // Hide indicator
              const pluginListManager = this.pipelineManager?.pluginListManager || window.uiManager?.pluginListManager;
