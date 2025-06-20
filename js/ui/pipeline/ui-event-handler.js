@@ -4,6 +4,11 @@
 import { PipelineCore } from './pipeline-core.js';
 import { PluginListManager } from '../plugin-list-manager.js'; // Temporary path
 
+// Transparent image used to normalize drag visuals across plugins
+const transparentPixel = new Image();
+transparentPixel.src =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+lrO4AAAAASUVORK5CYII=';
+
 export class UIEventHandler {
     /**
      * Create a new UIEventHandler instance
@@ -451,14 +456,20 @@ export class UIEventHandler {
         this.draggingPluginInfo = null; // Initialize dragging info storage
 
         // --- Mouse Drag Events ---
-        handle.addEventListener('dragstart', (e) => { 
-           e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
+        handle.addEventListener('dragstart', (e) => {
+           e.stopPropagation();
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
            e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
+           // Use a transparent drag image to avoid oversized defaults
+           try {
+               e.dataTransfer.setDragImage(transparentPixel, 0, 0);
+           } catch (err) {
+               // Ignore browsers that may not support setDragImage
+           }
            // Start indicator updates via pipelineListElement's dragenter
-        });
+       });
 
         handle.addEventListener('dragend', (e) => { 
             e.stopPropagation();
