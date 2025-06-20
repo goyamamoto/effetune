@@ -34,6 +34,189 @@ class HornResonatorPlusPlugin extends PluginBase {
             const SQRT2 = Math.SQRT2;
             const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
             const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
+            const WASM_BASE64 = ""
+            'AGFzbQEAAAABLwdgAX8AYAJ/fwF/YAF/AX9gAABgAn9/AGAAAX9gEH19fX19fX19fX19fX19fX0AApQB' +
+            'BBZ3YXNpX3NuYXBzaG90X3ByZXZpZXcxDmFyZ3Nfc2l6ZXNfZ2V0AAEWd2FzaV9zbmFwc2hvdF9wcmV2' +
+            'aWV3MQhhcmdzX2dldAABFndhc2lfc25hcHNob3RfcHJldmlldzEJcHJvY19leGl0AAADZW52H2Vtc2Ny' +
+            'aXB0ZW5fbm90aWZ5X21lbW9yeV9ncm93dGgAAAMPDgMEAAYEAwUCAAECBQACBAUBcAECAgUHAQGAAoCA' +
+            'AgYJAX8BQYCNwAILB6ABDQZtZW1vcnkCAARpbml0AAUGbWFsbG9jAAsFc2V0X1IABgpzZXRfY29lZmZz' +
+            'AAcHcHJvY2VzcwAIGV9faW5kaXJlY3RfZnVuY3Rpb25fdGFibGUBAAZfc3RhcnQACRBfX2Vycm5vX2xv' +
+            'Y2F0aW9uAAoEZnJlZQAMCXN0YWNrU2F2ZQAPDHN0YWNrUmVzdG9yZQAQCnN0YWNrQWxsb2MAEQkHAQBB' +
+            'AQsBBArxTQ4DAAELhAMBCH9BjAggATYCAEGICCAANgIAQZAIIABBAnQiBhALNgIAQZQIIAFBAnQiAxAL' +
+            'Igc2AgBBmAggAxALIgg2AgAgAUEASgRAIABBAWohBANAIAcgAkECdCIJaiAEQQQQDTYCACAIIAlqIARB' +
+            'BBANNgIAIAJBAWoiAiABRw0ACwtBnAggBkEEaiICEAs2AgBBoAggAhALNgIAQaQIIAFBBBANNgIAQagI' +
+            'IAFBBBANNgIAQawIIAFBBBANNgIAQbAIIAMQCyIENgIAQbQIIAMQCyIGNgIAQbgIIAMQCyIHNgIAQbwI' +
+            'IAMQCyIINgIAIAFBAEoEQANAIAQgBUECdCICakEBQRAQDTYCACACIAZqQQFBEBANNgIAIAIgB2pBAUEQ' +
+            'EA02AgAgAiAIakEBQRAQDTYCACAFQQFqIgUgAUcNAAsLQQAhAkHACCADEAsiAzYCAEHECCABQQQQDTYC' +
+            'ACABQQBKBEADQCADIAJBAnRqIABBBBANNgIAIAJBAWoiAiABRw0ACwsL0QEBB38CQEGICCgCACIDQQBM' +
+            'DQBBkAgoAgAhBCADQQFrQQNPBEAgA0F8cSEHA0AgBCACQQJ0IgFqIAAgAWoqAgA4AgAgBCABQQRyIgZq' +
+            'IAAgBmoqAgA4AgAgBCABQQhyIgZqIAAgBmoqAgA4AgAgBCABQQxyIgFqIAAgAWoqAgA4AgAgAkEEaiEC' +
+            'IAVBBGoiBSAHRw0ACwsgA0EDcSIDRQ0AQQAhAQNAIAQgAkECdCIFaiAAIAVqKgIAOAIAIAJBAWohAiAB' +
+            'QQFqIgEgA0cNAAsLC4IBAEHMCCABOAIAQcgIIAA4AgBB0AggAjgCAEHUCCADOAIAQdgIIAQ4AgBB3Agg' +
+            'BTgCAEHgCCAGOAIAQeQIIAc4AgBB6AggCDgCAEHsCCAJOAIAQfAIIAo4AgBB9AggCzgCAEH4CCAMOAIA' +
+            'QfwIIA04AgBBgAkgDjgCAEGACCAPOAIAC8kJAiZ/GX0CQEGMCCgCACIRQQBMDQAgAUEATA0AQaAIKAIA' +
+            'IgtBiAgoAgAiCUECdCICaiESQZwIKAIAIgwgAmohE0GACCoCACE6QcwIKgIAITtB3AgqAgAhPEHQCCoC' +
+            'ACE9QcgIKgIAITNBkAgoAgAhFEH4CCoCACE0QfQIKgIAITVB8AgqAgAhNkHsCCoCACE3QegIKgIAIThB' +
+            '5AgqAgAhOUGsCCgCACEVQagIKAIAIRZBpAgoAgAhF0HECCgCACEYQcAIKAIAIRlBvAgoAgAhGkG4CCgC' +
+            'ACEbQbQIKAIAIRxBsAgoAgAhHUGYCCgCACEeQZQIKAIAIR9B4AgqAgCMIT5B2AgqAgCMIT9B1AgqAgCM' +
+            'IUBBgAkqAgCMIS5B/AgqAgCMIS8gCUEBaiICQX5xISAgAkEBcSEhA0AgFSANQQJ0IgJqIiIqAgAhMSAC' +
+            'IBZqIiMqAgAhMCACIBdqIiQqAgAhKCACIBhqIiUoAgAhCiACIBlqKAIAISYgAiAaaigCACEFIAIgG2oo' +
+            'AgAhBiACIBxqKAIAIQcgAiAdaigCACEIIAIgHmooAgAhDiACIB9qKAIAIQJBACEQA0AgMCEyICghMCAA' +
+            'IBAgEWwgDWpBAnRqIicqAgAhKCAIKgIEISwgCCAIKgIAIik4AgQgCCoCDCEqIAggCCoCCCIrOAIMIAgg' +
+            'KDgCACAIIC4gKpQgLyArlCA3ICyUIDkgKJQgOCAplJKSkpIiLDgCCCAHKgIEISkgByAHKgIAIio4AgQg' +
+            'ByoCDCErIAcgByoCCCItOAIMIAcgLDgCACAHIC4gK5QgLyAtlCA3ICmUIDkgLJQgOCAqlJKSkpIiLDgC' +
+            'CCAGKgIEISkgBiAGKgIAIio4AgQgBioCDCErIAYgBioCCCItOAIMIAYgKDgCACAGIC4gK5QgLyAtlCA0' +
+            'ICmUIDYgKJQgNSAqlJKSkpIiKDgCCCAFKgIEISkgBSAFKgIAIio4AgQgBSoCDCErIAUgBSoCCCItOAIM' +
+            'IAUgKDgCACAFIC4gK5QgLyAtlCA0ICmUIDYgKJQgNSAqlJKSkpIiKTgCCEEAIQMgCUEASgRAA0AgA0EC' +
+            'dCEEIAwgA0EBaiIDQQJ0Ig9qIDMgAiAEaioCACIoICggDiAPaioCACIokyAEIBRqKgIAlCIqkpQ4AgAg' +
+            'BCALaiAzICggKpKUOAIAIAMgCUcNAAsLIBIgPyAylCA9IBMqAgAiMpQgMCBAlJKSIig4AgAgDCA7IDwg' +
+            'CyoCAJQgMSA+lJIiMZQgKZI4AgACQCAJQQBIDQBBACEDQQAhDyAJBEADQCACIANBAnQiBGogBCAMaioC' +
+            'ADgCACAEIA5qIAQgC2oqAgA4AgAgAiAEQQRyIgRqIAQgDGoqAgA4AgAgBCAOaiAEIAtqKgIAOAIAIANB' +
+            'AmohAyAPQQJqIg8gIEcNAAsLICFFDQAgAiADQQJ0IgNqIAMgDGoqAgA4AgAgAyAOaiADIAtqKgIAOAIA' +
+            'CyAmIApBAnRqIgMqAgAhKSADICw4AgAgJyApIDIgKJIgOpSSOAIAIApBAWoiCkEAIAkgCksbIQogEEEB' +
+            'aiIQIAFHDQALICUgCjYCACAkICg4AgAgIyAwOAIAICIgMTgCACANQQFqIg0gEUcNAAsLC3MBBH8jAEEQ' +
+            'ayIAJAACQCAAQQxqIABBCGoQAEUEQCAAIAAoAgxBAnQiAkETakFwcWsiASQAIAEgACgCCEEPakFwcWsi' +
+            'AyQAIAEgAmpBADYCACABIAMQAQ0BIAAoAgwaA0AMAAsAC0HHABACAAtBxwAQAgALBQBBhAkL8iwBC38j' +
+            'AEEQayILJAACQAJAAkACQAJAAkACQAJAAkACQAJAIABB9AFNBEBBiAkoAgAiBUEQIABBC2pBeHEgAEEL' +
+            'SRsiBkEDdiIAdiIBQQNxBEACQCABQX9zQQFxIABqIgJBA3QiAUGwCWoiACABQbgJaigCACIBKAIIIgNG' +
+            'BEBBiAkgBUF+IAJ3cTYCAAwBCyADIAA2AgwgACADNgIICyABQQhqIQAgASACQQN0IgJBA3I2AgQgASAC' +
+            'aiIBIAEoAgRBAXI2AgQMDAsgBkGQCSgCACIHTQ0BIAEEQAJAQQIgAHQiAkEAIAJrciABIAB0cSIAQQAg' +
+            'AGtxQQFrIgAgAEEMdkEQcSIAdiIBQQV2QQhxIgIgAHIgASACdiIAQQJ2QQRxIgFyIAAgAXYiAEEBdkEC' +
+            'cSIBciAAIAF2IgBBAXZBAXEiAXIgACABdmoiAUEDdCIAQbAJaiICIABBuAlqKAIAIgAoAggiA0YEQEGI' +
+            'CSAFQX4gAXdxIgU2AgAMAQsgAyACNgIMIAIgAzYCCAsgACAGQQNyNgIEIAAgBmoiCCABQQN0IgEgBmsi' +
+            'A0EBcjYCBCAAIAFqIAM2AgAgBwRAIAdBeHFBsAlqIQFBnAkoAgAhAgJ/IAVBASAHQQN2dCIEcUUEQEGI' +
+            'CSAEIAVyNgIAIAEMAQsgASgCCAshBCABIAI2AgggBCACNgIMIAIgATYCDCACIAQ2AggLIABBCGohAEGc' +
+            'CSAINgIAQZAJIAM2AgAMDAtBjAkoAgAiCkUNASAKQQAgCmtxQQFrIgAgAEEMdkEQcSIAdiIBQQV2QQhx' +
+            'IgIgAHIgASACdiIAQQJ2QQRxIgFyIAAgAXYiAEEBdkECcSIBciAAIAF2IgBBAXZBAXEiAXIgACABdmpB' +
+            'AnRBuAtqKAIAIgIoAgRBeHEgBmshBCACIQEDQAJAIAEoAhAiAEUEQCABKAIUIgBFDQELIAAoAgRBeHEg' +
+            'BmsiASAEIAEgBEkiARshBCAAIAIgARshAiAAIQEMAQsLIAIoAhghCSACIAIoAgwiA0cEQCACKAIIIgBB' +
+            'mAkoAgBJGiAAIAM2AgwgAyAANgIIDAsLIAJBFGoiASgCACIARQRAIAIoAhAiAEUNAyACQRBqIQELA0Ag' +
+            'ASEIIAAiA0EUaiIBKAIAIgANACADQRBqIQEgAygCECIADQALIAhBADYCAAwKC0F/IQYgAEG/f0sNACAA' +
+            'QQtqIgBBeHEhBkGMCSgCACIIRQ0AQQAgBmshBAJAAkACQAJ/QQAgBkGAAkkNABpBHyAGQf///wdLDQAa' +
+            'IABBCHYiACAAQYD+P2pBEHZBCHEiAHQiASABQYDgH2pBEHZBBHEiAXQiAiACQYCAD2pBEHZBAnEiAnRB' +
+            'D3YgACABciACcmsiAEEBdCAGIABBFWp2QQFxckEcagsiB0ECdEG4C2ooAgAiAUUEQEEAIQAMAQtBACEA' +
+            'IAZBAEEZIAdBAXZrIAdBH0YbdCECA0ACQCABKAIEQXhxIAZrIgUgBE8NACABIQMgBSIEDQBBACEEIAEh' +
+            'AAwDCyAAIAEoAhQiBSAFIAEgAkEddkEEcWooAhAiAUYbIAAgBRshACACQQF0IQIgAQ0ACwsgACADckUE' +
+            'QEEAIQNBAiAHdCIAQQAgAGtyIAhxIgBFDQMgAEEAIABrcUEBayIAIABBDHZBEHEiAHYiAUEFdkEIcSIC' +
+            'IAByIAEgAnYiAEECdkEEcSIBciAAIAF2IgBBAXZBAnEiAXIgACABdiIAQQF2QQFxIgFyIAAgAXZqQQJ0' +
+            'QbgLaigCACEACyAARQ0BCwNAIAAoAgRBeHEgBmsiAiAESSEBIAIgBCABGyEEIAAgAyABGyEDIAAoAhAi' +
+            'AQR/IAEFIAAoAhQLIgANAAsLIANFDQAgBEGQCSgCACAGa08NACADKAIYIQcgAyADKAIMIgJHBEAgAygC' +
+            'CCIAQZgJKAIASRogACACNgIMIAIgADYCCAwJCyADQRRqIgEoAgAiAEUEQCADKAIQIgBFDQMgA0EQaiEB' +
+            'CwNAIAEhBSAAIgJBFGoiASgCACIADQAgAkEQaiEBIAIoAhAiAA0ACyAFQQA2AgAMCAsgBkGQCSgCACIB' +
+            'TQRAQZwJKAIAIQACQCABIAZrIgJBEE8EQEGQCSACNgIAQZwJIAAgBmoiAzYCACADIAJBAXI2AgQgACAB' +
+            'aiACNgIAIAAgBkEDcjYCBAwBC0GcCUEANgIAQZAJQQA2AgAgACABQQNyNgIEIAAgAWoiASABKAIEQQFy' +
+            'NgIECyAAQQhqIQAMCgsgBkGUCSgCACICSQRAQZQJIAIgBmsiATYCAEGgCUGgCSgCACIAIAZqIgI2AgAg' +
+            'AiABQQFyNgIEIAAgBkEDcjYCBCAAQQhqIQAMCgtBACEAIAZBL2oiBAJ/QeAMKAIABEBB6AwoAgAMAQtB' +
+            '7AxCfzcCAEHkDEKAoICAgIAENwIAQeAMIAtBDGpBcHFB2KrVqgVzNgIAQfQMQQA2AgBBxAxBADYCAEGA' +
+            'IAsiAWoiBUEAIAFrIghxIgEgBk0NCUHADCgCACIDBEBBuAwoAgAiByABaiIJIAdNDQogAyAJSQ0KC0HE' +
+            'DC0AAEEEcQ0EAkACQEGgCSgCACIDBEBByAwhAANAIAMgACgCACIHTwRAIAcgACgCBGogA0sNAwsgACgC' +
+            'CCIADQALC0EAEA4iAkF/Rg0FIAEhBUHkDCgCACIAQQFrIgMgAnEEQCABIAJrIAIgA2pBACAAa3FqIQUL' +
+            'IAUgBk0NBSAFQf7///8HSw0FQcAMKAIAIgAEQEG4DCgCACIDIAVqIgggA00NBiAAIAhJDQYLIAUQDiIA' +
+            'IAJHDQEMBwsgBSACayAIcSIFQf7///8HSw0EIAUQDiICIAAoAgAgACgCBGpGDQMgAiEACwJAIABBf0YN' +
+            'ACAGQTBqIAVNDQBB6AwoAgAiAiAEIAVrakEAIAJrcSICQf7///8HSwRAIAAhAgwHCyACEA5Bf0cEQCAC' +
+            'IAVqIQUgACECDAcLQQAgBWsQDhoMBAsgACICQX9HDQUMAwtBACEDDAcLQQAhAgwFCyACQX9HDQILQcQM' +
+            'QcQMKAIAQQRyNgIACyABQf7///8HSw0BIAEQDiECQQAQDiEAIAJBf0YNASAAQX9GDQEgACACTQ0BIAAg' +
+            'AmsiBSAGQShqTQ0BC0G4DEG4DCgCACAFaiIANgIAQbwMKAIAIABJBEBBvAwgADYCAAsCQAJAAkBBoAko' +
+            'AgAiBARAQcgMIQADQCACIAAoAgAiASAAKAIEIgNqRg0CIAAoAggiAA0ACwwCC0GYCSgCACIAQQAgACAC' +
+            'TRtFBEBBmAkgAjYCAAtBACEAQcwMIAU2AgBByAwgAjYCAEGoCUF/NgIAQawJQeAMKAIANgIAQdQMQQA2' +
+            'AgADQCAAQQN0IgFBuAlqIAFBsAlqIgM2AgAgAUG8CWogAzYCACAAQQFqIgBBIEcNAAtBlAkgBUEoayIA' +
+            'QXggAmtBB3FBACACQQhqQQdxGyIBayIDNgIAQaAJIAEgAmoiATYCACABIANBAXI2AgQgACACakEoNgIE' +
+            'QaQJQfAMKAIANgIADAILIAAtAAxBCHENACABIARLDQAgAiAETQ0AIAAgAyAFajYCBEGgCSAEQXggBGtB' +
+            'B3FBACAEQQhqQQdxGyIAaiIBNgIAQZQJQZQJKAIAIAVqIgIgAGsiADYCACABIABBAXI2AgQgAiAEakEo' +
+            'NgIEQaQJQfAMKAIANgIADAELQZgJKAIAIAJLBEBBmAkgAjYCAAsgAiAFaiEBQcgMIQACQAJAAkACQAJA' +
+            'AkADQCABIAAoAgBHBEAgACgCCCIADQEMAgsLIAAtAAxBCHFFDQELQcgMIQADQCAEIAAoAgAiAU8EQCAB' +
+            'IAAoAgRqIgMgBEsNAwsgACgCCCEADAALAAsgACACNgIAIAAgACgCBCAFajYCBCACQXggAmtBB3FBACAC' +
+            'QQhqQQdxG2oiByAGQQNyNgIEIAFBeCABa0EHcUEAIAFBCGpBB3EbaiIFIAYgB2oiBmshACAEIAVGBEBB' +
+            'oAkgBjYCAEGUCUGUCSgCACAAaiIANgIAIAYgAEEBcjYCBAwDC0GcCSgCACAFRgRAQZwJIAY2AgBBkAlB' +
+            'kAkoAgAgAGoiADYCACAGIABBAXI2AgQgACAGaiAANgIADAMLIAUoAgQiBEEDcUEBRgRAIARBeHEhCQJA' +
+            'IARB/wFNBEAgBSgCCCIBIARBA3YiA0EDdEGwCWpGGiABIAUoAgwiAkYEQEGICUGICSgCAEF+IAN3cTYC' +
+            'AAwCCyABIAI2AgwgAiABNgIIDAELIAUoAhghCAJAIAUgBSgCDCICRwRAIAUoAggiASACNgIMIAIgATYC' +
+            'CAwBCwJAIAVBFGoiBCgCACIBDQAgBUEQaiIEKAIAIgENAEEAIQIMAQsDQCAEIQMgASICQRRqIgQoAgAi' +
+            'AQ0AIAJBEGohBCACKAIQIgENAAsgA0EANgIACyAIRQ0AAkAgBSgCHCIBQQJ0QbgLaiIDKAIAIAVGBEAg' +
+            'AyACNgIAIAINAUGMCUGMCSgCAEF+IAF3cTYCAAwCCyAIQRBBFCAIKAIQIAVGG2ogAjYCACACRQ0BCyAC' +
+            'IAg2AhggBSgCECIBBEAgAiABNgIQIAEgAjYCGAsgBSgCFCIBRQ0AIAIgATYCFCABIAI2AhgLIAUgCWoi' +
+            'BSgCBCEEIAAgCWohAAsgBSAEQX5xNgIEIAYgAEEBcjYCBCAAIAZqIAA2AgAgAEH/AU0EQCAAQXhxQbAJ' +
+            'aiEBAn9BiAkoAgAiAkEBIABBA3Z0IgBxRQRAQYgJIAAgAnI2AgAgAQwBCyABKAIICyEAIAEgBjYCCCAA' +
+            'IAY2AgwgBiABNgIMIAYgADYCCAwDC0EfIQQgAEH///8HTQRAIABBCHYiASABQYD+P2pBEHZBCHEiAXQi' +
+            'AiACQYDgH2pBEHZBBHEiAnQiAyADQYCAD2pBEHZBAnEiA3RBD3YgASACciADcmsiAUEBdCAAIAFBFWp2' +
+            'QQFxckEcaiEECyAGIAQ2AhwgBkIANwIQIARBAnRBuAtqIQECQEGMCSgCACICQQEgBHQiA3FFBEBBjAkg' +
+            'AiADcjYCACABIAY2AgAMAQsgAEEAQRkgBEEBdmsgBEEfRht0IQQgASgCACECA0AgAiIBKAIEQXhxIABG' +
+            'DQMgBEEddiECIARBAXQhBCABIAJBBHFqIgMoAhAiAg0ACyADIAY2AhALIAYgATYCGCAGIAY2AgwgBiAG' +
+            'NgIIDAILQZQJIAVBKGsiAEF4IAJrQQdxQQAgAkEIakEHcRsiAWsiCDYCAEGgCSABIAJqIgE2AgAgASAI' +
+            'QQFyNgIEIAAgAmpBKDYCBEGkCUHwDCgCADYCACAEIANBJyADa0EHcUEAIANBJ2tBB3EbakEvayIAIAAg' +
+            'BEEQakkbIgFBGzYCBCABQdAMKQIANwIQIAFByAwpAgA3AghB0AwgAUEIajYCAEHMDCAFNgIAQcgMIAI2' +
+            'AgBB1AxBADYCACABQRhqIQADQCAAQQc2AgQgAEEIaiECIABBBGohACACIANJDQALIAEgBEYNAyABIAEo' +
+            'AgRBfnE2AgQgBCABIARrIgJBAXI2AgQgASACNgIAIAJB/wFNBEAgAkF4cUGwCWohAAJ/QYgJKAIAIgFB' +
+            'ASACQQN2dCICcUUEQEGICSABIAJyNgIAIAAMAQsgACgCCAshASAAIAQ2AgggASAENgIMIAQgADYCDCAE' +
+            'IAE2AggMBAtBHyEAIAJB////B00EQCACQQh2IgAgAEGA/j9qQRB2QQhxIgB0IgEgAUGA4B9qQRB2QQRx' +
+            'IgF0IgMgA0GAgA9qQRB2QQJxIgN0QQ92IAAgAXIgA3JrIgBBAXQgAiAAQRVqdkEBcXJBHGohAAsgBCAA' +
+            'NgIcIARCADcCECAAQQJ0QbgLaiEBAkBBjAkoAgAiA0EBIAB0IgVxRQRAQYwJIAMgBXI2AgAgASAENgIA' +
+            'DAELIAJBAEEZIABBAXZrIABBH0YbdCEAIAEoAgAhAwNAIAMiASgCBEF4cSACRg0EIABBHXYhAyAAQQF0' +
+            'IQAgASADQQRxaiIFKAIQIgMNAAsgBSAENgIQCyAEIAE2AhggBCAENgIMIAQgBDYCCAwDCyABKAIIIgAg' +
+            'BjYCDCABIAY2AgggBkEANgIYIAYgATYCDCAGIAA2AggLIAdBCGohAAwFCyABKAIIIgAgBDYCDCABIAQ2' +
+            'AgggBEEANgIYIAQgATYCDCAEIAA2AggLQZQJKAIAIgAgBk0NAEGUCSAAIAZrIgE2AgBBoAlBoAkoAgAi' +
+            'ACAGaiICNgIAIAIgAUEBcjYCBCAAIAZBA3I2AgQgAEEIaiEADAMLQYQJQTA2AgBBACEADAILAkAgB0UN' +
+            'AAJAIAMoAhwiAEECdEG4C2oiASgCACADRgRAIAEgAjYCACACDQFBjAkgCEF+IAB3cSIINgIADAILIAdB' +
+            'EEEUIAcoAhAgA0YbaiACNgIAIAJFDQELIAIgBzYCGCADKAIQIgAEQCACIAA2AhAgACACNgIYCyADKAIU' +
+            'IgBFDQAgAiAANgIUIAAgAjYCGAsCQCAEQQ9NBEAgAyAEIAZqIgBBA3I2AgQgACADaiIAIAAoAgRBAXI2' +
+            'AgQMAQsgAyAGQQNyNgIEIAMgBmoiAiAEQQFyNgIEIAIgBGogBDYCACAEQf8BTQRAIARBeHFBsAlqIQAC' +
+            'f0GICSgCACIBQQEgBEEDdnQiBHFFBEBBiAkgASAEcjYCACAADAELIAAoAggLIQEgACACNgIIIAEgAjYC' +
+            'DCACIAA2AgwgAiABNgIIDAELQR8hACAEQf///wdNBEAgBEEIdiIAIABBgP4/akEQdkEIcSIAdCIBIAFB' +
+            'gOAfakEQdkEEcSIBdCIFIAVBgIAPakEQdkECcSIFdEEPdiAAIAFyIAVyayIAQQF0IAQgAEEVanZBAXFy' +
+            'QRxqIQALIAIgADYCHCACQgA3AhAgAEECdEG4C2ohAQJAAkAgCEEBIAB0IgVxRQRAQYwJIAUgCHI2AgAg' +
+            'ASACNgIADAELIARBAEEZIABBAXZrIABBH0YbdCEAIAEoAgAhBgNAIAYiASgCBEF4cSAERg0CIABBHXYh' +
+            'BSAAQQF0IQAgASAFQQRxaiIFKAIQIgYNAAsgBSACNgIQCyACIAE2AhggAiACNgIMIAIgAjYCCAwBCyAB' +
+            'KAIIIgAgAjYCDCABIAI2AgggAkEANgIYIAIgATYCDCACIAA2AggLIANBCGohAAwBCwJAIAlFDQACQCAC' +
+            'KAIcIgBBAnRBuAtqIgEoAgAgAkYEQCABIAM2AgAgAw0BQYwJIApBfiAAd3E2AgAMAgsgCUEQQRQgCSgC' +
+            'ECACRhtqIAM2AgAgA0UNAQsgAyAJNgIYIAIoAhAiAARAIAMgADYCECAAIAM2AhgLIAIoAhQiAEUNACAD' +
+            'IAA2AhQgACADNgIYCwJAIARBD00EQCACIAQgBmoiAEEDcjYCBCAAIAJqIgAgACgCBEEBcjYCBAwBCyAC' +
+            'IAZBA3I2AgQgAiAGaiIDIARBAXI2AgQgAyAEaiAENgIAIAcEQCAHQXhxQbAJaiEAQZwJKAIAIQECf0EB' +
+            'IAdBA3Z0IgYgBXFFBEBBiAkgBSAGcjYCACAADAELIAAoAggLIQUgACABNgIIIAUgATYCDCABIAA2Agwg' +
+            'ASAFNgIIC0GcCSADNgIAQZAJIAQ2AgALIAJBCGohAAsgC0EQaiQAIAALpQwBB38CQCAARQ0AIABBCGsi' +
+            'AiAAQQRrKAIAIgFBeHEiAGohBQJAIAFBAXENACABQQNxRQ0BIAIgAigCACIBayICQZgJKAIASQ0BIAAg' +
+            'AWohAEGcCSgCACACRwRAIAFB/wFNBEAgAigCCCIEIAFBA3YiAUEDdEGwCWpGGiAEIAIoAgwiA0YEQEGI' +
+            'CUGICSgCAEF+IAF3cTYCAAwDCyAEIAM2AgwgAyAENgIIDAILIAIoAhghBgJAIAIgAigCDCIBRwRAIAIo' +
+            'AggiAyABNgIMIAEgAzYCCAwBCwJAIAJBFGoiBCgCACIDDQAgAkEQaiIEKAIAIgMNAEEAIQEMAQsDQCAE' +
+            'IQcgAyIBQRRqIgQoAgAiAw0AIAFBEGohBCABKAIQIgMNAAsgB0EANgIACyAGRQ0BAkAgAigCHCIEQQJ0' +
+            'QbgLaiIDKAIAIAJGBEAgAyABNgIAIAENAUGMCUGMCSgCAEF+IAR3cTYCAAwDCyAGQRBBFCAGKAIQIAJG' +
+            'G2ogATYCACABRQ0CCyABIAY2AhggAigCECIDBEAgASADNgIQIAMgATYCGAsgAigCFCIDRQ0BIAEgAzYC' +
+            'FCADIAE2AhgMAQsgBSgCBCIBQQNxQQNHDQBBkAkgADYCACAFIAFBfnE2AgQgAiAAQQFyNgIEIAAgAmog' +
+            'ADYCAA8LIAIgBU8NACAFKAIEIgFBAXFFDQACQCABQQJxRQRAQaAJKAIAIAVGBEBBoAkgAjYCAEGUCUGU' +
+            'CSgCACAAaiIANgIAIAIgAEEBcjYCBCACQZwJKAIARw0DQZAJQQA2AgBBnAlBADYCAA8LQZwJKAIAIAVG' +
+            'BEBBnAkgAjYCAEGQCUGQCSgCACAAaiIANgIAIAIgAEEBcjYCBCAAIAJqIAA2AgAPCyABQXhxIABqIQAC' +
+            'QCABQf8BTQRAIAUoAggiBCABQQN2IgFBA3RBsAlqRhogBCAFKAIMIgNGBEBBiAlBiAkoAgBBfiABd3E2' +
+            'AgAMAgsgBCADNgIMIAMgBDYCCAwBCyAFKAIYIQYCQCAFIAUoAgwiAUcEQCAFKAIIIgNBmAkoAgBJGiAD' +
+            'IAE2AgwgASADNgIIDAELAkAgBUEUaiIEKAIAIgMNACAFQRBqIgQoAgAiAw0AQQAhAQwBCwNAIAQhByAD' +
+            'IgFBFGoiBCgCACIDDQAgAUEQaiEEIAEoAhAiAw0ACyAHQQA2AgALIAZFDQACQCAFKAIcIgRBAnRBuAtq' +
+            'IgMoAgAgBUYEQCADIAE2AgAgAQ0BQYwJQYwJKAIAQX4gBHdxNgIADAILIAZBEEEUIAYoAhAgBUYbaiAB' +
+            'NgIAIAFFDQELIAEgBjYCGCAFKAIQIgMEQCABIAM2AhAgAyABNgIYCyAFKAIUIgNFDQAgASADNgIUIAMg' +
+            'ATYCGAsgAiAAQQFyNgIEIAAgAmogADYCACACQZwJKAIARw0BQZAJIAA2AgAPCyAFIAFBfnE2AgQgAiAA' +
+            'QQFyNgIEIAAgAmogADYCAAsgAEH/AU0EQCAAQXhxQbAJaiEBAn9BiAkoAgAiA0EBIABBA3Z0IgBxRQRA' +
+            'QYgJIAAgA3I2AgAgAQwBCyABKAIICyEAIAEgAjYCCCAAIAI2AgwgAiABNgIMIAIgADYCCA8LQR8hBCAA' +
+            'Qf///wdNBEAgAEEIdiIBIAFBgP4/akEQdkEIcSIEdCIBIAFBgOAfakEQdkEEcSIDdCIBIAFBgIAPakEQ' +
+            'dkECcSIBdEEPdiADIARyIAFyayIBQQF0IAAgAUEVanZBAXFyQRxqIQQLIAIgBDYCHCACQgA3AhAgBEEC' +
+            'dEG4C2ohBwJAAkACQEGMCSgCACIDQQEgBHQiAXFFBEBBjAkgASADcjYCACAHIAI2AgAgAiAHNgIYDAEL' +
+            'IABBAEEZIARBAXZrIARBH0YbdCEEIAcoAgAhAQNAIAEiAygCBEF4cSAARg0CIARBHXYhASAEQQF0IQQg' +
+            'AyABQQRxaiIHQRBqKAIAIgENAAsgByACNgIQIAIgAzYCGAsgAiACNgIMIAIgAjYCCAwBCyADKAIIIgAg' +
+            'AjYCDCADIAI2AgggAkEANgIYIAIgAzYCDCACIAA2AggLQagJQagJKAIAQQFrIgBBfyAAGzYCAAsLowMC' +
+            'An8BfgJAAn9BACAARQ0AGiAArSABrX4iBKciAiAAIAFyQYCABEkNABpBfyACIARCIIinGwsiABALIgFF' +
+            'DQAgAUEEay0AAEEDcUUNAAJAIABFDQAgAUEAOgAAIAAgAWoiAkEBa0EAOgAAIABBA0kNACABQQA6AAIg' +
+            'AUEAOgABIAJBA2tBADoAACACQQJrQQA6AAAgAEEHSQ0AIAFBADoAAyACQQRrQQA6AAAgAEEJSQ0AIAFB' +
+            'ACABa0EDcSICaiIDQQA2AgAgAyAAIAJrQXxxIgBqIgJBBGtBADYCACAAQQlJDQAgA0EANgIIIANBADYC' +
+            'BCACQQhrQQA2AgAgAkEMa0EANgIAIABBGUkNACADQQA2AhggA0EANgIUIANBADYCECADQQA2AgwgAkEQ' +
+            'a0EANgIAIAJBFGtBADYCACACQRhrQQA2AgAgAkEca0EANgIAIAAgA0EEcUEYciIAayICQSBJDQAgACAD' +
+            'aiEAA0AgAEIANwMYIABCADcDECAAQgA3AwggAEIANwMAIABBIGohACACQSBrIgJBH0sNAAsLCyABC2wB' +
+            'An9BhAgoAgAiASAAQQNqQXxxIgJqIQACQCACQQAgACABTRsNACAAPwBBEHRLBEAgAD8AQRB0a0H//wNq' +
+            'QRB2QABBf0YEf0EABUEAEANBAQtFDQELQYQIIAA2AgAgAQ8LQYQJQTA2AgBBfwsEACMACwYAIAAkAAsQ' +
+            'ACMAIABrQXBxIgAkACAACwsMAQBBgggLBYA/gAZQ' +
+            '';
+            const wasmBytes = Uint8Array.from(atob(WASM_BASE64), c => c.charCodeAt(0));
+            if (!context.wasm) {
+                const module = new WebAssembly.Module(wasmBytes);
+                const instance = new WebAssembly.Instance(module, {});
+                context.wasm = instance.exports;
+            }
+            const wasmMemF32 = new Float32Array(context.wasm.memory.buffer);
 
             // If the plugin is disabled, bypass processing.
             if (!parameters.en) return data;
@@ -206,149 +389,47 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 // Pre-compute output gain in linear scale
                 context.outputGain = Math.pow(10, context.wg / 20);
+                if (!context.wasmInitialized) {
+                    context.wasm.init(context.N, chs);
+                    context.ptrR = context.wasm._malloc(context.N * 4);
+                    wasmMemF32.set(context.R, context.ptrR / 4);
+                    context.wasm.set_R(context.ptrR);
+                    context.wasmInitialized = true;
+                } else if (context.prevN !== context.N) {
+                    context.wasm._free(context.ptrR);
+                    context.ptrR = context.wasm._malloc(context.N * 4);
+                    context.wasm.init(context.N, chs);
+                    wasmMemF32.set(context.R, context.ptrR / 4);
+                    context.wasm.set_R(context.ptrR);
+                } else {
+                    wasmMemF32.set(context.R, context.ptrR / 4);
+                    context.wasm.set_R(context.ptrR);
+                }
+                context.wasm.set_coeffs(context.g, context.trCoeff,
+                    context.rm_b0, context.rm_a1, context.rm_a2,
+                    context.rt_b0, context.rt_a1,
+                    context.lrCoeffs.b0_lp, context.lrCoeffs.b1_lp, context.lrCoeffs.b2_lp,
+                    context.lrCoeffs.b0_hp, context.lrCoeffs.b1_hp, context.lrCoeffs.b2_hp,
+                    context.lrCoeffs.a1_c, context.lrCoeffs.a2_c,
+                    context.outputGain);
+                context.prevN = context.N;
 
                 context.initialized = true;
             } // End of needsRecalc block
 
             /* ------------------ 2. Sample processing loop ---------------- */
-            const N = context.N;             // Number of waveguide segments
-            const R = context.R;             // Reflection coefficient array [N]
-            const g = context.g;             // Damping gain per segment
-            const trCoeff = context.trCoeff; // Throat reflection coefficient
-
-            const fwd = context.fwd; // [chs][N+1] Forward wave states
-            const rev = context.rev; // [chs][N+1] Reverse wave states
-
-            const fw_temp = context.fw_temp; // [N+1] Temp buffer for next forward wave
-            const rv_temp = context.rv_temp; // [N+1] Temp buffer for next reverse wave
-
-            // Mouth reflection filter coefficients and states
-            const rm_b0 = context.rm_b0;
-            const rm_a1 = context.rm_a1;
-            const rm_a2 = context.rm_a2;
-            const rm_y1_states = context.rm_y1_states; // [chs] y[n-1]
-            const rm_y2_states = context.rm_y2_states; // [chs] y[n-2]
-
-            // Throat reflection filter coefficients and states
-            const rt_b0 = context.rt_b0;
-            const rt_a1 = context.rt_a1;
-            const rt_y1_states = context.rt_y1_states;
-
-            // Crossover filter coefficients and states
-            const { b0_lp, b1_lp, b2_lp, b0_hp, b1_hp, b2_hp, a1_c, a2_c } = context.lrCoeffs;
-            const lpStages = context.lrStates.low;  // [2][chs] Low-pass states
-            const hpStages = context.lrStates.high; // [2][chs] High-pass states
-
-            // Low-band delay buffer and index array
-            const lowDelay = context.lowDelay;       // [chs][N] Delay buffer
-            const lowDelayIdx = context.lowDelayIdx; // [chs] Current write indices
-
-            // Output gain (linear)
-            const outputGain = context.outputGain;
-
-            // --- Channel Loop ---
-            for (let ch = 0; ch < chs; ch++) {
-                const channelOffset = ch * bs; // Offset for current channel in data buffer
-                const fw_current = fwd[ch]; // Current forward wave states [N+1]
-                const rv_current = rev[ch]; // Current reverse wave states [N+1]
-
-                // --- Load channel-specific states ---
-                let rm_y1 = rm_y1_states[ch];
-                let rm_y2 = rm_y2_states[ch];
-
-                let rt_y1 = rt_y1_states[ch];
-
-                const lpState1 = lpStages[0][ch]; // Crossover filter states
-                const lpState2 = lpStages[1][ch];
-                const hpState1 = hpStages[0][ch];
-                const hpState2 = hpStages[1][ch];
-
-                let currentLowDelayWriteIdx = lowDelayIdx[ch]; // Low-band delay state
-                const currentLowDelayLine = lowDelay[ch];
-
-                // --- Sample Loop ---
-                for (let i = 0; i < bs; i++) {
-                    const inputSample = data[channelOffset + i]; // Get input sample
-
-                    // --- Apply Crossover Filter (4th order LR) ---
-                    let y1_lp, y1_hp;
-                    let outputLow, outputHigh;
-
-                    // Low-pass path - Stage 1 (DF-II Transposed)
-                    y1_lp = b0_lp * inputSample + b1_lp * lpState1.x1 + b2_lp * lpState1.x2 - a1_c * lpState1.y1 - a2_c * lpState1.y2;
-                    lpState1.x2 = lpState1.x1; lpState1.x1 = inputSample; lpState1.y2 = lpState1.y1; lpState1.y1 = y1_lp;
-                    // Low-pass path - Stage 2
-                    outputLow = b0_lp * y1_lp + b1_lp * lpState2.x1 + b2_lp * lpState2.x2 - a1_c * lpState2.y1 - a2_c * lpState2.y2;
-                    lpState2.x2 = lpState2.x1; lpState2.x1 = y1_lp; lpState2.y2 = lpState2.y1; lpState2.y1 = outputLow;
-
-                    // High-pass path - Stage 1
-                    y1_hp = b0_hp * inputSample + b1_hp * hpState1.x1 + b2_hp * hpState1.x2 - a1_c * hpState1.y1 - a2_c * hpState1.y2;
-                    hpState1.x2 = hpState1.x1; hpState1.x1 = inputSample; hpState1.y2 = hpState1.y1; hpState1.y1 = y1_hp;
-                    // High-pass path - Stage 2
-                    outputHigh = b0_hp * y1_hp + b1_hp * hpState2.x1 + b2_hp * hpState2.x2 - a1_c * hpState2.y1 - a2_c * hpState2.y2;
-                    hpState2.x2 = hpState2.x1; hpState2.x1 = y1_hp; hpState2.y2 = hpState2.y1; hpState2.y1 = outputHigh;
-
-                    // --- Propagate waves along the horn segments ---
-                    // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
-                    for (let j = 0; j < N; j++) {
-                        const Rj = R[j];           // Reflection coefficient at junction j
-                        const f_in = fw_current[j];   // Forward wave arriving at j from left
-                        const r_in = rv_current[j+1]; // Reverse wave arriving at j from right
-                        const scatterDiff = Rj * (f_in - r_in); // Scattering difference term
-                        fw_temp[j+1] = g * (f_in + scatterDiff); // Wave leaving j to the right
-                        rv_temp[j] = g * (r_in + scatterDiff);   // Wave leaving j to the left
-                    }
-
-                    /* ---- Mouth Node Boundary Condition (j=N) ---- */
-                    const fwN = fw_temp[N]; // Forward wave arriving at mouth boundary
-
-                    // Apply 2nd order mouth reflection filter H_R(z)
-                    const reflectedMouthWave = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
-                    rv_temp[N] = reflectedMouthWave; // Update reverse wave at mouth
-
-                    // Update mouth reflection filter states
-                    rm_y2 = rm_y1;
-                    rm_y1 = reflectedMouthWave;
-
-                    /* ---- Throat Node Boundary Condition (j=0) ---- */
-                    // Inject high-pass input signal and add throat reflection.
-                    const throatFiltered = rt_b0 * rv_temp[0] - rt_a1 * rt_y1;
-                    rt_y1 = throatFiltered;
-                    fw_temp[0] = outputHigh + trCoeff * throatFiltered;
-
-                    /* ---- Update Waveguide State for the Next Sample ---- */
-                    fw_current.set(fw_temp);
-                    rv_current.set(rv_temp);
-
-                    /* ---- Calculate Output Signal ---- */
-                    // High-frequency output is transmitted wave at mouth.
-                    const transmittedHighFreq = fwN + reflectedMouthWave;
-
-                    // --- Low-Frequency Path Delay and Mix ---
-                    const delayedLowFreq = currentLowDelayLine[currentLowDelayWriteIdx]; // Read delayed low freq
-                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLow; // Write current low freq
-                    currentLowDelayWriteIdx++; // Increment and wrap delay index
-                    if (currentLowDelayWriteIdx >= N) {
-                        currentLowDelayWriteIdx = 0;
-                    }
-
-                    // Combine processed high-frequency signal (with gain) and delayed low-frequency signal.
-                    data[channelOffset + i] = transmittedHighFreq * outputGain + delayedLowFreq;
-
-                } // --- End of Sample Loop ---
-
-                // --- Store updated channel-specific states ---
-                rm_y1_states[ch] = rm_y1;
-                rm_y2_states[ch] = rm_y2;
-                rt_y1_states[ch] = rt_y1;
-                // Crossover states updated in-place
-                lowDelayIdx[ch] = currentLowDelayWriteIdx; // Store updated delay index
-
-            } // --- End of Channel Loop ---
-
-            return data; // Return processed audio data
-        `);
+            const dataSize = bs * chs;
+            if (!context.ptrData || context.dataSize !== dataSize) {
+                if (context.ptrData) context.wasm._free(context.ptrData);
+                context.ptrData = context.wasm._malloc(dataSize * 4);
+                context.dataSize = dataSize;
+            }
+            wasmMemF32.set(data, context.ptrData / 4);
+            context.wasm.process(context.ptrData, bs);
+            data.set(wasmMemF32.subarray(context.ptrData / 4, context.ptrData / 4 + dataSize));
+            return data;
     }
+        `);
 
     /**
      * Retrieves the current parameter values.
