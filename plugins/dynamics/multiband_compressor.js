@@ -1068,7 +1068,7 @@ class MultibandCompressorPlugin extends PluginBase {
       // to ensure sharpness when scaled or on high-DPI screens.
       canvas.width = 320;
       canvas.height = 320;
-      canvas.style.width = '160px';
+      canvas.style.width = '100%';
       canvas.style.height = '160px';
       canvas.style.backgroundColor = '#222';
       const label = document.createElement('div');

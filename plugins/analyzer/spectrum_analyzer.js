@@ -314,11 +314,14 @@ class SpectrumAnalyzerPlugin extends PluginBase {
 
         const graphContainer = document.createElement('div');
         graphContainer.className = 'graph-container';
-        graphContainer.style.position = 'relative'; graphContainer.style.width = '1024px'; graphContainer.style.height = '480px';
+        graphContainer.style.position = 'relative';
+        graphContainer.style.width = '100%';
+        graphContainer.style.height = '480px';
         
         const canvas = document.createElement('canvas');
         canvas.width = 2048; canvas.height = 960;
-        canvas.style.width = '1024px'; canvas.style.height = '480px';
+        canvas.style.width = '100%';
+        canvas.style.height = '480px';
         graphContainer.appendChild(canvas);
         this.canvas = canvas;
 

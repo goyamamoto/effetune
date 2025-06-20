@@ -276,7 +276,7 @@ class LoudnessEqualizerPlugin extends PluginBase {
         const canvas = document.createElement('canvas');
         canvas.width = 1200;
         canvas.height = 480;
-        canvas.style.width = '600px';
+        canvas.style.width = '100%';
         canvas.style.height = '240px';
 
         // Helper function to create the onChange handler for controls

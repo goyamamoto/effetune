@@ -325,7 +325,7 @@ return data; // Return the modified buffer
         // Configure canvas (created earlier)
         canvas.width = 1200;
         canvas.height = 480;
-        canvas.style.width = '600px';
+        canvas.style.width = '100%';
         canvas.style.height = '240px';
         graphContainer.appendChild(canvas);
 

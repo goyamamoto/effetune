@@ -739,7 +739,7 @@ class MultibandTransientPlugin extends PluginBase {
             const canvas = document.createElement('canvas');
             canvas.width = 612;
             canvas.height = 300;
-            canvas.style.width = '308px';
+            canvas.style.width = '100%';
             canvas.style.height = '150px';
             canvas.style.backgroundColor = '#1a1a1a';
             const label = document.createElement('div');

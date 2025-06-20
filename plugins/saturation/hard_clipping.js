@@ -341,7 +341,7 @@ class HardClippingPlugin extends PluginBase {
         const canvas = document.createElement('canvas');
         canvas.width = 400;
         canvas.height = 400;
-        canvas.style.width = '200px';
+        canvas.style.width = '100%';
         canvas.style.height = '200px';
         canvas.style.backgroundColor = '#222';
         this.canvas = canvas;

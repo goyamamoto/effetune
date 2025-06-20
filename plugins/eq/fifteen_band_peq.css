@@ -17,7 +17,7 @@
 
 .fifteen-band-peq-plugin-ui .fifteen-band-peq-graph {
     position: relative;
-    width: 1024px;
+    width: 100%;
     height: 480px;
     background-color: #1a1a1a;
 }
