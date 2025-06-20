@@ -1089,7 +1089,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.sr = sr; context.chs = chs; context.bs = bs;
                 ['ln','th','mo','cv','dp','tr','co','wg'].forEach(k => { context[k] = parameters[k]; });
                 context.bufPtr = wasm.exports.hrp_get_buffer();
-                context.buffer = new Float32Array(wasm.memory.buffer, context.bufPtr, chs * bs);
+                context.buffer = new Float32Array(wasm.exports.memory.buffer, context.bufPtr, chs * bs);
                 context.initialized = true;
             }
 
