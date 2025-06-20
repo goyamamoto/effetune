@@ -110,6 +110,17 @@ export class AudioManager {
                             isSleepMode: data.isSleepMode,
                             sampleRate: this.audioContext.sampleRate
                         });
+                    } else if (data.type === 'pluginError') {
+                        // Forward plugin error to UI and plugin instances
+                        this.dispatchEvent('pluginError', {
+                            pluginType: data.pluginType,
+                            message: data.message
+                        });
+                        for (const plugin of this.pipeline) {
+                            if (plugin.constructor.name === data.pluginType) {
+                                plugin._handleError('Worklet Error', data.message);
+                            }
+                        }
                     }
                 };
             }
