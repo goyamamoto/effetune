@@ -50,6 +50,8 @@ An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequ
 
 Use the same controls as the Horn Resonator.
 
+**Performance Tip:** The Horn Resonator Plus algorithm can be accelerated with a WebAssembly build written in Rust. Build the crate under `rust/` and copy the generated files to `plugins/resonator/wasm` to enable it.
+
 ## Modal Resonator
 
 A creative effect that adds resonant frequencies to your audio. This plugin creates tuned resonances at specific frequencies, similar to how physical objects vibrate at their natural resonant frequencies. It's perfect for adding unique tonal characteristics, simulating the resonant properties of different materials, or creating special effects.
