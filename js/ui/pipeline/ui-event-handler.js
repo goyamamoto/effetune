@@ -451,12 +451,18 @@ export class UIEventHandler {
         this.draggingPluginInfo = null; // Initialize dragging info storage
 
         // --- Mouse Drag Events ---
-        handle.addEventListener('dragstart', (e) => { 
-           e.stopPropagation(); 
-           e.dataTransfer.setData('application/plugin-id', plugin.id.toString()); 
+        handle.addEventListener('dragstart', (e) => {
+           e.stopPropagation();
+           e.dataTransfer.setData('application/plugin-id', plugin.id.toString());
            e.dataTransfer.setData('application/plugin-index', initialIndex.toString());
            item.classList.add('dragging');
            e.dataTransfer.effectAllowed = 'move';
+           // Use only the header for the drag image to avoid capturing
+           // the expanded plugin UI which can be much larger
+           const headerEl = item.querySelector('.pipeline-item-header');
+           if (headerEl && e.dataTransfer.setDragImage) {
+               e.dataTransfer.setDragImage(headerEl, 0, 0);
+           }
            // Start indicator updates via pipelineListElement's dragenter
         });
 
