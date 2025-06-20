@@ -387,17 +387,23 @@ input[type="checkbox"] {
 .plugin-description {
     display: none;
     position: absolute;
-    left: 100%;
-    top: 0;
     width: 200px;
     padding: 10px;
     background-color: #4d4d4d;
     border-radius: 4px;
     margin-left: 10px;
+    pointer-events: none;
 }
 
-.plugin-item:hover .plugin-description {
+/* Visible state for plugin descriptions */
+.plugin-description.visible {
     display: block;
+}
+
+/* Container used for custom drag image */
+.drag-image-container {
+    display: flex;
+    pointer-events: none;
 }
 
 /* Loading Spinner */
