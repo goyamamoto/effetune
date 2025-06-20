@@ -111,10 +111,23 @@ class PluginProcessor extends AudioWorkletProcessor {
         if (wasmPath) {
             try {
                 const resp = await fetch(wasmPath);
+                if (!resp.ok) {
+                    this.port.postMessage({
+                        type: 'pluginError',
+                        pluginType,
+                        message: `Failed to load wasm (HTTP ${resp.status})`
+                    });
+                    throw new Error(`HTTP ${resp.status}`);
+                }
                 const bytes = await resp.arrayBuffer();
                 const mod = await WebAssembly.instantiate(bytes, {});
                 wasmInstance = mod.instance;
             } catch (e) {
+                this.port.postMessage({
+                    type: 'pluginError',
+                    pluginType,
+                    message: `Failed to load wasm: ${e.message}`
+                });
                 console.error(`Failed to load wasm for ${pluginType}:`, e);
             }
         }
