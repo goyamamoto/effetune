@@ -898,8 +898,9 @@ export class PluginListManager {
                 presets.forEach(name => {
                     const presetDef = this.presetManager.presetDefinitions.get(name);
                     if (presetDef) {
-                        const item = this.createPresetItem(name, presetDef);
+                        const { item, description } = this.createPresetItem(name, presetDef);
                         presetItemsContainer.appendChild(item);
+                        presetItemsContainer.appendChild(description);
                     }
                 });
                 
@@ -928,15 +929,32 @@ export class PluginListManager {
         item.className = 'plugin-item';
         item.draggable = true;
         item.textContent = presetName;
-        
+
         const description = document.createElement('div');
         description.className = 'plugin-description';
         description.textContent = presetDef.description;
-        item.appendChild(description);
+
+        const showDescription = () => {
+            const itemRect = item.getBoundingClientRect();
+            const listRect = this.pluginList.getBoundingClientRect();
+            description.style.left = `${itemRect.right - listRect.left + 10}px`;
+            description.style.top = `${itemRect.top - listRect.top}px`;
+            description.classList.add('visible');
+        };
+
+        const hideDescription = () => {
+            description.classList.remove('visible');
+        };
+
+        item.addEventListener('mouseenter', showDescription);
+        item.addEventListener('mouseleave', hideDescription);
+        item.addEventListener('dragstart', showDescription);
+        item.addEventListener('dragend', hideDescription);
+        item._descriptionElement = description;
 
         this.setupPresetItemEvents(item, presetName);
 
-        return item;
+        return { item, description };
     }
 
     setupPresetItemEvents(item, presetName) {
@@ -981,6 +999,9 @@ export class PluginListManager {
                 type: 'preset',
                 name: presetName
             }));
+            const dragImg = this.createDragImage(item);
+            e.dataTransfer.setDragImage(dragImg, 0, 0);
+            item._dragImg = dragImg;
             item.classList.add('dragging');
         });
 
@@ -988,7 +1009,11 @@ export class PluginListManager {
         item.addEventListener('dragend', () => {
             this.dragMessage.style.display = 'none';
             item.classList.remove('dragging');
-            
+            if (item._dragImg) {
+                item._dragImg.remove();
+                item._dragImg = null;
+            }
+
             // Clear pending timeouts/rAF and hide indicator immediately
             if (this.rafId) {
                 cancelAnimationFrame(this.rafId);
@@ -1025,18 +1050,12 @@ export class PluginListManager {
             isDragging = true;
             item.classList.add('dragging');
 
-            // Create visual clone for dragging
-            clone = item.cloneNode(true);
+            // Create visual clone for dragging including description
+            clone = this.createDragImage(item);
             clone.style.position = 'fixed';
             clone.style.zIndex = '1000';
-            clone.style.width = item.offsetWidth + 'px';
-            clone.style.opacity = '0.9';
-            clone.style.backgroundColor = '#ffffff';
-            clone.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-            clone.style.pointerEvents = 'none';
             clone.style.left = (touch.clientX - touchOffsetX) + 'px';
             clone.style.top = (touch.clientY - touchOffsetY) + 'px';
-            document.body.appendChild(clone);
         });
 
         item.addEventListener('touchmove', (e) => {
@@ -1308,8 +1327,9 @@ export class PluginListManager {
             plugins.forEach(name => {
                 if (this.pluginManager.pluginClasses[name]) {
                     const plugin = new this.pluginManager.pluginClasses[name]();
-                    const item = this.createPluginItem(plugin);
+                    const { item, description } = this.createPluginItem(plugin);
                     pluginItemsContainer.appendChild(item);
+                    pluginItemsContainer.appendChild(description);
                 }
             });
             
@@ -1344,15 +1364,32 @@ export class PluginListManager {
         item.className = 'plugin-item';
         item.draggable = true;
         item.textContent = plugin.name;
-        
+
         const description = document.createElement('div');
         description.className = 'plugin-description';
         description.textContent = plugin.description;
-        item.appendChild(description);
+
+        const showDescription = () => {
+            const itemRect = item.getBoundingClientRect();
+            const listRect = this.pluginList.getBoundingClientRect();
+            description.style.left = `${itemRect.right - listRect.left + 10}px`;
+            description.style.top = `${itemRect.top - listRect.top}px`;
+            description.classList.add('visible');
+        };
+
+        const hideDescription = () => {
+            description.classList.remove('visible');
+        };
+
+        item.addEventListener('mouseenter', showDescription);
+        item.addEventListener('mouseleave', hideDescription);
+        item.addEventListener('dragstart', showDescription);
+        item.addEventListener('dragend', hideDescription);
+        item._descriptionElement = description;
 
         this.setupPluginItemEvents(item, plugin);
 
-        return item;
+        return { item, description };
     }
 
     setupPluginItemEvents(item, plugin) {
@@ -1434,12 +1471,19 @@ export class PluginListManager {
 
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', plugin.name);
+            const dragImg = this.createDragImage(item);
+            e.dataTransfer.setDragImage(dragImg, 0, 0);
+            item._dragImg = dragImg;
             item.classList.add('dragging');
         });
 
         item.addEventListener('dragend', () => {
             this.dragMessage.style.display = 'none';
             item.classList.remove('dragging');
+            if (item._dragImg) {
+                item._dragImg.remove();
+                item._dragImg = null;
+            }
             
             // --- Clear pending timeouts/rAF and hide indicator immediately --- 
             if (this.rafId) { // Cancel any pending frame for indicator update
@@ -1473,18 +1517,12 @@ export class PluginListManager {
             isDragging = true;
             item.classList.add('dragging');
 
-            // Create visual clone for dragging
-            clone = item.cloneNode(true);
+            // Create visual clone for dragging including description
+            clone = this.createDragImage(item);
             clone.style.position = 'fixed';
             clone.style.zIndex = '1000';
-            clone.style.width = item.offsetWidth + 'px';
-            clone.style.opacity = '0.9';
-            clone.style.backgroundColor = '#ffffff'; // Ensure this contrasts well
-            clone.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-            clone.style.pointerEvents = 'none';
             clone.style.left = (touch.clientX - touchOffsetX) + 'px';
             clone.style.top = (touch.clientY - touchOffsetY) + 'px';
-            document.body.appendChild(clone);
         });
 
         item.addEventListener('touchmove', (e) => {
@@ -1571,5 +1609,35 @@ export class PluginListManager {
 
     getInsertionIndicator() {
         return this.insertionIndicator;
+    }
+
+    createDragImage(item) {
+        const container = document.createElement('div');
+        container.className = 'drag-image-container';
+        container.style.position = 'absolute';
+        container.style.top = '-1000px';
+        container.style.left = '-1000px';
+        container.style.zIndex = '1000';
+        container.style.opacity = '0.9';
+
+        const itemClone = item.cloneNode(true);
+        itemClone.classList.remove('dragging');
+        container.appendChild(itemClone);
+
+        const descEl = item._descriptionElement;
+        if (descEl) {
+            const descClone = descEl.cloneNode(true);
+            const itemRect = item.getBoundingClientRect();
+            const descRect = descEl.getBoundingClientRect();
+            const offsetX = descRect.left - itemRect.left;
+            const offsetY = descRect.top - itemRect.top;
+            descClone.style.left = `${offsetX}px`;
+            descClone.style.top = `${offsetY}px`;
+            descClone.classList.add('visible');
+            container.appendChild(descClone);
+        }
+
+        document.body.appendChild(container);
+        return container;
     }
 }
