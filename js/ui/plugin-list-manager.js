@@ -1621,13 +1621,22 @@ export class PluginListManager {
         container.style.opacity = '0.9';
 
         const itemClone = item.cloneNode(true);
-        const desc = item._descriptionElement?.cloneNode(true);
         itemClone.classList.remove('dragging');
         container.appendChild(itemClone);
-        if (desc) {
-            desc.classList.add('visible');
-            container.appendChild(desc);
+
+        const descEl = item._descriptionElement;
+        if (descEl) {
+            const descClone = descEl.cloneNode(true);
+            const itemRect = item.getBoundingClientRect();
+            const descRect = descEl.getBoundingClientRect();
+            const offsetX = descRect.left - itemRect.left;
+            const offsetY = descRect.top - itemRect.top;
+            descClone.style.left = `${offsetX}px`;
+            descClone.style.top = `${offsetY}px`;
+            descClone.classList.add('visible');
+            container.appendChild(descClone);
         }
+
         document.body.appendChild(container);
         return container;
     }
