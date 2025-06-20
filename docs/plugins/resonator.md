@@ -45,6 +45,7 @@ A plugin that simulates the resonance of a horn-loaded speaker using a digital w
 ## Horn Resonator Plus
 
 An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequency-dependent throat reflection for smoother resonance.
+This plugin is accelerated with WebAssembly for lower CPU usage during real-time playback.
 
 ### Quick Start Guide
 
