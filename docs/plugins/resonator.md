@@ -53,7 +53,7 @@ Use the same controls as the Horn Resonator.
 
 ## Horn Resonator Plus (WASM)
 
-A WebAssembly version of the Horn Resonator Plus plugin for improved processing performance. The parameters and usage are identical to the JavaScript version.
+A WebAssembly version of the Horn Resonator Plus plugin for improved processing performance. The parameters and usage are identical to the JavaScript version. If the WASM module cannot be loaded, the plugin automatically falls back to the JavaScript implementation.
 
 ## Modal Resonator
 
