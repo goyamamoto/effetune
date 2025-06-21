@@ -6,6 +6,7 @@
 ## 插件列表
 
 - [Horn Resonator](#horn-resonator) - 模拟号角扬声器系统的共鸣
+- [Horn Resonator Plus](#horn-resonator-plus) - 具有高级反射功能的增强号角模型
 - [Modal Resonator](#modal-resonator) - 带有最多5个共鸣器的频率共鸣效果
 
 ## Horn Resonator
@@ -40,6 +41,37 @@
 4. 使用 **Curve** 微调共振特性（圆锥形：0%，指数：正值，轨道曲线形：负值）。
 5. 调节 **Damping** 和 **Throat Reflection** 以平滑或强调号角共振。
 6. 使用 **Output Gain** 平衡号角声音与旁通低频的电平。
+
+## Horn Resonator Plus
+
+一个增强的号角模型，使用二阶口部反射滤波器和频率依赖的喉部反射实现更平滑的共鸣。
+
+Horn Resonator Plus是基于[Horn Resonator](#horn-resonator)的高级实现，具有更严格的号角传输线模型和以下技术改进：
+
+### 技术增强
+
+- **二阶口部反射滤波器**：更精确地建模口部开口处的频率依赖反射，实现更平滑的共鸣特性
+- **频率依赖的喉部反射**：适应频率的喉部反射特性，实现更自然的声学行为
+
+### 声学特性
+
+Horn Resonator Plus在以下方面提供比标准Horn Resonator更优越的音质：
+
+- **更平滑的频率响应**：二阶口部反射滤波器创造更自然的共鸣峰衰减
+- **更逼真的高频行为**：高频范围内的群延迟特性更接近真实的声学乐器
+
+### 参数和使用
+
+Horn Resonator Plus使用与[Horn Resonator](#horn-resonator)相同的参数。参数描述、设置和推荐值请参考Horn Resonator部分。
+
+### 使用指南
+
+- **Horn Resonator**：当需要具有基本号角特性的轻量级处理时选择
+- **Horn Resonator Plus**：当需要更高质量和更自然的号角声学特性时选择（约+10% CPU成本）
+
+### 快速入门指南
+
+使用与[Horn Resonator](#horn-resonator)相同的控制。当需要高质量结果时选择Horn Resonator Plus。
 
 ---
 
