@@ -3,6 +3,11 @@
 // Plugin implementations should be created in their own files under the plugins directory.
 // See docs/plugin-development.md for plugin development guidelines.
 
+// High resolution timer helper
+const getHighResTime = (globalThis.performance && typeof globalThis.performance.now === 'function')
+    ? () => globalThis.performance.now()
+    : () => Date.now();
+
 class PluginProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super();
@@ -546,13 +551,13 @@ class PluginProcessor extends AudioWorkletProcessor {
                     if (!context._timing) {
                         context._timing = { sum: 0, count: 0, lastLogTime: time };
                     }
-                    startTime = performance.now();
+                    startTime = getHighResTime();
                 }
 
                 result = processor.call(context, context, processingBuffer, processingParams, time);
 
                 if (plugin.type === 'HornResonatorPlusPlugin' && startTime !== undefined) {
-                    const elapsed = performance.now() - startTime;
+                    const elapsed = getHighResTime() - startTime;
                     const t = context._timing;
                     t.sum += elapsed;
                     t.count += 1;
