@@ -44,6 +44,39 @@ impl HornResonatorPlus {
         }
     }
 
+    /// Reinitialize internal buffers when configuration changes.
+    /// This should be called whenever the number of segments `n`, channel count,
+    /// or sample rate changes.
+    #[wasm_bindgen]
+    pub fn reinit(&mut self, sample_rate: f32, channels: usize, n: usize) {
+        let size_changed = self.sample_rate != sample_rate
+            || self.channels != channels
+            || self.n != n;
+
+        if size_changed {
+            self.sample_rate = sample_rate;
+            self.channels = channels;
+            self.n = n;
+
+            self.r = vec![0.0; n];
+            self.fwd = vec![vec![0.0; n + 1]; channels];
+            self.rev = vec![vec![0.0; n + 1]; channels];
+            self.low_delay = vec![vec![0.0; n]; channels];
+            self.low_delay_idx = vec![0; channels];
+            self.rm_y1 = vec![0.0; channels];
+            self.rm_y2 = vec![0.0; channels];
+        } else {
+            for ch in 0..self.channels {
+                self.fwd[ch].fill(0.0);
+                self.rev[ch].fill(0.0);
+                self.low_delay[ch].fill(0.0);
+            }
+            self.low_delay_idx.fill(0);
+            self.rm_y1.fill(0.0);
+            self.rm_y2.fill(0.0);
+        }
+    }
+
     pub fn set_reflection(&mut self, idx: usize, value: f32) {
         if idx < self.n {
             self.r[idx] = value;
