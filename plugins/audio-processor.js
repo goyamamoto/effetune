@@ -575,9 +575,33 @@ class PluginProcessor extends AudioWorkletProcessor {
             // --- 9d. Execute Plugin Processor Function ---
             let result; // Can be the modified processingBuffer or a new buffer returned by processor
             try {
-                 result = processor.call(context, context, processingBuffer, processingParams, time);
-                 // Update context state potentially modified by the processor
-                 pluginContexts.set(plugin.id, context);
+                // Measure processing time for all Resonator plugins
+                let startTime;
+                if (RESONATOR_PLUGIN_TYPES.has(plugin.type)) {
+                    if (!context._timing) {
+                        context._timing = { sum: 0, count: 0, lastLogTime: time };
+                    }
+                    startTime = getHighResTime();
+                }
+
+                result = processor.call(context, context, processingBuffer, processingParams, time);
+
+                if (RESONATOR_PLUGIN_TYPES.has(plugin.type) && startTime !== undefined) {
+                    const elapsed = getHighResTime() - startTime;
+                    const t = context._timing;
+                    t.sum += elapsed;
+                    t.count += 1;
+                    if (time - t.lastLogTime >= 10) {
+                        const avg = t.sum / t.count;
+                        console.log(`${plugin.type} average processing time: ${avg.toFixed(4)} ms`);
+                        t.sum = 0;
+                        t.count = 0;
+                        t.lastLogTime = time;
+                    }
+                }
+
+                // Update context state potentially modified by the processor
+                pluginContexts.set(plugin.id, context);
             } catch(e) {
                  console.error(`Error executing plugin ${plugin.id} (${plugin.type}):`, e);
                  result = processingBuffer; // On error, pass through the original buffer data
