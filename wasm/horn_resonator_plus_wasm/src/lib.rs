@@ -219,7 +219,7 @@ impl Context {
             let mut lp = self.lr_low[ch];
             let mut hp = self.lr_high[ch];
             let mut delay_idx = self.low_delay_idx[ch];
-            let mut delay_buf = &mut self.low_delay[ch];
+            let delay_buf = &mut self.low_delay[ch];
             for i in 0..bs {
                 let idx = ch*bs + i;
                 let input = data[idx];
