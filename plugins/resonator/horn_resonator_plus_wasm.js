@@ -15,7 +15,7 @@ class HornResonatorPlusWasmPlugin extends HornResonatorPlusPlugin {
         // Load the compiled WASM module built by `wasm-pack`.
         // The path is resolved relative to the application root.
         this.registerWasmProcessor(
-            'wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
+            './wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
         );
     }
 }
