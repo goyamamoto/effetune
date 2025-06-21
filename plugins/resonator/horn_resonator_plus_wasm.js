@@ -13,7 +13,7 @@ class HornResonatorPlusWasmPlugin extends HornResonatorPlusPlugin {
         // Try to register the WASM processor. If loading fails, the JS processor
         // from the parent class will continue to be used.
         this.registerWasmProcessor(
-            'wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
+            './wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
         );
     }
 }
