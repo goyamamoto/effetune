@@ -23,12 +23,17 @@ class HornResonatorPlusPlugin extends PluginBase {
 
         // Load optional WebAssembly implementation
         this.wasm = null;
+        this.wasmInstance = null;
         if (typeof WebAssembly === 'object') {
             import('./wasm/horn_resonator_plus.js')
-                .then(mod => {
+                .then(async mod => {
                     console.log('Attempting to load WASM HornResonatorPlus:');
+                    await mod.default();
                     this.wasm = mod;
-                    globalThis.hrpWasm = mod;       // allow registerProcessor to use WASM
+                    const sr = (window.audioCtx && window.audioCtx.sampleRate) || 44100;
+                    const ch = (window.workletNode && window.workletNode.channelCount) || 2;
+                    this.wasmInstance = new mod.HornResonatorPlus(sr, ch, 1);
+                    globalThis.hrpWasm = this.wasmInstance; // allow registerProcessor to use WASM
                 })
                 .catch((err) => {
                     console.warn('Falling back to JS HornResonatorPlus:', err);
@@ -424,7 +429,17 @@ class HornResonatorPlusPlugin extends PluginBase {
             { this.tr = clamp(+p.tr, 0, 0.99); up = true; }
         if (p.co !== undefined && !isNaN(p.co)) { this.co = clamp(+p.co, 20, 5000); up = true; }
 
-        if (up) this.updateParameters();
+        if (up) {
+            if (this.wasmInstance) {
+                const sr = (window.audioCtx && window.audioCtx.sampleRate) || 44100;
+                const ch = (window.workletNode && window.workletNode.channelCount) || 2;
+                const dx = 343 / sr;
+                const L = this.ln / 100;
+                const N = Math.max(1, Math.round(L / dx));
+                this.wasmInstance.reinit(sr, ch, N);
+            }
+            this.updateParameters();
+        }
     }
 
     /**
