@@ -19,9 +19,11 @@ class HornResonatorPlusWasmPlugin extends HornResonatorPlusPlugin {
         // path for dynamic imports becomes `plugins/resonator`. Therefore we
         // need to traverse two directories up to correctly resolve the module
         // path from the application root.
-        this.registerWasmProcessor(
-            '../../wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
-        );
+        const absPath = new URL(
+            '../../wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm',
+            document.currentScript.src
+        ).pathname;
+        this.registerWasmProcessor(absPath);
     }
 }
 
