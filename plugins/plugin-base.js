@@ -23,6 +23,8 @@ class PluginBase {
         // Processor storage
         this.processorString = null;
         this.compiledFunction = null;
+        this.wasmBuffer = null;
+        this.wasmFunction = null;
 
         // Flag to track message handler registration
         this._hasMessageHandler = false;
@@ -151,8 +153,41 @@ class PluginBase {
         }
     }
 
+    // Register a WebAssembly processor
+    async registerWasmProcessor(wasmUrl, exportName = 'process') {
+        try {
+            const response = await fetch(wasmUrl);
+            const buffer = await response.arrayBuffer();
+            this.wasmBuffer = buffer;
+            const { instance } = await WebAssembly.instantiate(buffer, {});
+            const fn = instance.exports[exportName];
+            if (typeof fn !== 'function') {
+                throw new Error(`Export '${exportName}' not found in ${wasmUrl}`);
+            }
+            this.wasmFunction = fn.bind(instance.exports);
+            if (window.workletNode) {
+                window.workletNode.port.postMessage({
+                    type: 'registerWasmProcessor',
+                    pluginType: this.constructor.name,
+                    wasmBuffer: buffer,
+                    exportName
+                }, [buffer]);
+            }
+        } catch (error) {
+            console.error('Failed to register WASM processor:', error);
+        }
+    }
+
     // Execute the compiled processor function for offline processing.
     executeProcessor(context, data, parameters, time) {
+        if (this.wasmFunction) {
+            try {
+                return this.wasmFunction(context, data, parameters, time);
+            } catch (error) {
+                console.error('Failed to execute WASM processor:', error);
+                return data;
+            }
+        }
         if (!this.compiledFunction) {
             console.warn('No compiled function available for plugin:', this.name);
             return data;

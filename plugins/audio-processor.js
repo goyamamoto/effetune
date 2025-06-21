@@ -73,6 +73,9 @@ class PluginProcessor extends AudioWorkletProcessor {
                 case 'registerProcessor':
                     this.registerPluginProcessor(data.pluginType, data.processor);
                     break;
+                case 'registerWasmProcessor':
+                    this.registerWasmProcessor(data.pluginType, data.wasmBuffer, data.exportName);
+                    break;
                 case 'userActivity':
                     { // Block scope for const time
                         // Use performance.now() or a similar high-resolution timer if available and appropriate
@@ -131,7 +134,27 @@ class PluginProcessor extends AudioWorkletProcessor {
         } catch (error) {
              console.error(`Failed to compile processor function for ${pluginType}:`, error);
              // Set a dummy processor to avoid errors later, or handle differently
-             this.pluginProcessors.set(pluginType, (context, data) => data); // Passthrough on error
+            this.pluginProcessors.set(pluginType, (context, data) => data); // Passthrough on error
+        }
+    }
+
+    async registerWasmProcessor(pluginType, wasmBuffer, exportName = 'process') {
+        try {
+            const { instance } = await WebAssembly.instantiate(wasmBuffer, {});
+            const fn = instance.exports[exportName];
+            if (typeof fn !== 'function') {
+                throw new Error(`Export '${exportName}' not found in WASM module`);
+            }
+            this.pluginProcessors.set(pluginType, (context, data, parameters, time) => {
+                try {
+                    return fn(context, data, parameters, time);
+                } catch (e) {
+                    console.error('WASM processor error:', e);
+                    return data;
+                }
+            });
+        } catch (error) {
+            console.error(`Failed to register WASM processor for ${pluginType}:`, error);
         }
     }
 

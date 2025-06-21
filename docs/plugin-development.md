@@ -30,7 +30,16 @@ All plugins must extend the `PluginBase` class and implement its core methods. E
      * Initialize context only when necessary
      * Reset state when channel count changes
 
-3. **process**
+3. **registerWasmProcessor**
+   - When: Called from constructor to load a WebAssembly module for processing
+   - Role:
+     * Fetch and instantiate a `.wasm` file
+     * Register the exported function with the Audio Worklet
+   - Notes:
+     * The exported function should accept `(context, data, parameters, time)`
+     * This method returns a promise but can be invoked without `await`
+
+4. **process**
    - When: Called periodically during audio buffer processing
    - Role:
      * Validate messages and buffers
@@ -41,7 +50,7 @@ All plugins must extend the `PluginBase` class and implement its core methods. E
      * Continue UI updates regardless of enabled state
      * Avoid heavy processing operations
 
-4. **cleanup**
+5. **cleanup**
    - When: Called when plugin is disabled or removed
    - Role:
      * Cancel animation frames
