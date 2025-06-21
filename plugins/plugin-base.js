@@ -156,25 +156,32 @@ class PluginBase {
     // Register a WebAssembly processor
     async registerWasmProcessor(wasmUrl, exportName = 'process') {
         try {
-            let buffer;
-            if (window.location.protocol === 'file:' && window.electronAPI && window.electronAPI.readFileAsBuffer) {
-                const result = await window.electronAPI.readFileAsBuffer(wasmUrl);
-                if (!result.success) {
-                    throw new Error(result.error || 'Failed to read WASM file');
-                }
-                const binaryString = atob(result.buffer);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                buffer = bytes.buffer;
-            } else {
-                const response = await fetch(wasmUrl);
-                buffer = await response.arrayBuffer();
+            let fetchUrl = wasmUrl;
+            if (window.location.protocol === 'file:' && !wasmUrl.startsWith('http')) {
+                const absPath = new URL(wasmUrl, window.location.href).pathname;
+                fetchUrl = `wasm://${absPath}`;
             }
+
+            const response = await fetch(fetchUrl);
+            const bufferPromise = response.arrayBuffer();
+            let instance;
+
+            if (WebAssembly.instantiateStreaming && response.headers.get('content-type') === 'application/wasm') {
+                try {
+                    ({ instance } = await WebAssembly.instantiateStreaming(response.clone(), {}));
+                } catch (e) {
+                    console.warn('instantiateStreaming failed, falling back to ArrayBuffer', e);
+                }
+            }
+
+            const buffer = await bufferPromise;
             this.wasmBuffer = buffer;
+
+            if (!instance) {
+                ({ instance } = await WebAssembly.instantiate(buffer, {}));
+            }
+
             try {
-                const { instance } = await WebAssembly.instantiate(buffer, {});
                 const fn = instance.exports[exportName];
                 if (typeof fn !== 'function') {
                     throw new Error(`Export '${exportName}' not found in ${wasmUrl}`);
@@ -193,7 +200,7 @@ class PluginBase {
                 const jsUrl = wasmUrl.replace(/_bg\.wasm$/, '.js');
                 try {
                     const init = (await import(jsUrl)).default;
-                    const wasm = await init(wasmUrl);
+                    const wasm = await init(fetchUrl);
                     const fn = wasm[exportName];
                     if (typeof fn !== 'function') {
                         throw new Error(`Export '${exportName}' not found in ${jsUrl}`);
