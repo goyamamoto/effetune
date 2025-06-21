@@ -8,6 +8,13 @@ const getHighResTime = (globalThis.performance && typeof globalThis.performance.
     ? () => globalThis.performance.now()
     : () => Date.now();
 
+// Resonator plugin types for timing instrumentation
+const RESONATOR_PLUGIN_TYPES = new Set([
+    'HornResonatorPlugin',
+    'HornResonatorPlusPlugin',
+    'ModalResonatorPlugin'
+]);
+
 class PluginProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super();
@@ -545,9 +552,9 @@ class PluginProcessor extends AudioWorkletProcessor {
             // --- 9d. Execute Plugin Processor Function ---
             let result; // Can be the modified processingBuffer or a new buffer returned by processor
             try {
-                // Measure processing time for HornResonatorPlusPlugin only
+                // Measure processing time for all Resonator plugins
                 let startTime;
-                if (plugin.type === 'HornResonatorPlusPlugin') {
+                if (RESONATOR_PLUGIN_TYPES.has(plugin.type)) {
                     if (!context._timing) {
                         context._timing = { sum: 0, count: 0, lastLogTime: time };
                     }
@@ -556,14 +563,14 @@ class PluginProcessor extends AudioWorkletProcessor {
 
                 result = processor.call(context, context, processingBuffer, processingParams, time);
 
-                if (plugin.type === 'HornResonatorPlusPlugin' && startTime !== undefined) {
+                if (RESONATOR_PLUGIN_TYPES.has(plugin.type) && startTime !== undefined) {
                     const elapsed = getHighResTime() - startTime;
                     const t = context._timing;
                     t.sum += elapsed;
                     t.count += 1;
                     if (time - t.lastLogTime >= 10) {
                         const avg = t.sum / t.count;
-                        console.log(`HornResonatorPlus average processing time: ${avg.toFixed(4)} ms`);
+                        console.log(`${plugin.type} average processing time: ${avg.toFixed(4)} ms`);
                         t.sum = 0;
                         t.count = 0;
                         t.lastLogTime = time;
