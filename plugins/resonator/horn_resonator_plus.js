@@ -106,6 +106,20 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 // Damping gain per segment
                 context.g = Math.pow(10, -context.dp * dx / 20);
+
+                if (!context.gPlus || context.gPlus.length !== N) {
+                    context.gPlus  = new Float32Array(N);   // g * (1 + Rj)
+                    context.gMinus = new Float32Array(N);   // g * (1 - Rj)
+                    context.gRef   = new Float32Array(N);   // g*R
+                }
+                for (let j = 0; j < N; ++j) {
+                    const Rj = R[j];
+                    const gR = context.g * Rj;      // g * Rj
+                    context.gPlus[j]  = context.g + gR; // g*(1+R)
+                    context.gMinus[j] = context.g - gR; // g*(1-R)
+                    context.gRef[j]  = gR;              // g*R
+                }
+
                 // Throat reflection coefficient (base)
                 context.trCoeff = context.tr;
 
@@ -297,16 +311,47 @@ class HornResonatorPlusPlugin extends PluginBase {
                     outputHigh = b0_hp * y1_hp + b1_hp * hpState[4] + b2_hp * hpState[5] - a1_c * hpState[6] - a2_c * hpState[7];
                     hpState[5] = hpState[4]; hpState[4] = y1_hp; hpState[7] = hpState[6]; hpState[6] = outputHigh;
 
-                    // --- Propagate waves along the horn segments ---
+                    /* ---------- Propagate waves along horn segments ---------- */
                     // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
-                    for (let j = 0; j < N; j++) {
-                        const Rj = R[j];           // Reflection coefficient at junction j
-                        const f_in = fw_current[j];   // Forward wave arriving at j from left
-                        const r_in = rv_current[j+1]; // Reverse wave arriving at j from right
-                        const scatterDiff = Rj * (f_in - r_in); // Scattering difference term
-                        fw_next[j+1] = g * (f_in + scatterDiff); // Wave leaving j to the right
-                        rv_next[j] = g * (r_in + scatterDiff);   // Wave leaving j to the left
+                    const gP = context.gPlus;   // Float32Array(N)  g*(1+R)
+                    const gM = context.gMinus;  // Float32Array(N)  g*(1-R)
+                    const gR = context.gRef;    // g*R
+                    
+                    for (let j = 0; j + 1 < N; j += 2) {
+                        const j1 = j + 1;          // junction index
+                        const j2 = j + 2;          // next junction index
+                    
+                        /* ---- segment j ---- */
+                        const f0   = fw_current[j];     // forward in
+                        const r0   = rv_current[j1];    // reverse in
+                        const gP0  = gP[j];
+                        const gM0  = gM[j];
+                        const gR0  = gR[j];
+                        fw_next[j1] = gP0 * f0 - gR0 * r0;
+                        rv_next[j]  = gR0 * f0 + gM0 * r0;
+                    
+                        /* ---- segment j+1 ---- */
+                        const f1   = fw_current[j1];
+                        const r1   = rv_current[j2];
+                        const gP1  = gP[j1];
+                        const gM1  = gM[j1];
+                        const gR1  = gR[j1];
+                        fw_next[j2] = gP1 * f1 - gR1 * r1;
+                        rv_next[j1] = gR1 * f1 + gM1 * r1;
                     }
+                    
+                    if (N & 1) {          // when N is odd
+                        const j   = N - 1;
+                        const jp1 = j + 1;
+                        const fL  = fw_current[j];
+                        const rR  = rv_current[jp1];
+                        const gPj = gP[j];
+                        const gMj = gM[j];
+                        const gRj  = gR[j];
+                        fw_next[jp1] = gPj * fL - gRj * rR;
+                        rv_next[j]   = gRj * fL + gMj * rR;
+                    }
+
 
                     /* ---- Mouth Node Boundary Condition (j=N) ---- */
                     const fwN = fw_next[N]; // Forward wave arriving at mouth boundary
