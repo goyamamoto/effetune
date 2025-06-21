@@ -159,19 +159,31 @@ class PluginBase {
             const response = await fetch(wasmUrl);
             const buffer = await response.arrayBuffer();
             this.wasmBuffer = buffer;
-            const { instance } = await WebAssembly.instantiate(buffer, {});
-            const fn = instance.exports[exportName];
-            if (typeof fn !== 'function') {
-                throw new Error(`Export '${exportName}' not found in ${wasmUrl}`);
-            }
-            this.wasmFunction = fn.bind(instance.exports);
-            if (window.workletNode) {
-                window.workletNode.port.postMessage({
-                    type: 'registerWasmProcessor',
-                    pluginType: this.constructor.name,
-                    wasmBuffer: buffer,
-                    exportName
-                }, [buffer]);
+            try {
+                const { instance } = await WebAssembly.instantiate(buffer, {});
+                const fn = instance.exports[exportName];
+                if (typeof fn !== 'function') {
+                    throw new Error(`Export '${exportName}' not found in ${wasmUrl}`);
+                }
+                this.wasmFunction = fn.bind(instance.exports);
+                if (window.workletNode) {
+                    window.workletNode.port.postMessage({
+                        type: 'registerWasmProcessor',
+                        pluginType: this.constructor.name,
+                        wasmBuffer: buffer,
+                        exportName
+                    }, [buffer]);
+                }
+            } catch (e) {
+                console.warn('Direct WASM instantiation failed, trying wasm-bindgen loader');
+                const jsUrl = wasmUrl.replace(/_bg\.wasm$/, '.js');
+                const init = (await import(jsUrl)).default;
+                const wasm = await init(wasmUrl);
+                const fn = wasm[exportName];
+                if (typeof fn !== 'function') {
+                    throw new Error(`Export '${exportName}' not found in ${jsUrl}`);
+                }
+                this.wasmFunction = fn.bind(wasm);
             }
         } catch (error) {
             console.error('Failed to register WASM processor:', error);
