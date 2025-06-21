@@ -177,13 +177,17 @@ class PluginBase {
             } catch (e) {
                 console.warn('Direct WASM instantiation failed, trying wasm-bindgen loader');
                 const jsUrl = wasmUrl.replace(/_bg\.wasm$/, '.js');
-                const init = (await import(jsUrl)).default;
-                const wasm = await init(wasmUrl);
-                const fn = wasm[exportName];
-                if (typeof fn !== 'function') {
-                    throw new Error(`Export '${exportName}' not found in ${jsUrl}`);
+                try {
+                    const init = (await import(jsUrl)).default;
+                    const wasm = await init(wasmUrl);
+                    const fn = wasm[exportName];
+                    if (typeof fn !== 'function') {
+                        throw new Error(`Export '${exportName}' not found in ${jsUrl}`);
+                    }
+                    this.wasmFunction = fn.bind(wasm);
+                } catch (e2) {
+                    console.error('Failed to load wasm-bindgen module:', e2);
                 }
-                this.wasmFunction = fn.bind(wasm);
             }
         } catch (error) {
             console.error('Failed to register WASM processor:', error);
