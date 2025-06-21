@@ -19,7 +19,7 @@ class HornResonatorPlusWasmPlugin extends PluginBase {
         this.wg = 30.0; // Output signal gain (dB)
 
         // Load the WASM processor implemented in Rust
-        this.registerWasmProcessor('wasm/horn_resonator_plus_wasm/horn_resonator_plus_wasm.wasm');
+        this.registerWasmProcessor('wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm');
     }
 
     getParameters() {
