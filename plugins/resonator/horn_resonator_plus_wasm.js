@@ -12,8 +12,11 @@ class HornResonatorPlusWasmPlugin extends HornResonatorPlusPlugin {
         this.description = 'Horn resonance emulator (WASM)';
         // Try to register the WASM processor. If loading fails, the JS processor
         // from the parent class will continue to be used.
+        // Load the compiled WASM module built by `wasm-pack`. The path is
+        // resolved relative to plugin-base.js (in the plugins directory),
+        // so use "../wasm" to reach the root-level wasm folder.
         this.registerWasmProcessor(
-            './wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
+            '../wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
         );
     }
 }
