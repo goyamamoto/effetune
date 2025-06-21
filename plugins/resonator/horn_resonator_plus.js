@@ -299,13 +299,29 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                     // --- Propagate waves along the horn segments ---
                     // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
-                    for (let j = 0; j < N; j++) {
-                        const Rj = R[j];           // Reflection coefficient at junction j
-                        const f_in = fw_current[j];   // Forward wave arriving at j from left
-                        const r_in = rv_current[j+1]; // Reverse wave arriving at j from right
-                        const scatterDiff = Rj * (f_in - r_in); // Scattering difference term
-                        fw_next[j+1] = g * (f_in + scatterDiff); // Wave leaving j to the right
-                        rv_next[j] = g * (r_in + scatterDiff);   // Wave leaving j to the left
+                    for (let j = 0, Rj, f_in, r_in, scatterDiff; j < N - 1; j += 2) {
+                        Rj = R[j];
+                        f_in = fw_current[j];
+                        r_in = rv_current[j + 1];
+                        scatterDiff = Rj * (f_in - r_in);
+                        fw_next[j + 1] = g * (f_in + scatterDiff);
+                        rv_next[j] = g * (r_in + scatterDiff);
+
+                        Rj = R[j + 1];
+                        f_in = fw_current[j + 1];
+                        r_in = rv_current[j + 2];
+                        scatterDiff = Rj * (f_in - r_in);
+                        fw_next[j + 2] = g * (f_in + scatterDiff);
+                        rv_next[j + 1] = g * (r_in + scatterDiff);
+                    }
+                    if (N & 1) {
+                        const j = N - 1;
+                        const Rj = R[j];
+                        const f_in = fw_current[j];
+                        const r_in = rv_current[j + 1];
+                        const scatterDiff = Rj * (f_in - r_in);
+                        fw_next[j + 1] = g * (f_in + scatterDiff);
+                        rv_next[j] = g * (r_in + scatterDiff);
                     }
 
                     /* ---- Mouth Node Boundary Condition (j=N) ---- */
