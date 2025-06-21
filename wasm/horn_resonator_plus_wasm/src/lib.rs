@@ -209,10 +209,10 @@ impl Context {
         let chs = self.chs; let bs = params.block_size; let n = self.n;
         for ch in 0..chs {
             let mut buf_idx = self.buf_idx[ch];
-            let mut fwd_curr = &mut self.fwd[ch][buf_idx];
-            let mut rev_curr = &mut self.rev[ch][buf_idx];
-            let mut fwd_next = &mut self.fwd[ch][buf_idx^1];
-            let mut rev_next = &mut self.rev[ch][buf_idx^1];
+            let [ref mut f0, ref mut f1] = &mut self.fwd[ch];
+            let (mut fwd_curr, mut fwd_next) = if buf_idx == 0 { (f0, f1) } else { (f1, f0) };
+            let [ref mut r0, ref mut r1] = &mut self.rev[ch];
+            let (mut rev_curr, mut rev_next) = if buf_idx == 0 { (r0, r1) } else { (r1, r0) };
             let mut rm_y1 = self.rm_y1[ch];
             let mut rm_y2 = self.rm_y2[ch];
             let mut rt_y1 = self.rt_y1[ch];
@@ -270,8 +270,8 @@ impl Context {
                 rt_y1=throat_f;
                 fwd_next[0]=output_high + self.tr_coeff*throat_f;
                 buf_idx^=1;
-                let tmp_fwd=fwd_curr; fwd_curr=fwd_next; fwd_next=tmp_fwd;
-                let tmp_rev=rev_curr; rev_curr=rev_next; rev_next=tmp_rev;
+                std::mem::swap(&mut fwd_curr, &mut fwd_next);
+                std::mem::swap(&mut rev_curr, &mut rev_next);
 
                 let transmitted=fw_n + refl;
                 let delayed=delay_buf[delay_idx];
