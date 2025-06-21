@@ -25,14 +25,85 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.wasm = null;
         if (typeof WebAssembly === 'object') {
             import('./wasm/horn_resonator_plus.js')
-                .then(mod =>
-                    mod.default().then(instance => {
-                        console.log('Attempting to load WASM HornResonatorPlus:');
-                        this.wasm = instance;
-                        globalThis.hrpWasm = instance; // allow registerProcessor to use WASM
-                    })
-                )
-                .catch((err) => {
+                .then(mod => mod.default())
+                .then(wasm => {
+                    console.log('Loaded WASM HornResonatorPlus');
+                    this.wasm = wasm;
+                    // Expose processing wrapper for processor string
+                    globalThis.hrpWasmProcess = (context, data, parameters) => {
+                        const C = 343;
+                        const RHO_C = 413;
+                        const PI = Math.PI;
+                        const TWO_PI = 2 * PI;
+                        const SQRT2 = Math.SQRT2;
+                        const EPS = 1e-9;
+
+                        const sr  = parameters.sampleRate;
+                        const chs = parameters.channelCount;
+                        const dx = C / sr;
+                        const L  = parameters.ln / 100;
+                        const N  = Math.max(1, Math.round(L / dx));
+
+                        if (!context.wasm || context.sr !== sr || context.chs !== chs || context.N !== N) {
+                            context.wasm = new wasm.HornResonatorPlus(sr, chs, N);
+                            context.sr = sr;
+                            context.chs = chs;
+                            context.N = N;
+                            context.initialized = false;
+                        }
+
+                        if (!context.initialized ||
+                            ['ln','th','mo','cv','dp','tr','co','wg'].some(k => context[k] !== parameters[k])) {
+                            context.ln = parameters.ln;
+                            context.th = parameters.th;
+                            context.mo = parameters.mo;
+                            context.cv = parameters.cv;
+                            context.dp = parameters.dp;
+                            context.tr = parameters.tr;
+                            context.co = parameters.co;
+                            context.wg = parameters.wg;
+
+                            const curveExponent = Math.pow(10, context.cv / 100);
+                            const throatRadius = context.th / 200;
+                            const mouthRadius = context.mo / 200;
+
+                            for (let i = 0; i < N; i++) {
+                                const r_i = (i === 0)
+                                    ? throatRadius
+                                    : throatRadius + (mouthRadius - throatRadius) * Math.pow(i / N, curveExponent);
+                                const r_i1 = (i + 1 === N)
+                                    ? mouthRadius
+                                    : throatRadius + (mouthRadius - throatRadius) * Math.pow((i + 1) / N, curveExponent);
+                                const Z_i = RHO_C / (PI * Math.max(EPS, r_i * r_i));
+                                const Z_i1 = RHO_C / (PI * Math.max(EPS, r_i1 * r_i1));
+                                const sumZ = Z_i + Z_i1;
+                                const refl = (sumZ < EPS) ? 0 : (Z_i1 - Z_i) / sumZ;
+                                context.wasm.set_reflection(i, refl);
+                            }
+
+                            const g = Math.pow(10, -context.dp * dx / 20);
+                            context.wasm.set_damping(g);
+
+                            const effectiveMouthRadius = mouthRadius;
+                            const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4;
+                            const f_norm = Math.min(fc_mouth, sr * 0.45) / sr;
+                            const pole = 0.99 * Math.exp(-TWO_PI * f_norm);
+                            const rm_a1 = -2 * pole;
+                            const rm_a2 = pole * pole;
+                            const rm_b0 = -1 - rm_a1 - rm_a2;
+                            context.wasm.set_mouth_filter(rm_b0, rm_a1, rm_a2);
+
+                            const outputGain = Math.pow(10, context.wg / 20);
+                            context.wasm.set_output_gain(outputGain);
+
+                            context.initialized = true;
+                        }
+
+                        context.wasm.process(data, data);
+                        return data;
+                    };
+                })
+                .catch(err => {
                     console.warn('Falling back to JS HornResonatorPlus:', err);
                 });
         }
@@ -43,9 +114,9 @@ class HornResonatorPlusPlugin extends PluginBase {
 
         this.registerProcessor(`
             // --- Define constants required within this processor's scope ---
-            if (globalThis.hrpWasm && globalThis.hrpWasm.process) {
+            if (globalThis.hrpWasmProcess) {
                 //console.log('Running WASM HornResonatorPlus:');
-                return globalThis.hrpWasm.process(context, data, parameters);
+                return globalThis.hrpWasmProcess(context, data, parameters);
             }
             //console.log('Running JS HornResonatorPlus:');
             const C = 343;     // Speed of sound in air (m/s)
