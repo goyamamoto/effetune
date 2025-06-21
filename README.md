@@ -272,6 +272,7 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Modulation | Wow Flutter | Time-based modulation effect | [Details](docs/plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | Horn resonance simulation with customizable dimensions | [Details](docs/plugins/resonator.md#horn-resonator) |
 | Resonator | Horn Resonator Plus | Enhanced horn model with advanced reflections | [Details](docs/plugins/resonator.md#horn-resonator-plus) |
+| Resonator | Horn Resonator Plus (WASM) | WebAssembly version of Horn Resonator Plus | [Details](docs/plugins/resonator.md#horn-resonator-plus-wasm) |
 | Resonator | Modal Resonator | Frequency resonance effect with up to 5 resonators | [Details](docs/plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Feedback Delay Network reverb with rich, dense reverb textures | [Details](docs/plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Random scattering reverb with natural diffusion | [Details](docs/plugins/reverb.md#rs-reverb) |
