@@ -5,6 +5,8 @@ node_modules/
 dist/
 out/
 build/
+wasm/**/target/
+wasm/**/Cargo.lock
 
 # Logs
 logs
