@@ -29,7 +29,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                     this.wasm = mod;
                     globalThis.hrpWasm = mod;       // allow registerProcessor to use WASM
                 })
-                .catch(() => {/* fall back to JS */});
+                .catch((err) => {
+                    console.warn('Falling back to JS HornResonatorPlus:', err);
+                });
         }
 
         // Physical constants
