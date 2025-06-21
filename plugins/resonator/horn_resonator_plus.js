@@ -44,8 +44,10 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.registerProcessor(`
             // --- Define constants required within this processor's scope ---
             if (globalThis.hrpWasm && globalThis.hrpWasm.process) {
+                //console.log('Running WASM HornResonatorPlus:');
                 return globalThis.hrpWasm.process(context, data, parameters);
             }
+            //console.log('Running JS HornResonatorPlus:');
             const C = 343;     // Speed of sound in air (m/s)
             const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
             const PI = Math.PI;
