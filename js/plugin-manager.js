@@ -60,6 +60,7 @@ export class PluginManager {
                 return new Promise((resolve) => {
                     const script = document.createElement('script');
                     script.src = url;
+                    script.async = false; // preserve execution order for dependencies
                     script.onload = () => {
                         updateProgress();
                         resolve();
