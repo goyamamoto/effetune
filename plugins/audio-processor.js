@@ -85,31 +85,34 @@ class PluginProcessor extends AudioWorkletProcessor {
                 case 'registerProcessor':
                     this.registerPluginProcessor(data.pluginType, data.processor);
                     break;
+                case 'registerWasmProcessor':
+                    this.registerWasmProcessor(data.pluginType, data.wasmBuffer, data.exportName);
+                    break;
                 case 'userActivity':
-                { // Block scope for const time
-                    // Use performance.now() or a similar high-resolution timer if available and appropriate
-                    // For AudioWorklet, using currentFrame / sampleRate is standard practice.
-                    const time = this.currentFrame / globalThis.sampleRate;
-                    const monitoring = this.audioLevelMonitoring;
-                    monitoring.lastUserActivityTime = time;
+                    { // Block scope for const time
+                        // Use performance.now() or a similar high-resolution timer if available and appropriate
+                        // For AudioWorklet, using currentFrame / sampleRate is standard practice.
+                        const time = this.currentFrame / globalThis.sampleRate;
+                        const monitoring = this.audioLevelMonitoring;
+                        monitoring.lastUserActivityTime = time;
 
-                    if (monitoring.isSleepMode) {
-                        console.log("User activity detected, exiting sleep mode.");
-                        monitoring.isSleepMode = false;
-                        this.port.postMessage({
-                            type: 'sleepModeChanged',
-                            isSleepMode: false
-                        });
+                        if (monitoring.isSleepMode) {
+                            console.log("User activity detected, exiting sleep mode.");
+                            monitoring.isSleepMode = false;
+                            this.port.postMessage({
+                                type: 'sleepModeChanged',
+                                isSleepMode: false
+                            });
+                        }
                     }
-                }
                     break;
                 // Add a case to update SILENCE_THRESHOLD dynamically if needed
                 case 'updateSilenceThreshold':
                     if (typeof data.threshold === 'number') {
-                        this.audioLevelMonitoring.SILENCE_THRESHOLD = data.threshold;
-                        this.audioLevelMonitoring._silenceThresholdAmplitude = Math.pow(10, data.threshold / 20);
+                         this.audioLevelMonitoring.SILENCE_THRESHOLD = data.threshold;
+                         this.audioLevelMonitoring._silenceThresholdAmplitude = Math.pow(10, data.threshold / 20);
                     }
-                    break;
+                     break;
                 case 'setLowLatencyMode':
                     this.lowLatencyMode = !!data.enabled;
                     this.MESSAGE_INTERVAL = this.lowLatencyMode ? 8 : 16;
@@ -144,6 +147,26 @@ class PluginProcessor extends AudioWorkletProcessor {
             console.error(`Failed to compile processor function for ${pluginType}:`, error);
             // Set a dummy processor to avoid errors later, or handle differently
             this.pluginProcessors.set(pluginType, (context, data) => data); // Passthrough on error
+        }
+    }
+
+    async registerWasmProcessor(pluginType, wasmBuffer, exportName = 'process') {
+        try {
+            const { instance } = await WebAssembly.instantiate(wasmBuffer, {});
+            const fn = instance.exports[exportName];
+            if (typeof fn !== 'function') {
+                throw new Error(`Export '${exportName}' not found in WASM module`);
+            }
+            this.pluginProcessors.set(pluginType, (context, data, parameters, time) => {
+                try {
+                    return fn(context, data, parameters, time);
+                } catch (e) {
+                    console.error('WASM processor error:', e);
+                    return data;
+                }
+            });
+        } catch (error) {
+            console.error(`Failed to register WASM processor for ${pluginType}:`, error);
         }
     }
 
@@ -246,7 +269,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                 isSleepMode = false;
                 audioLevelMonitoring.isSleepMode = false;
                 port.postMessage({ type: 'sleepModeChanged', isSleepMode: false });
-                console.log(`Input signal detected at ${time}s, exiting sleep mode.`);
+                 console.log(`Input signal detected at ${time}s, exiting sleep mode.`);
             }
         } else {
             // Only check for entering sleep mode if currently NOT sleeping
@@ -286,7 +309,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             }
             // Zero out any remaining output channels if output has more channels than input
             for (let channel = channelsToCopy; channel < numOutputChannels; channel++) {
-                output[channel].fill(0);
+                 output[channel].fill(0);
             }
 
             // IMPORTANT: Still need to advance the frame counter even when bypassed/sleeping
@@ -429,8 +452,8 @@ class PluginProcessor extends AudioWorkletProcessor {
 
             // Skip if buses are invalid (should not happen if usedBuses logic is correct)
             if (!inputBuffer || !outputBuffer) {
-                console.error(`Invalid bus index for plugin ${plugin.id}: inputBus=${inputBus}, outputBus=${outputBus}`);
-                continue;
+                 console.error(`Invalid bus index for plugin ${plugin.id}: inputBus=${inputBus}, outputBus=${outputBus}`);
+                 continue;
             }
 
             // --- 9a. Channel Processing Logic ---
@@ -481,14 +504,14 @@ class PluginProcessor extends AudioWorkletProcessor {
                     }
                     break;
                 case '56': // Process pair (channels 4, 5)
-                    if (outputChannelCount >= 6) {
+                     if (outputChannelCount >= 6) {
                         processMode = 'pair';
                         pairStartChannel = 4;
                         numProcessingChannels = 2;
                     }
                     break;
-                case '78': // Process pair (channels 6, 7)
-                    if (outputChannelCount >= 8) {
+                 case '78': // Process pair (channels 6, 7)
+                     if (outputChannelCount >= 8) {
                         processMode = 'pair';
                         pairStartChannel = 6;
                         numProcessingChannels = 2;
@@ -510,7 +533,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             if (processMode === 'skip') continue; // Skip plugin if channel spec is invalid for current config
 
             // --- 9b. Prepare Buffers for Plugin Execution ---
-            const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
+             const requiresCopy = (inputBus !== outputBus) || (processMode === 'pair') || (processMode === 'single');
 
             if (processMode === 'all') {
                 if (requiresCopy) {
@@ -537,7 +560,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                 // Copy the selected channel from inputBuffer to the temporary mono buffer
                 tempBuffer.set(inputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize));
                 processingBuffer = tempBuffer; // Plugin processes this temp buffer
-                // Result will be written back from tempBuffer later
+                 // Result will be written back from tempBuffer later
             }
 
             // --- 9c. Prepare Parameters for Plugin ---
@@ -552,90 +575,66 @@ class PluginProcessor extends AudioWorkletProcessor {
             // --- 9d. Execute Plugin Processor Function ---
             let result; // Can be the modified processingBuffer or a new buffer returned by processor
             try {
-                // Measure processing time for all Resonator plugins
-                let startTime;
-                if (RESONATOR_PLUGIN_TYPES.has(plugin.type)) {
-                    if (!context._timing) {
-                        context._timing = { sum: 0, count: 0, lastLogTime: time };
-                    }
-                    startTime = getHighResTime();
-                }
-
-                result = processor.call(context, context, processingBuffer, processingParams, time);
-
-                if (RESONATOR_PLUGIN_TYPES.has(plugin.type) && startTime !== undefined) {
-                    const elapsed = getHighResTime() - startTime;
-                    const t = context._timing;
-                    t.sum += elapsed;
-                    t.count += 1;
-                    if (time - t.lastLogTime >= 10) {
-                        const avg = t.sum / t.count;
-                        console.log(`${plugin.type} average processing time: ${avg.toFixed(4)} ms`);
-                        t.sum = 0;
-                        t.count = 0;
-                        t.lastLogTime = time;
-                    }
-                }
-
-                // Update context state potentially modified by the processor
-                pluginContexts.set(plugin.id, context);
+                 result = processor.call(context, context, processingBuffer, processingParams, time);
+                 // Update context state potentially modified by the processor
+                 pluginContexts.set(plugin.id, context);
             } catch(e) {
-                console.error(`Error executing plugin ${plugin.id} (${plugin.type}):`, e);
-                result = processingBuffer; // On error, pass through the original buffer data
+                 console.error(`Error executing plugin ${plugin.id} (${plugin.type}):`, e);
+                 result = processingBuffer; // On error, pass through the original buffer data
             }
 
 
-            // Determine the actual buffer containing the processed result
-            // Plugins might modify `processingBuffer` in-place or return a new buffer instance.
-            // Assume modification in-place unless result is a Float32Array.
-            const finalResultBuffer = (result instanceof Float32Array) ? result : processingBuffer;
+             // Determine the actual buffer containing the processed result
+             // Plugins might modify `processingBuffer` in-place or return a new buffer instance.
+             // Assume modification in-place unless result is a Float32Array.
+             const finalResultBuffer = (result instanceof Float32Array) ? result : processingBuffer;
 
-            if (!finalResultBuffer) continue; // Skip if result is invalid
+             if (!finalResultBuffer) continue; // Skip if result is invalid
 
-            // --- 9e. Apply Result to Output Bus Buffer ---
-            if (inputBus !== outputBus) {
-                // Additive mixing: Add the processed result to the output buffer
-                if (processMode === 'all') {
-                    for (let i = 0; i < totalSize; i++) {
-                        outputBuffer[i] += finalResultBuffer[i];
-                    }
-                } else if (processMode === 'pair') {
-                    const offset1 = pairStartChannel * blockSize;
-                    const offset2 = (pairStartChannel + 1) * blockSize;
-                    // Add result from temp stereo buffer back to the output bus
-                    for (let i = 0; i < blockSize; i++) {
-                        outputBuffer[offset1 + i] += finalResultBuffer[i]; // Add Ch1
-                        outputBuffer[offset2 + i] += finalResultBuffer[blockSize + i]; // Add Ch2
-                    }
-                } else if (processMode === 'single') {
-                    const offset = singleChannelIndex * blockSize;
-                    // Add result from temp mono buffer back to the output bus
-                    for (let i = 0; i < blockSize; i++) {
-                        outputBuffer[offset + i] += finalResultBuffer[i];
-                    }
-                }
-            } else {
-                // Same input/output bus: Replace content in the output buffer
-                if (processMode === 'all') {
-                    // If processing was done in-place (processingBuffer === outputBuffer) and result wasn't a new array,
-                    // the outputBuffer is already updated.
-                    // If a new buffer was returned by the plugin, copy it back.
-                    if (finalResultBuffer !== outputBuffer) {
-                        outputBuffer.set(finalResultBuffer);
-                    }
-                    // If requiresCopy was true (shouldn't be if inputBus === outputBus),
-                    // this means tempBuffer was used, so copy finalResultBuffer back.
-                    // This logic path needs careful review based on processor guarantees. Assuming direct modification or return.
+             // --- 9e. Apply Result to Output Bus Buffer ---
+             if (inputBus !== outputBus) {
+                 // Additive mixing: Add the processed result to the output buffer
+                 if (processMode === 'all') {
+                     for (let i = 0; i < totalSize; i++) {
+                         outputBuffer[i] += finalResultBuffer[i];
+                     }
+                 } else if (processMode === 'pair') {
+                     const offset1 = pairStartChannel * blockSize;
+                     const offset2 = (pairStartChannel + 1) * blockSize;
+                     // Add result from temp stereo buffer back to the output bus
+                     for (let i = 0; i < blockSize; i++) {
+                         outputBuffer[offset1 + i] += finalResultBuffer[i]; // Add Ch1
+                         outputBuffer[offset2 + i] += finalResultBuffer[blockSize + i]; // Add Ch2
+                     }
+                 } else if (processMode === 'single') {
+                     const offset = singleChannelIndex * blockSize;
+                     // Add result from temp mono buffer back to the output bus
+                     for (let i = 0; i < blockSize; i++) {
+                         outputBuffer[offset + i] += finalResultBuffer[i];
+                     }
+                 }
+             } else {
+                 // Same input/output bus: Replace content in the output buffer
+                 if (processMode === 'all') {
+                     // If processing was done in-place (processingBuffer === outputBuffer) and result wasn't a new array,
+                     // the outputBuffer is already updated.
+                     // If a new buffer was returned by the plugin, copy it back.
+                     if (finalResultBuffer !== outputBuffer) {
+                         outputBuffer.set(finalResultBuffer);
+                     }
+                     // If requiresCopy was true (shouldn't be if inputBus === outputBus),
+                     // this means tempBuffer was used, so copy finalResultBuffer back.
+                     // This logic path needs careful review based on processor guarantees. Assuming direct modification or return.
 
-                } else if (processMode === 'pair') {
-                    // Copy the processed stereo pair from tempBuffer back to the outputBuffer
-                    outputBuffer.set(finalResultBuffer.subarray(0, blockSize), pairStartChannel * blockSize); // Ch 1
-                    outputBuffer.set(finalResultBuffer.subarray(blockSize, blockSize * 2), (pairStartChannel + 1) * blockSize); // Ch 2
-                } else if (processMode === 'single') {
-                    // Copy the processed mono channel from tempBuffer back to the outputBuffer
-                    outputBuffer.set(finalResultBuffer, singleChannelIndex * blockSize);
-                }
-            }
+                 } else if (processMode === 'pair') {
+                     // Copy the processed stereo pair from tempBuffer back to the outputBuffer
+                     outputBuffer.set(finalResultBuffer.subarray(0, blockSize), pairStartChannel * blockSize); // Ch 1
+                     outputBuffer.set(finalResultBuffer.subarray(blockSize, blockSize * 2), (pairStartChannel + 1) * blockSize); // Ch 2
+                 } else if (processMode === 'single') {
+                     // Copy the processed mono channel from tempBuffer back to the outputBuffer
+                     outputBuffer.set(finalResultBuffer, singleChannelIndex * blockSize);
+                 }
+             }
 
 
             // --- 9f. Handle Measurements & Message Throttling ---
