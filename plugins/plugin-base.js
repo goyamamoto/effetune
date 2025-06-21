@@ -156,8 +156,22 @@ class PluginBase {
     // Register a WebAssembly processor
     async registerWasmProcessor(wasmUrl, exportName = 'process') {
         try {
-            const response = await fetch(wasmUrl);
-            const buffer = await response.arrayBuffer();
+            let buffer;
+            if (window.location.protocol === 'file:' && window.electronAPI && window.electronAPI.readFileAsBuffer) {
+                const result = await window.electronAPI.readFileAsBuffer(wasmUrl);
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to read WASM file');
+                }
+                const binaryString = atob(result.buffer);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                buffer = bytes.buffer;
+            } else {
+                const response = await fetch(wasmUrl);
+                buffer = await response.arrayBuffer();
+            }
             this.wasmBuffer = buffer;
             try {
                 const { instance } = await WebAssembly.instantiate(buffer, {});

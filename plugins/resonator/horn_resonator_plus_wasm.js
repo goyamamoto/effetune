@@ -14,8 +14,13 @@ class HornResonatorPlusWasmPlugin extends HornResonatorPlusPlugin {
         // from the parent class will continue to be used.
         // Load the compiled WASM module built by `wasm-pack`.
         // The path is resolved relative to the application root.
+        // The WASM package is located in the repository root under `wasm/`.
+        // When this script is executed as an external file the relative base
+        // path for dynamic imports becomes `plugins/resonator`. Therefore we
+        // need to traverse two directories up to correctly resolve the module
+        // path from the application root.
         this.registerWasmProcessor(
-            './wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
+            '../../wasm/horn_resonator_plus_wasm/pkg/horn_resonator_plus_wasm_bg.wasm'
         );
     }
 }
