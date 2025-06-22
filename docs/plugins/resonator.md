@@ -62,7 +62,11 @@ Horn Resonator Plus provides superior sound quality compared to the standard Hor
 
 ### Parameters and Usage
 
-Horn Resonator Plus uses the same parameters as [Horn Resonator](#horn-resonator). Please refer to the Horn Resonator section for parameter descriptions, settings, and recommended values.
+Horn Resonator Plus uses the same parameters as [Horn Resonator](#horn-resonator) with one addition:
+
+- **Blend** \(0–1\) – Interpolates between the Bessel-based mouth reflection filter (0) and a simpler two‑pole approximation (1).
+
+Refer to the Horn Resonator section for descriptions of the shared controls.
 
 ### Usage Guidelines
 
