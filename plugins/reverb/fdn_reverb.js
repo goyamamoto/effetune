@@ -1,380 +1,223 @@
 class FDNReverbPlugin extends PluginBase {
     constructor() {
-        super('FDN Reverb', 'Feedback Delay Network reverb with Hadamard matrix');
+        super('FDN Reverb', 'Feedback Delay Network reverb using FFT processing');
 
-        // Initialize parameters with defaults (using shortened names for external storage)
-        this.rt = 1.20;   // rt: Reverb Time (0.20-10.00s)
-        this.dt = 8;      // dt: Density (4-8 lines)
-        this.pd = 10.0;   // pd: Pre Delay (0.0-100.0ms)
-        this.bd = 20.0;   // bd: Base Delay (10.0-60.0ms)
-        this.ds = 5.0;    // ds: Delay Spread (0.0-25.0ms)
-        this.hd = 6.0;    // hd: HF Damp (0.0-12.0dB/s)
-        this.lc = 100;    // lc: Low Cut (20-500Hz)
-        this.md = 3.0;    // md: Mod Depth (0.0-10.0ct)
-        this.mr = 0.30;   // mr: Mod Rate (0.10-5.00Hz)
-        this.df = 100;    // df: Diffusion (0-100%)
-        this.wm = 30;     // wm: Wet Mix (0-100%)
-        this.dm = 100;    // dm: Dry Mix (0-100%)
-        this.sw = 100;    // sw: Stereo Width (0-200%)
+        // Parameter defaults (short keys for external storage)
+        this.rt = 1.20;   // Reverb Time (0.20-10.00s)
+        this.dt = 8;      // Density (4-8 lines)
+        this.bd = 20.0;   // Base Delay (10.0-60.0ms)
+        this.ds = 5.0;    // Delay Spread (0.0-25.0ms)
+        this.df = 100;    // Diffusion (0-100%)
+        this.wm = 30;     // Wet Mix (0-100%)
+        this.dm = 100;    // Dry Mix (0-100%)
 
-        // Register processor function
         this.registerProcessor(`
-            // Skip processing if disabled
             if (!parameters.enabled) return data;
 
             const channelCount = parameters.channelCount;
             const blockSize = parameters.blockSize;
             const sampleRate = parameters.sampleRate;
-            
-            const TWO_PI = 6.283185307179586; // 2 * Math.PI
 
-            // Cache parameters locally for minor potential performance gain and readability
-            const p_rt = parameters.rt;
-            const p_dt = parameters.dt; // Already an integer due to setParameters
-            const p_pd = parameters.pd;
-            const p_bd = parameters.bd;
-            const p_ds = parameters.ds;
-            const p_hd = parameters.hd;
-            const p_lc = parameters.lc; // Already an integer
-            const p_md = parameters.md;
-            const p_mr = parameters.mr;
-            const p_df = parameters.df; // Already an integer
-            const p_wm = parameters.wm; // Already an integer
-            const p_dm = parameters.dm; // Already an integer
-            const p_sw = parameters.sw; // Already an integer
+            // --- Simple FFT implementation ---
+            function initFFT(size) {
+                const cos = new Float32Array(size);
+                const sin = new Float32Array(size);
+                const rev = new Uint32Array(size);
+                const bits = Math.log2(size);
+                for (let i = 0; i < size; i++) {
+                    let j = 0, x = i;
+                    for (let b = 0; b < bits; b++) { j = (j << 1) | (x & 1); x >>= 1; }
+                    rev[i] = j;
+                }
+                for (let i = 0; i < size; i++) {
+                    const angle = -2 * Math.PI * i / size;
+                    cos[i] = Math.cos(angle);
+                    sin[i] = Math.sin(angle);
+                }
+                return { size, cos, sin, rev };
+            }
+
+            function fft(obj, real, imag) {
+                const { size, cos, sin, rev } = obj;
+                for (let i = 0; i < size; i++) {
+                    const j = rev[i];
+                    if (j > i) {
+                        let t = real[i]; real[i] = real[j]; real[j] = t;
+                        t = imag[i]; imag[i] = imag[j]; imag[j] = t;
+                    }
+                }
+                for (let len = 2; len <= size; len <<= 1) {
+                    const half = len >> 1;
+                    const step = size / len;
+                    for (let i = 0; i < size; i += len) {
+                        for (let j = 0; j < half; j++) {
+                            const idx = j * step;
+                            const cr = cos[idx];
+                            const sr = sin[idx];
+                            const a = i + j;
+                            const b = a + half;
+                            const tr = real[b] * cr - imag[b] * sr;
+                            const ti = real[b] * sr + imag[b] * cr;
+                            real[b] = real[a] - tr;
+                            imag[b] = imag[a] - ti;
+                            real[a] += tr;
+                            imag[a] += ti;
+                        }
+                    }
+                }
+            }
+
+            function ifft(obj, real, imag) {
+                for (let i = 0; i < obj.size; i++) imag[i] = -imag[i];
+                fft(obj, real, imag);
+                const inv = 1 / obj.size;
+                for (let i = 0; i < obj.size; i++) { real[i] *= inv; imag[i] = -imag[i] * inv; }
+            }
 
             if (!context.initialized || context.sampleRate !== sampleRate) {
                 context.sampleRate = sampleRate;
-                context.hadamard = [
-                    [1, 1, 1, 1, 1, 1, 1, 1], [1, -1, 1, -1, 1, -1, 1, -1],
-                    [1, 1, -1, -1, 1, 1, -1, -1], [1, -1, -1, 1, 1, -1, -1, 1],
-                    [1, 1, 1, 1, -1, -1, -1, -1], [1, -1, 1, -1, -1, 1, -1, 1],
-                    [1, 1, -1, -1, -1, -1, 1, 1], [1, -1, -1, 1, -1, 1, 1, -1]
-                ];
-                context.delayLines = new Array(8); // Max density
-                context.delayPositions = new Uint32Array(8);
-                context.lfoPhases = new Float32Array(8);
-                context.lfoOffsets = new Float32Array(8);
-                context.lpfStates = new Float32Array(8).fill(0.0);
-                context.hpfStates = new Float32Array(8).fill(0.0);
-                context.delayTimeRandomOffsetsMs = new Float32Array(8);
-                const MAX_RANDOM_DELAY_OFFSET_MS = 3.0;
-                for (let k = 0; k < 8; k++) {
-                    context.delayTimeRandomOffsetsMs[k] = (Math.random() - 0.5) * 2.0 * MAX_RANDOM_DELAY_OFFSET_MS;
-                }
-                const maxDelayTimeSeconds = 0.175; 
-                const maxDelaySamplesPerLine = Math.ceil(sampleRate * maxDelayTimeSeconds); 
-                for (let i = 0; i < 8; i++) {
-                    context.delayLines[i] = new Float32Array(maxDelaySamplesPerLine).fill(0.0);
-                    context.lfoPhases[i] = Math.random() * TWO_PI;
-                    context.lfoOffsets[i] = (i * TWO_PI) / 8.0;
-                }
+                context.prevHash = '';
                 context.initialized = true;
             }
 
-            if (!context.preDelayBuffer || context.preDelayBuffer.length !== channelCount) {
-                const maxPreDelaySamples = Math.ceil(sampleRate * 0.1); // Max pre-delay is 100ms
-                context.preDelayBuffer = new Array(channelCount);
+            const hash = [parameters.rt, parameters.dt, parameters.bd, parameters.ds, parameters.df].join(':');
+
+            if (context.prevHash !== hash) {
+                const length = Math.max(1, Math.round(sampleRate * parameters.rt));
+                const impulse = new Float32Array(length);
+                impulse[0] = 1.0;
+
+                const density = parameters.dt;
+                const baseDelay = parameters.bd * sampleRate * 0.001;
+                const spread = parameters.ds * sampleRate * 0.001;
+                const diffusion = parameters.df * 0.01;
+                const hadamard = [
+                    [1,1,1,1,1,1,1,1],[1,-1,1,-1,1,-1,1,-1],
+                    [1,1,-1,-1,1,1,-1,-1],[1,-1,-1,1,1,-1,-1,1],
+                    [1,1,1,1,-1,-1,-1,-1],[1,-1,1,-1,-1,1,-1,1],
+                    [1,1,-1,-1,-1,-1,1,1],[1,-1,-1,1,-1,1,1,-1]
+                ];
+                const delayLines = new Array(density);
+                const positions = new Uint32Array(density);
+                const feedbackGains = new Float32Array(density);
+                const lineDelay = new Float32Array(density);
+                for (let i = 0; i < density; i++) {
+                    const d = baseDelay + spread * (i / (density - 1));
+                    lineDelay[i] = d;
+                    const len = Math.max(1, Math.round(d));
+                    delayLines[i] = new Float32Array(len);
+                    feedbackGains[i] = Math.pow(0.001, len / (sampleRate * parameters.rt));
+                }
+                const invSqrt = 1 / Math.sqrt(density);
+                for (let n = 0; n < length; n++) {
+                    const outputs = new Float32Array(density);
+                    for (let l = 0; l < density; l++) {
+                        const buf = delayLines[l];
+                        const pos = positions[l];
+                        const read = (pos + buf.length - 1) % buf.length;
+                        outputs[l] = buf[read];
+                    }
+                    const mix = new Float32Array(density);
+                    for (let row = 0; row < density; row++) {
+                        let sum = 0;
+                        const hadRow = hadamard[row];
+                        for (let col = 0; col < density; col++) sum += hadRow[col] * outputs[col];
+                        mix[row] = sum * invSqrt * diffusion;
+                    }
+                    for (let l = 0; l < density; l++) {
+                        const buf = delayLines[l];
+                        const pos = positions[l];
+                        buf[pos] = impulse[n] + mix[l] * feedbackGains[l];
+                        positions[l] = (pos + 1) % buf.length;
+                    }
+                    let sum = 0;
+                    for (let l = 0; l < density; l++) sum += outputs[l];
+                    impulse[n] = sum * invSqrt;
+                }
+
+                let fftSize = 1;
+                while (fftSize < impulse.length + blockSize) fftSize <<= 1;
+                context.fft = initFFT(fftSize);
+                context.fftSize = fftSize;
+                context.Hr = new Float32Array(fftSize).fill(0);
+                context.Hi = new Float32Array(fftSize).fill(0);
+                context.Hr.set(impulse);
+                fft(context.fft, context.Hr, context.Hi);
+                context.overlap = new Array(channelCount);
                 for (let ch = 0; ch < channelCount; ch++) {
-                    context.preDelayBuffer[ch] = {
-                        buffer: new Float32Array(maxPreDelaySamples).fill(0.0),
-                        pos: 0
-                    };
+                    context.overlap[ch] = new Float32Array(fftSize - blockSize).fill(0);
                 }
+                context.prevHash = hash;
             }
 
-            const preDelaySamples = (p_pd * sampleRate * 0.001) | 0; // ms to samples, floor
-            const baseDelaySamplesParam = p_bd * sampleRate * 0.001; // ms to samples
-            const spreadSamplesParam = p_ds * sampleRate * 0.001;   // ms to samples
-            const densityLines = p_dt; 
-            const diffusionAmount = p_df * 0.01; 
-
-            const modDepthAsFraction = Math.pow(2.0, p_md / 1200.0) - 1.0; 
-            const modRateHz = p_mr;            
-            const reverbTimeSeconds = p_rt;
-
-            // HF Damp LPF Coefficient Calculation
-            const HF_DAMP_UI_MAX = 12.0;
-            const HF_DAMP_FC_AT_UI_MIN = 20000.0; 
-            const HF_DAMP_FC_AT_UI_MAX = 500.0;  
-            
-            let temp_hd_norm = p_hd / HF_DAMP_UI_MAX;
-            // Clamp hfDampNormalized to [0.0, 1.0]
-            const hfDampNormalized = temp_hd_norm < 0.0 ? 0.0 : (temp_hd_norm > 1.0 ? 1.0 : temp_hd_norm);
-            const hfDampCutoffHz = HF_DAMP_FC_AT_UI_MIN * Math.pow(HF_DAMP_FC_AT_UI_MAX / HF_DAMP_FC_AT_UI_MIN, hfDampNormalized);
-            
-            let lpfAlphaForHfDamp = 0.0; 
-            if (sampleRate > 0.00001) { // Check sampleRate to avoid division by zero or tiny numbers
-                if (hfDampCutoffHz <= 1.0) { 
-                    const cutoff_val = hfDampCutoffHz < 0.1 ? 0.1 : hfDampCutoffHz; // Equivalent to Math.max(0.1, hfDampCutoffHz)
-                    const expVal = Math.exp(-TWO_PI * cutoff_val / sampleRate);
-                    lpfAlphaForHfDamp = expVal > 0.99999 ? 0.99999 : expVal; // Equivalent to Math.min(0.99999, expVal)
-                } else if (hfDampCutoffHz < sampleRate * 0.495) {
-                    const expVal = Math.exp(-TWO_PI * hfDampCutoffHz / sampleRate);
-                    // Clamp expVal to [0.000001, 0.99999]
-                    lpfAlphaForHfDamp = expVal < 0.000001 ? 0.000001 : (expVal > 0.99999 ? 0.99999 : expVal);
+            const fftSize = context.fftSize;
+            const Hr = context.Hr;
+            const Hi = context.Hi;
+            const wm = parameters.wm * 0.01;
+            const dm = parameters.dm * 0.01;
+            for (let ch = 0; ch < channelCount; ch++) {
+                const offset = ch * blockSize;
+                const real = new Float32Array(fftSize).fill(0);
+                const imag = new Float32Array(fftSize).fill(0);
+                real.set(data.subarray(offset, offset + blockSize));
+                real.set(context.overlap[ch], blockSize);
+                fft(context.fft, real, imag);
+                for (let k = 0; k < fftSize; k++) {
+                    const r = real[k];
+                    const i = imag[k];
+                    const hr = Hr[k];
+                    const hi = Hi[k];
+                    real[k] = r * hr - i * hi;
+                    imag[k] = r * hi + i * hr;
                 }
-            }
-            
-            // Low Cut HPF Coefficient Calculation
-            const lowCutHz = p_lc; 
-            let hpfAlphaForLowCut = 0.0; 
-            let apply_hpf = false;
-            if (lowCutHz > 1.0 && sampleRate > 0.00001) {
-                const expVal = Math.exp(-TWO_PI * lowCutHz / sampleRate);
-                // Clamp expVal to [0.0, 0.99999]
-                hpfAlphaForLowCut = expVal < 0.0 ? 0.0 : (expVal > 0.99999 ? 0.99999 : expVal);
-                apply_hpf = true;
-            }
-
-            const wetMix = p_wm * 0.01;
-            const dryMix = p_dm * 0.01;
-            const stereoWidthParam = p_sw * 0.01; 
-
-            // Manage context-cached arrays for unmodulated delay times and feedback gains.
-            // These are calculated per block if dependencies change.
-            if (!context.unmodulatedDelayTimesSamples_block || context.unmodulatedDelayTimesSamples_block.length !== densityLines) {
-                context.unmodulatedDelayTimesSamples_block = new Float32Array(densityLines);
-            }
-            const unmodulatedDelayTimesSamples = context.unmodulatedDelayTimesSamples_block;
-            
-            if (!context.feedbackGains_block || context.feedbackGains_block.length !== densityLines) {
-                context.feedbackGains_block = new Float32Array(densityLines);
-            }
-            const feedbackGains = context.feedbackGains_block;
-            
-            for (let k = 0; k < densityLines; k++) { // Use 'k' to avoid confusion with outer loop 'i'
-                let deterministicLineDelay = baseDelaySamplesParam;
-                if (densityLines > 1) { // Avoid division by zero if densityLines is 1 (min is 4 here)
-                    const linearRatio = k / (densityLines - 1.0); 
-                    const spreadFactor = Math.pow(linearRatio, 0.8); 
-                    deterministicLineDelay += (spreadSamplesParam * spreadFactor);
+                ifft(context.fft, real, imag);
+                for (let i = 0; i < blockSize; i++) {
+                    const wet = real[i] + context.overlap[ch][i];
+                    data[offset + i] = data[offset + i] * dm + wet * wm;
                 }
-                const randomOffsetSamples = context.delayTimeRandomOffsetsMs[k] * sampleRate * 0.001;
-                let lineDelayWithRandomness = deterministicLineDelay + randomOffsetSamples;
-                unmodulatedDelayTimesSamples[k] = lineDelayWithRandomness < 1.0 ? 1.0 : lineDelayWithRandomness;
+                context.overlap[ch].set(real.subarray(blockSize));
             }
-            
-            const FEEDBACK_GAIN_CLAMP = 0.99999; 
-            for (let k = 0; k < densityLines; k++) { // Use 'k'
-                const currentUnmodulatedDelaySamples = unmodulatedDelayTimesSamples[k];
-                let edlfg_floor = currentUnmodulatedDelaySamples | 0; // floor for positive numbers
-                let effectiveDelayLengthForGain = edlfg_floor < 1 ? 1 : edlfg_floor;
-
-                if (reverbTimeSeconds > 0.001 && sampleRate > 0.00001 && effectiveDelayLengthForGain > 0) {
-                    feedbackGains[k] = Math.pow(0.001, effectiveDelayLengthForGain / (sampleRate * reverbTimeSeconds));
-                } else {
-                    feedbackGains[k] = 0.0; 
-                }
-                let fg_val = feedbackGains[k];
-                feedbackGains[k] = fg_val < -FEEDBACK_GAIN_CLAMP ? -FEEDBACK_GAIN_CLAMP : (fg_val > FEEDBACK_GAIN_CLAMP ? FEEDBACK_GAIN_CLAMP : fg_val);
-            }
-                        
-            const lfoIncrement = (sampleRate > 0.00001) ? (TWO_PI * modRateHz / sampleRate) : 0.0;
-
-            const invSqrtDensity = (densityLines > 0) ? (1.0 / Math.sqrt(densityLines)) : 1.0;
-
-            const lTapActualCount = (densityLines + 1) / 2 | 0; 
-            const rTapActualCount = densityLines / 2 | 0;     
-            const invSqrtLTapCount = (lTapActualCount > 0) ? (1.0 / Math.sqrt(lTapActualCount)) : 0.0;
-            const invSqrtRTapCount = (rTapActualCount > 0) ? (1.0 / Math.sqrt(rTapActualCount)) : 0.0;
-            
-            // Allocate/resize FDN processing arrays in context if densityLines changed
-            if (!context.fdnOutputs_block_cache || context.fdnOutputs_block_cache.length !== densityLines) {
-                context.fdnOutputs_block_cache = new Float32Array(densityLines);
-                context.hadamardMixingOutput_block_cache = new Float32Array(densityLines);
-            }
-            // Use these context-cached arrays within the sample loop
-            const fdnOutputs_currentSample = context.fdnOutputs_block_cache;
-            const hadamardMixingOutput_currentSample = context.hadamardMixingOutput_block_cache;
-
-
-            for (let i = 0; i < blockSize; i++) { 
-                // Update LFO phases for all 8 potential lines
-                for (let lineIdx = 0; lineIdx < 8; lineIdx++) { 
-                    context.lfoPhases[lineIdx] += lfoIncrement;
-                    if (context.lfoPhases[lineIdx] >= TWO_PI) {
-                        context.lfoPhases[lineIdx] -= TWO_PI;
-                    }
-                }
-                
-                for (let ch = 0; ch < channelCount; ch++) {
-                    const channelGlobalOffset = ch * blockSize + i; 
-                    const currentInputSample = data[channelGlobalOffset];
-                    
-                    const preDelayLine = context.preDelayBuffer[ch];
-                    const preDelayBuffer = preDelayLine.buffer;
-                    const preDelayBufferLength = preDelayBuffer.length;
-                    let fdnTankInput; 
-            
-                    if (preDelaySamples > 0 && preDelayBufferLength > 0) {
-                        const readPos = (preDelayLine.pos - preDelaySamples + preDelayBufferLength) % preDelayBufferLength;
-                        fdnTankInput = preDelayBuffer[readPos];
-                    } else {
-                        fdnTankInput = currentInputSample; 
-                    }
-                    preDelayBuffer[preDelayLine.pos] = currentInputSample; 
-                    preDelayLine.pos = (preDelayLine.pos + 1) % preDelayBufferLength;
-                    
-                    // FDN read stage
-                    for (let line = 0; line < densityLines; line++) {
-                        const delayLineBuffer = context.delayLines[line];
-                        const allocatedBufferLength = delayLineBuffer.length; 
-                        const writePos = context.delayPositions[line]; 
-                        
-                        const lfoValue = Math.sin(context.lfoPhases[line] + context.lfoOffsets[line]);
-                        const baseDelayForLine = unmodulatedDelayTimesSamples[line]; 
-                        const modulatedDelay = baseDelayForLine * (1.0 + modDepthAsFraction * lfoValue);
-                        
-                        let localClampedDelay = modulatedDelay < 0.0 ? 0.0 : modulatedDelay;
-                        const upperClampLimit = allocatedBufferLength - 1.00001; 
-                        localClampedDelay = localClampedDelay > upperClampLimit ? upperClampLimit : localClampedDelay;
-                        const readPosFloat = localClampedDelay;
-
-                        const readPosInt = readPosFloat | 0; // floor for positive numbers
-                        const fraction = readPosFloat - readPosInt;
-                        
-                        // Original modulo logic is robust for positive results
-                        const idx0 = (writePos - 1 - readPosInt + allocatedBufferLength) % allocatedBufferLength;
-                        const idx1 = (writePos - 1 - (readPosInt + 1) + allocatedBufferLength) % allocatedBufferLength; 
-                                                
-                        const sample0 = delayLineBuffer[idx0];
-                        const sample1 = delayLineBuffer[idx1];
-                        fdnOutputs_currentSample[line] = sample0 + (sample1 - sample0) * fraction; // Optimized lerp
-                    }
-                    
-                    // Hadamard mixing stage
-                    for (let row = 0; row < densityLines; row++) {
-                        let sum = 0.0;
-                        // Cache hadamard row for potentially faster access if JIT benefits
-                        const hadamardRow = context.hadamard[row];
-                        for (let col = 0; col < densityLines; col++) {
-                            sum += hadamardRow[col] * fdnOutputs_currentSample[col];
-                        }
-                        hadamardMixingOutput_currentSample[row] = (sum * invSqrtDensity) * diffusionAmount;
-                    }
-                    
-                    // FDN write stage (feedback, filtering, writing to delay lines)
-                    for (let line = 0; line < densityLines; line++) {
-                        const delayLineBuffer = context.delayLines[line];
-                        const allocatedBufferLength = delayLineBuffer.length;
-                        const writePos = context.delayPositions[line];
-                        let signalToFilter = fdnTankInput + hadamardMixingOutput_currentSample[line] * feedbackGains[line];
-                        
-                        if (p_hd > 0.01 && lpfAlphaForHfDamp > 0.000001 && lpfAlphaForHfDamp < 0.999999) { 
-                            context.lpfStates[line] = (1.0 - lpfAlphaForHfDamp) * signalToFilter + lpfAlphaForHfDamp * context.lpfStates[line];
-                            signalToFilter = context.lpfStates[line];
-                        }
-                        
-                        if (apply_hpf) { 
-                            const inputToHpf = signalToFilter;
-                            const lpfComponentForHpf = (1.0 - hpfAlphaForLowCut) * inputToHpf + hpfAlphaForLowCut * context.hpfStates[line];
-                            signalToFilter = inputToHpf - lpfComponentForHpf; 
-                            context.hpfStates[line] = lpfComponentForHpf; 
-                        }
-                        
-                        delayLineBuffer[writePos] = signalToFilter;
-                        context.delayPositions[line] = (writePos + 1) % allocatedBufferLength;
-                    }
-                    
-                    // Output tapping and mixing
-                    let lTapSum = 0.0;
-                    let rTapSum = 0.0;
-                    for (let line = 0; line < densityLines; line++) {
-                        if (line % 2 === 0) { 
-                            lTapSum += fdnOutputs_currentSample[line]; 
-                        } else { 
-                            rTapSum += fdnOutputs_currentSample[line];
-                        }
-                    }
-
-                    const lTapWet = lTapSum * invSqrtLTapCount; // invSqrtLTapCount will be 0.0 if lTapActualCount is 0, making lTapWet 0.0
-                    const rTapWet = rTapSum * invSqrtRTapCount; // Same for rTapWet
-                    
-                    let wetSignalForThisChannel = 0.0;
-                    if (channelCount === 1) { 
-                        wetSignalForThisChannel = (lTapWet + rTapWet) * 0.5; 
-                    } else { 
-                        const monoMixComponent = (lTapWet + rTapWet) * 0.5;
-                        let temp_m_s_factor = stereoWidthParam * 0.5; // stereoWidthParam is [0,2], so factor is [0,1]
-                        // The original Math.max/min clamp for mixToStereoFactor is technically redundant if p_sw is correctly clamped [0,200].
-                        // However, to preserve exact behavior including this (potentially redundant) clamp:
-                        const mixToStereoFactor = temp_m_s_factor < 0.0 ? 0.0 : (temp_m_s_factor > 1.0 ? 1.0 : temp_m_s_factor);
-                        
-                        if (ch === 0) { // Left channel
-                            wetSignalForThisChannel = monoMixComponent * (1.0 - mixToStereoFactor) + lTapWet * mixToStereoFactor;
-                        } else { // Right channel (or any other subsequent channel)
-                            wetSignalForThisChannel = monoMixComponent * (1.0 - mixToStereoFactor) + rTapWet * mixToStereoFactor;
-                        }
-                    }
-                    data[channelGlobalOffset] = currentInputSample * dryMix + wetSignalForThisChannel * wetMix;
-                } 
-            } 
             return data;
         `);
     }
 
-    // Get current parameters
     getParameters() {
         return {
             type: this.constructor.name,
             enabled: this.enabled,
-            rt: this.rt,      // Reverb Time
-            dt: this.dt,      // Density
-            pd: this.pd,      // Pre Delay
-            bd: this.bd,      // Base Delay
-            ds: this.ds,      // Delay Spread
-            hd: this.hd,      // HF Damp
-            lc: this.lc,      // Low Cut
-            md: this.md,      // Mod Depth
-            mr: this.mr,      // Mod Rate
-            df: this.df,      // Diffusion
-            wm: this.wm,      // Wet Mix
-            dm: this.dm,      // Dry Mix
-            sw: this.sw       // Stereo Width
+            rt: this.rt,
+            dt: this.dt,
+            bd: this.bd,
+            ds: this.ds,
+            df: this.df,
+            wm: this.wm,
+            dm: this.dm
         };
     }
 
-    // Set parameters with validation
     setParameters(params) {
         if (params.rt !== undefined) this.rt = Math.max(0.20, Math.min(10.00, Number(params.rt)));
         if (params.dt !== undefined) this.dt = Math.max(4, Math.min(8, Math.floor(Number(params.dt))));
-        if (params.pd !== undefined) this.pd = Math.max(0.0, Math.min(100.0, Number(params.pd)));
         if (params.bd !== undefined) this.bd = Math.max(10.0, Math.min(60.0, Number(params.bd)));
         if (params.ds !== undefined) this.ds = Math.max(0.0, Math.min(25.0, Number(params.ds)));
-        if (params.hd !== undefined) this.hd = Math.max(0.0, Math.min(12.0, Number(params.hd)));
-        if (params.lc !== undefined) this.lc = Math.max(20, Math.min(500, Math.floor(Number(params.lc))));
-        if (params.md !== undefined) this.md = Math.max(0.0, Math.min(10.0, Number(params.md)));
-        if (params.mr !== undefined) this.mr = Math.max(0.10, Math.min(5.00, Number(params.mr)));
         if (params.df !== undefined) this.df = Math.max(0, Math.min(100, Math.floor(Number(params.df))));
         if (params.wm !== undefined) this.wm = Math.max(0, Math.min(100, Math.floor(Number(params.wm))));
         if (params.dm !== undefined) this.dm = Math.max(0, Math.min(100, Math.floor(Number(params.dm))));
-        if (params.sw !== undefined) this.sw = Math.max(0, Math.min(200, Math.floor(Number(params.sw))));
         this.updateParameters();
     }
 
     createUI() {
         const container = document.createElement('div');
         container.className = 'plugin-parameter-ui';
-
-        // Use the base class createParameterControl helper
-        container.appendChild(this.createParameterControl('Reverb Time', 0.20, 10.00, 0.01, this.rt, (value) => this.setParameters({ rt: value }), 's'));
-        container.appendChild(this.createParameterControl('Density', 4, 8, 1, this.dt, (value) => this.setParameters({ dt: value }), 'lines'));
-        container.appendChild(this.createParameterControl('Pre Delay', 0.0, 100.0, 0.1, this.pd, (value) => this.setParameters({ pd: value }), 'ms'));
-        container.appendChild(this.createParameterControl('Base Delay', 10.0, 60.0, 0.1, this.bd, (value) => this.setParameters({ bd: value }), 'ms'));
-        container.appendChild(this.createParameterControl('Delay Spread', 0.0, 25.0, 0.1, this.ds, (value) => this.setParameters({ ds: value }), 'ms'));
-        container.appendChild(this.createParameterControl('HF Damp', 0.0, 12.0, 0.1, this.hd, (value) => this.setParameters({ hd: value }), 'dB/s'));
-        container.appendChild(this.createParameterControl('Low Cut', 20, 500, 1, this.lc, (value) => this.setParameters({ lc: value }), 'Hz'));
-        container.appendChild(this.createParameterControl('Mod Depth', 0.0, 10, 0.1, this.md, (value) => this.setParameters({ md: value }), 'ct'));
-        container.appendChild(this.createParameterControl('Mod Rate', 0.10, 5.00, 0.01, this.mr, (value) => this.setParameters({ mr: value }), 'Hz'));
-        container.appendChild(this.createParameterControl('Diffusion', 0, 100, 1, this.df, (value) => this.setParameters({ df: value }), '%'));
-        container.appendChild(this.createParameterControl('Wet Mix', 0, 100, 1, this.wm, (value) => this.setParameters({ wm: value }), '%'));
-        container.appendChild(this.createParameterControl('Dry Mix', 0, 100, 1, this.dm, (value) => this.setParameters({ dm: value }), '%'));
-        container.appendChild(this.createParameterControl('Stereo Width', 0, 200, 1, this.sw, (value) => this.setParameters({ sw: value }), '%'));
-
+        container.appendChild(this.createParameterControl('Reverb Time', 0.20, 10.00, 0.01, this.rt, (v) => this.setParameters({ rt: v }), 's'));
+        container.appendChild(this.createParameterControl('Density', 4, 8, 1, this.dt, (v) => this.setParameters({ dt: v }), 'lines'));
+        container.appendChild(this.createParameterControl('Base Delay', 10.0, 60.0, 0.1, this.bd, (v) => this.setParameters({ bd: v }), 'ms'));
+        container.appendChild(this.createParameterControl('Delay Spread', 0.0, 25.0, 0.1, this.ds, (v) => this.setParameters({ ds: v }), 'ms'));
+        container.appendChild(this.createParameterControl('Diffusion', 0, 100, 1, this.df, (v) => this.setParameters({ df: v }), '%'));
+        container.appendChild(this.createParameterControl('Wet Mix', 0, 100, 1, this.wm, (v) => this.setParameters({ wm: v }), '%'));
+        container.appendChild(this.createParameterControl('Dry Mix', 0, 100, 1, this.dm, (v) => this.setParameters({ dm: v }), '%'));
         return container;
     }
 }
 
-// Register the plugin globally
 window.FDNReverbPlugin = FDNReverbPlugin;
