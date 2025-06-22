@@ -20,6 +20,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.dp = 0.03; // Damping loss (dB/meter)
         this.tr = 0.99; // Throat reflection coefficient
         this.wg = 30.0; // Output signal gain (dB)
+        this.va = 20000; // Viscous attenuation cutoff (Hz)
 
         // Physical constants
         const C = 343;   // Speed of sound in air (m/s)
@@ -98,7 +99,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                                 context.sr  !== sr ||
                                 context.chs !== chs ||
                                 // List of parameters that necessitate recalculation
-                                ['ln','th','mo','cv','dp','tr','co','wg']
+                                ['ln','th','mo','cv','dp','tr','co','wg','va']
                                 .some(key => context[key] !== parameters[key]);
 
             /* ---------- 1. Recalculate geometry & filter coefficients if needed -------- */
@@ -114,6 +115,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.tr = parameters.tr;
                 context.co = parameters.co;
                 context.wg = parameters.wg;
+                context.va = parameters.va;
 
                 // --- Horn Geometry Calculation ---
                 const dx = C / sr; // Spatial step size based on sample rate
@@ -273,6 +275,21 @@ class HornResonatorPlusPlugin extends PluginBase {
                 // Pre-compute output gain in linear scale
                 context.outputGain = Math.pow(10, context.wg / 20);
 
+                // Pre-compute viscous attenuation coefficient
+                context.va_alpha = Math.exp(-TWO_PI * context.va / sr);
+
+                // Initialize viscous filter state arrays
+                if (!context.va_fw_state || context.va_fw_state.length !== chs ||
+                    context.va_fw_state[0]?.length !== N + 1) {
+                    context.va_fw_state = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                    context.va_rev_state = Array.from({length: chs}, () => new Float32Array(N + 1).fill(0));
+                } else {
+                    for (let ch = 0; ch < chs; ++ch) {
+                        context.va_fw_state[ch].fill(0);
+                        context.va_rev_state[ch].fill(0);
+                    }
+                }
+
                 context.initialized = true;
             } // End of needsRecalc block
 
@@ -308,6 +325,9 @@ class HornResonatorPlusPlugin extends PluginBase {
 
             // Output gain (linear)
             const outputGain = context.outputGain;
+            const va_alpha = context.va_alpha;
+            const va_fw_states = context.va_fw_state;
+            const va_rev_states = context.va_rev_state;
 
             // --- Channel Loop ---
             for (let ch = 0; ch < chs; ch++) {
@@ -317,6 +337,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 let rv_current = rev[ch][bufIndex];   // Current reverse wave states
                 let fw_next    = fwd[ch][bufIndex ^ 1]; // Buffer to write next state
                 let rv_next    = rev[ch][bufIndex ^ 1];
+                let va_fw = va_fw_states[ch];
+                let va_rev = va_rev_states[ch];
 
                 // --- Load channel-specific states ---
                 let rm_y1 = rm_y1_states[ch];
@@ -359,15 +381,27 @@ class HornResonatorPlusPlugin extends PluginBase {
                         f_in = fw_current[j];
                         r_in = rv_current[j + 1];
                         scatterDiff = Rj * (f_in - r_in);
-                        fw_next[j + 1] = g * (f_in + scatterDiff);
-                        rv_next[j] = g * (r_in + scatterDiff);
+                        let outF = g * (f_in + scatterDiff);
+                        let filtF = va_alpha * va_fw[j + 1] + (1 - va_alpha) * outF;
+                        va_fw[j + 1] = filtF;
+                        fw_next[j + 1] = filtF;
+                        let outR = g * (r_in + scatterDiff);
+                        let filtR = va_alpha * va_rev[j] + (1 - va_alpha) * outR;
+                        va_rev[j] = filtR;
+                        rv_next[j] = filtR;
 
                         Rj = R[j + 1];
                         f_in = fw_current[j + 1];
                         r_in = rv_current[j + 2];
                         scatterDiff = Rj * (f_in - r_in);
-                        fw_next[j + 2] = g * (f_in + scatterDiff);
-                        rv_next[j + 1] = g * (r_in + scatterDiff);
+                        outF = g * (f_in + scatterDiff);
+                        filtF = va_alpha * va_fw[j + 2] + (1 - va_alpha) * outF;
+                        va_fw[j + 2] = filtF;
+                        fw_next[j + 2] = filtF;
+                        outR = g * (r_in + scatterDiff);
+                        filtR = va_alpha * va_rev[j + 1] + (1 - va_alpha) * outR;
+                        va_rev[j + 1] = filtR;
+                        rv_next[j + 1] = filtR;
                     }
                     if (N & 1) {
                         const j = N - 1;
@@ -375,8 +409,14 @@ class HornResonatorPlusPlugin extends PluginBase {
                         const f_in = fw_current[j];
                         const r_in = rv_current[j + 1];
                         const scatterDiff = Rj * (f_in - r_in);
-                        fw_next[j + 1] = g * (f_in + scatterDiff);
-                        rv_next[j] = g * (r_in + scatterDiff);
+                        outF = g * (f_in + scatterDiff);
+                        filtF = va_alpha * va_fw[j + 1] + (1 - va_alpha) * outF;
+                        va_fw[j + 1] = filtF;
+                        fw_next[j + 1] = filtF;
+                        outR = g * (r_in + scatterDiff);
+                        filtR = va_alpha * va_rev[j] + (1 - va_alpha) * outR;
+                        va_rev[j] = filtR;
+                        rv_next[j] = filtR;
                     }
 
                     /* ---- Mouth Node Boundary Condition (j=N) ---- */
@@ -425,6 +465,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 rm_y1_states[ch] = rm_y1;
                 rm_y2_states[ch] = rm_y2;
                 rt_y1_states[ch] = rt_y1;
+                // Viscous attenuation states already updated in arrays
                 // Crossover states updated in-place
                 lowDelayIdx[ch] = currentLowDelayWriteIdx; // Store updated delay index
                 context.bufIdx[ch] = bufIndex; // Remember current buffer for next block
@@ -448,7 +489,8 @@ class HornResonatorPlusPlugin extends PluginBase {
             cv: this.cv,
             dp: this.dp, wg: this.wg,
             tr: this.tr,
-            co: this.co
+            co: this.co,
+            va: this.va
         };
     }
 
@@ -473,6 +515,8 @@ class HornResonatorPlusPlugin extends PluginBase {
         { this.dp = clamp(+p.dp, 0, 10);   up = true; }
         if (p.wg !== undefined && !isNaN(p.wg))
         { this.wg = clamp(+p.wg, -36, 36); up = true; }
+        if (p.va !== undefined && !isNaN(p.va))
+        { this.va = clamp(+p.va, 1000, 20000); up = true; }
 
         // Reflection & Crossover Parameters
         if (p.tr !== undefined && !isNaN(p.tr)) // Throat Reflection
@@ -497,7 +541,8 @@ class HornResonatorPlusPlugin extends PluginBase {
         c.appendChild(this.createParameterControl('Mouth Dia.', 5, 200, 0.5, this.mo, (v) => this.setParameters({ mo: v }), 'cm'));
         c.appendChild(this.createParameterControl('Curve', -100, 100, 1, this.cv, (v) => this.setParameters({ cv: v }), '%'));
         c.appendChild(this.createParameterControl('Damping', 0, 10, 0.01, this.dp, (v) => this.setParameters({ dp: v }), 'dB/m'));
-        c.appendChild(this.createParameterControl('Throat Refl.', 0, 0.99, 0.01, this.tr, (v) => this.setParameters({ tr: v })));
+        c.appendChild(this.createParameterControl('Viscous Damp', 1000, 20000, 100, this.va, (v) => this.setParameters({ va: v }), 'Hz'));
+        c.appendChild(this.createParameterControl('Throat Refl.', 0, 0.99, 0.01, this.tr, (v) => this.setParameters({ tr: v }))); 
         c.appendChild(this.createParameterControl('Output Gain', -36, 36, 0.1, this.wg, (v) => this.setParameters({ wg: v }), 'dB'));
 
         return c;
