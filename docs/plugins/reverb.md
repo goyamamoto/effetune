@@ -10,6 +10,7 @@ A collection of plugins that add space and atmosphere to your music. These effec
 ## FDN Reverb
 
 A sophisticated reverb effect based on Feedback Delay Network (FDN) architecture using a Hadamard diffusion matrix. This creates rich, complex reverberation with excellent density and natural decay characteristics, perfect for enhancing your music listening experience with immersive spatial effects.
+The algorithm now performs processing in the frequency domain for significantly better performance on modest hardware.
 
 ### Listening Experience Guide
 - Natural Room Feel:
