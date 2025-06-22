@@ -47,6 +47,7 @@ class FDNReverbPlugin extends PluginBase {
                 context.sampleRate = sampleRate;
                 context.delayLines = new Array(8); // Max density
                 context.delayPositions = new Uint32Array(8);
+                context.delayMasks = new Uint32Array(8);
                 context.lfoPhases = new Float32Array(8);
                 context.lfoSin = new Float32Array(8);
                 context.lfoCos = new Float32Array(8);
@@ -61,9 +62,11 @@ class FDNReverbPlugin extends PluginBase {
                     context.delayTimeRandomOffsetsMs[k] = (Math.random() - 0.5) * 2.0 * MAX_RANDOM_DELAY_OFFSET_MS;
                 }
                 const maxDelayTimeSeconds = 0.175; 
-                const maxDelaySamplesPerLine = Math.ceil(sampleRate * maxDelayTimeSeconds); 
+                const rawMaxDelaySamples = Math.ceil(sampleRate * maxDelayTimeSeconds);
+                const maxDelaySamplesPerLine = 1 << Math.ceil(Math.log2(rawMaxDelaySamples));
                 for (let i = 0; i < 8; i++) {
                     context.delayLines[i] = new Float32Array(maxDelaySamplesPerLine).fill(0.0);
+                    context.delayMasks[i] = maxDelaySamplesPerLine - 1;
                     const phase = Math.random() * TWO_PI;
                     context.lfoPhases[i] = phase;
                     context.lfoSin[i] = Math.sin(phase);
@@ -233,7 +236,8 @@ class FDNReverbPlugin extends PluginBase {
                     for (let line = 0; line < densityLines; line++) {
                         const delayLineBuffer = context.delayLines[line];
                         const allocatedBufferLength = delayLineBuffer.length; 
-                        const writePos = context.delayPositions[line]; 
+                        const writePos = context.delayPositions[line];
+                        const mask = context.delayMasks[line]; 
                         
                         const sinPhase = context.lfoSin[line];
                         const cosPhase = context.lfoCos[line];
@@ -242,7 +246,7 @@ class FDNReverbPlugin extends PluginBase {
                         const modulatedDelay = baseDelayForLine * (1.0 + modDepthAsFraction * lfoValue);
                         
                         let localClampedDelay = modulatedDelay < 0.0 ? 0.0 : modulatedDelay;
-                        const upperClampLimit = allocatedBufferLength - 1.00001; 
+                        const upperClampLimit = mask - 0.00001; 
                         localClampedDelay = localClampedDelay > upperClampLimit ? upperClampLimit : localClampedDelay;
                         const readPosFloat = localClampedDelay;
 
@@ -250,8 +254,8 @@ class FDNReverbPlugin extends PluginBase {
                         const fraction = readPosFloat - readPosInt;
                         
                         // Original modulo logic is robust for positive results
-                        const idx0 = (writePos - 1 - readPosInt + allocatedBufferLength) % allocatedBufferLength;
-                        const idx1 = (writePos - 1 - (readPosInt + 1) + allocatedBufferLength) % allocatedBufferLength; 
+                        const idx0 = (writePos - 1 - readPosInt) & mask;
+                        const idx1 = (writePos - 1 - (readPosInt + 1)) & mask; 
                                                 
                         const sample0 = delayLineBuffer[idx0];
                         const sample1 = delayLineBuffer[idx1];
@@ -281,7 +285,7 @@ class FDNReverbPlugin extends PluginBase {
                         const delayLineBuffer = context.delayLines[line];
                         const allocatedBufferLength = delayLineBuffer.length;
                         const writePos = context.delayPositions[line];
-                        let signalToFilter = fdnTankInput + hadamardMixingOutput_currentSample[line] * feedbackGains[line];
+                        const mask = context.delayMasks[line];
                         
                         if (p_hd > 0.01 && lpfAlphaForHfDamp > 0.000001 && lpfAlphaForHfDamp < 0.999999) { 
                             context.lpfStates[line] = (1.0 - lpfAlphaForHfDamp) * signalToFilter + lpfAlphaForHfDamp * context.lpfStates[line];
@@ -296,7 +300,7 @@ class FDNReverbPlugin extends PluginBase {
                         }
                         
                         delayLineBuffer[writePos] = signalToFilter;
-                        context.delayPositions[line] = (writePos + 1) % allocatedBufferLength;
+                        context.delayPositions[line] = (writePos + 1) & mask;
                     }
                     
                     // Output tapping and mixing
