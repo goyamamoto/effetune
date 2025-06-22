@@ -243,15 +243,62 @@ class FDNReverbPlugin extends PluginBase {
                         fdnOutputs_currentSample[line] = sample0 + (sample1 - sample0) * fraction; // Optimized lerp
                     }
                     
-                    // Hadamard mixing stage
-                    for (let row = 0; row < densityLines; row++) {
-                        let sum = 0.0;
-                        // Cache hadamard row for potentially faster access if JIT benefits
-                        const hadamardRow = context.hadamard[row];
-                        for (let col = 0; col < densityLines; col++) {
-                            sum += hadamardRow[col] * fdnOutputs_currentSample[col];
+                    // Hadamard mixing stage using fast transform when possible
+                    if (densityLines === 4) {
+                        const x0 = fdnOutputs_currentSample[0];
+                        const x1 = fdnOutputs_currentSample[1];
+                        const x2 = fdnOutputs_currentSample[2];
+                        const x3 = fdnOutputs_currentSample[3];
+                        const a0 = x0 + x1;
+                        const a1 = x0 - x1;
+                        const a2 = x2 + x3;
+                        const a3 = x2 - x3;
+                        hadamardMixingOutput_currentSample[0] = (a0 + a2) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[1] = (a1 + a3) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[2] = (a0 - a2) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[3] = (a1 - a3) * invSqrtDensity * diffusionAmount;
+                    } else if (densityLines === 8) {
+                        const x0 = fdnOutputs_currentSample[0];
+                        const x1 = fdnOutputs_currentSample[1];
+                        const x2 = fdnOutputs_currentSample[2];
+                        const x3 = fdnOutputs_currentSample[3];
+                        const x4 = fdnOutputs_currentSample[4];
+                        const x5 = fdnOutputs_currentSample[5];
+                        const x6 = fdnOutputs_currentSample[6];
+                        const x7 = fdnOutputs_currentSample[7];
+                        const a0 = x0 + x1;
+                        const a1 = x0 - x1;
+                        const a2 = x2 + x3;
+                        const a3 = x2 - x3;
+                        const a4 = x4 + x5;
+                        const a5 = x4 - x5;
+                        const a6 = x6 + x7;
+                        const a7 = x6 - x7;
+                        const b0 = a0 + a2;
+                        const b1 = a1 + a3;
+                        const b2 = a0 - a2;
+                        const b3 = a1 - a3;
+                        const b4 = a4 + a6;
+                        const b5 = a5 + a7;
+                        const b6 = a4 - a6;
+                        const b7 = a5 - a7;
+                        hadamardMixingOutput_currentSample[0] = (b0 + b4) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[1] = (b1 + b5) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[2] = (b2 + b6) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[3] = (b3 + b7) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[4] = (b0 - b4) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[5] = (b1 - b5) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[6] = (b2 - b6) * invSqrtDensity * diffusionAmount;
+                        hadamardMixingOutput_currentSample[7] = (b3 - b7) * invSqrtDensity * diffusionAmount;
+                    } else {
+                        for (let row = 0; row < densityLines; row++) {
+                            let sum = 0.0;
+                            const hadamardRow = context.hadamard[row];
+                            for (let col = 0; col < densityLines; col++) {
+                                sum += hadamardRow[col] * fdnOutputs_currentSample[col];
+                            }
+                            hadamardMixingOutput_currentSample[row] = (sum * invSqrtDensity) * diffusionAmount;
                         }
-                        hadamardMixingOutput_currentSample[row] = (sum * invSqrtDensity) * diffusionAmount;
                     }
                     
                     // FDN write stage (feedback, filtering, writing to delay lines)
