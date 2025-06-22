@@ -5,12 +5,21 @@
  * using a digital waveguide model with frequency-dependent mouth reflection
  * and adjustable throat reflection.
  */
+let wasmModulePromise = null;
+async function loadWasmModule() {
+    if (!wasmModulePromise) {
+        wasmModulePromise = import('../../wasm/horn_resonator_plus/pkg/horn_resonator_plus.js').catch(() => null);
+    }
+    return wasmModulePromise;
+}
+
 class HornResonatorPlusPlugin extends PluginBase {
     /**
      * Initializes the Horn Resonator plugin.
      */
     constructor() {
         super('Horn Resonator Plus', 'Horn resonance emulator (enhanced)');
+        loadWasmModule().then(mod => { this.wasm = mod; });
 
         this.co = 600;  // Crossover frequency (Hz)
         this.ln = 70;   // Horn length (cm)
@@ -425,6 +434,22 @@ class HornResonatorPlusPlugin extends PluginBase {
         if (p.co !== undefined && !isNaN(p.co)) { this.co = clamp(+p.co, 20, 5000); up = true; }
 
         if (up) this.updateParameters();
+    }
+
+    // Use the WASM implementation when available for offline processing
+    executeProcessor(context, data, parameters, time) {
+        if (this.wasm && this.wasm.process_waveguide && context.R) {
+            const chs = parameters.channelCount ?? 1;
+            for (let ch = 0; ch < chs; ch++) {
+                const idx = context.bufIdx?.[ch] ?? 0;
+                const fwd = context.fwd?.[ch]?.[idx];
+                const rev = context.rev?.[ch]?.[idx];
+                if (fwd && rev) {
+                    this.wasm.process_waveguide(fwd, rev, context.R, context.g);
+                }
+            }
+        }
+        return super.executeProcessor(context, data, parameters, time);
     }
 
     /**
