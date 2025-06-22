@@ -257,6 +257,7 @@
 | Modulation | Tremolo | تأثير التضمين بناءً على مستوى الصوت | [تفاصيل](plugins/modulation.md#tremolo) |
 | Modulation | Wow Flutter | تأثير التضمين الزمني | [تفاصيل](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | محاكاة رنين القرن بأبعاد قابلة للتخصيص | [تفاصيل](plugins/resonator.md#horn-resonator) |
+| Resonator | Horn Resonator Plus | نموذج قرن محسن مع انعكاسات متقدمة | [تفاصيل](plugins/resonator.md#horn-resonator-plus) |
 | Resonator | Modal Resonator | تأثير رنين ترددي مع ما يصل إلى 5 رنانات | [تفاصيل](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | صدى شبكة التأخير المرتد ينتج نسيج صدى غني وكثيف | [تفاصيل](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | صدى منتشر عشوائي مع انتشار طبيعي | [تفاصيل](plugins/reverb.md#rs-reverb) |

@@ -249,6 +249,7 @@ No audiophile myths, Just pure science.
 | Modulation | Tremolo | Эффект модуляции громкости | [Подробнее](plugins/modulation.md#tremolo) |
 | Modulation | Wow Flutter | Эффект модуляции во времени | [Подробнее](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | Симуляция резонанса рупора с настраиваемыми параметрами | [Подробнее](plugins/resonator.md#horn-resonator) |
+| Resonator | Horn Resonator Plus | Улучшенная модель рупора с продвинутыми отражениями | [Подробнее](plugins/resonator.md#horn-resonator-plus) |
 | Resonator | Modal Resonator | Эффект резонанса частот с поддержкой до 5 резонаторов | [Подробнее](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Реверберация с сетью задержек с обратной связью, создающая богатые плотные текстуры | [Подробнее](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Реверберация с рандомным рассеянием и естественной диффузией | [Подробнее](plugins/reverb.md#rs-reverb) |
