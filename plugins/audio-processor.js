@@ -570,7 +570,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                     t.count += 1;
                     if (time - t.lastLogTime >= 10) {
                         const avg = t.sum / t.count;
-                        console.log(`${plugin.type} average processing time: ${avg.toFixed(4)} ms`);
+                        console.log(`${plugin.type} average processing time: ${avg.toFixed(4)} ms (${t.count} samples)`);
                         t.sum = 0;
                         t.count = 0;
                         t.lastLogTime = time;
