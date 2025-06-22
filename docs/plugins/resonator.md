@@ -44,20 +44,20 @@ A plugin that simulates the resonance of a horn-loaded speaker using a digital w
 
 ## Horn Resonator Plus
 
-An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequency-dependent throat reflection for smoother resonance.
+An enhanced horn model that uses a Bessel-based mouth reflection filter and a frequency-dependent throat reflection for smoother resonance.
 
 Horn Resonator Plus is an advanced implementation based on the [Horn Resonator](#horn-resonator), featuring a more rigorous horn transmission line model with the following technical improvements:
 
-### Technical Enhancements
+-### Technical Enhancements
 
-- **2nd-order mouth reflection filter**: More accurate modeling of frequency-dependent reflection at the mouth opening for smoother resonance characteristics
+- **Bessel-based mouth reflection filter**: Uses a radiation impedance approximation with Bessel functions for more accurate frequency-dependent reflection
 - **Frequency-dependent throat reflection**: Throat reflection characteristics that adapt to frequency for more natural acoustic behavior
 
 ### Acoustic Characteristics
 
 Horn Resonator Plus provides superior sound quality compared to the standard Horn Resonator in the following aspects:
 
-- **Smoother frequency response**: The 2nd-order mouth reflection filter creates more natural resonance peak decay
+- **Smoother frequency response**: The Bessel-based mouth reflection filter creates more natural resonance peak decay
 - **More realistic high-frequency behavior**: Group delay characteristics in the high-frequency range more closely resemble real acoustic instruments
 
 ### Parameters and Usage
@@ -67,7 +67,7 @@ Horn Resonator Plus uses the same parameters as [Horn Resonator](#horn-resonator
 ### Usage Guidelines
 
 - **Horn Resonator**: Choose when you need lightweight processing with basic horn characteristics
-- **Horn Resonator Plus**: Choose when you require higher quality and more natural horn acoustic characteristics (approximately +10% CPU cost)
+- **Horn Resonator Plus**: Choose when you require higher quality and more natural horn acoustic characteristics (approximately +5% CPU cost)
 
 ### Quick Start Guide
 
