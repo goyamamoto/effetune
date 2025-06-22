@@ -35,6 +35,57 @@ class HornResonatorPlusPlugin extends PluginBase {
             const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
             const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
 
+            // -- Bessel-based helper functions for radiation impedance --
+            function hHorner(arr, v) { let z = 0; for (let i = 0; i < arr.length; ++i) z = z * v + arr[i]; return z; }
+            function hBesselJ1(x) {
+                const W = 0.636619772; // 2/PI
+                const ax = Math.abs(x);
+                const a1 = [72362614232.0, -7895059235.0, 242396853.1, -2972611.439, 15704.48260, -30.16036606];
+                const a2 = [144725228442.0, 2300535178.0, 18583304.74, 99447.43394, 376.9991397, 1.0];
+                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                let y = x * x;
+                if (ax < 8.0) {
+                    return x * hHorner(a1.slice().reverse(), y) / hHorner(a2.slice().reverse(), y);
+                }
+                y = 64.0 / y;
+                const xx = ax - 2.356194491;
+                let ans = Math.sqrt(W / ax) * (Math.cos(xx) * hHorner(b1.slice().reverse(), y) - Math.sin(xx) * hHorner(b2.slice().reverse(), y) * 8 / ax);
+                return x < 0 ? -ans : ans;
+            }
+            function hBesselY1(x) {
+                const W = 0.636619772;
+                if (x < 8.0) {
+                    const y = x * x;
+                    const a1 = [-4.900604943e12, 1.27527439e13, -5.153438139e11, 7.349264551e9, -4.237922726e7, 8.511937935e4];
+                    const a2 = [2.49958057e13, 4.244419664e11, 3.733650367e9, 2.245904002e7, 1.02042605e5, 3.549632885e2, 1.0];
+                    const term1 = x * hHorner(a1.slice().reverse(), y);
+                    const term2 = hHorner(a2.slice().reverse(), y);
+                    return term1 / term2 + W * (hBesselJ1(x) * Math.log(x) - 1 / x);
+                }
+                const y = 64.0 / (x * x);
+                const xx = x - 2.356194491;
+                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                return Math.sqrt(W / x) * (Math.sin(xx) * hHorner(b1.slice().reverse(), y) + Math.cos(xx) * hHorner(b2.slice().reverse(), y) * 8 / x);
+            }
+            function solveReflectionPole(target, w) {
+                const mag = (p) => {
+                    const b0 = (1 - p) * (1 - p);
+                    const cosw = Math.cos(w); const sinw = Math.sin(w);
+                    const re = 1 - 2 * p * cosw + p * p * Math.cos(2 * w);
+                    const im = -2 * p * sinw + p * p * Math.sin(2 * w);
+                    const den = Math.sqrt(re * re + im * im);
+                    return b0 / den;
+                };
+                let low = 0.0, high = 0.999, mid;
+                for (let i = 0; i < 25; ++i) {
+                    mid = (low + high) / 2;
+                    if (mag(mid) < target) high = mid; else low = mid;
+                }
+                return (low + high) / 2;
+            }
+
             // If the plugin is disabled, bypass processing.
             if (!parameters.en) return data;
 
@@ -122,16 +173,20 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.rt_y1_states.fill(0);
                 }
 
-                /* ---- Mouth Reflection Filter H_R(z) Design (2nd Order) ---- */
-                // Approximates frequency-dependent reflection using a two-pole filter.
+                /* ---- Mouth Reflection Filter H_R(z) Design (Bessel Approx.) ---- */
                 const effectiveMouthRadius = mouthRadius;
-                const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4; // Heuristic cutoff
-                const f_norm = Math.min(fc_mouth, sr * 0.45) / sr;
-                const pole = 0.99 * Math.exp(-TWO_PI * f_norm);
-                // context.rm_b0 = -(1 - pole) * (1 - pole);
+                const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4;
+                const w_mouth = TWO_PI * fc_mouth / sr;
+                const ka = TWO_PI * fc_mouth * effectiveMouthRadius / C;
+                const J1 = hBesselJ1(2 * ka);
+                const Y1 = hBesselY1(2 * ka);
+                const zr = 1 - J1 / ka;
+                const zi = -Y1 / ka;
+                const rTarget = Math.sqrt((zr - 1) * (zr - 1) + zi * zi) / Math.sqrt((zr + 1) * (zr + 1) + zi * zi);
+                const pole = solveReflectionPole(rTarget, w_mouth);
                 context.rm_a1 = -2 * pole;
                 context.rm_a2 = pole * pole;
-                context.rm_b0 = -1 - context.rm_a1 -  context.rm_a2;
+                context.rm_b0 = -1 - context.rm_a1 - context.rm_a2;
 
                 // Allocate or resize state buffers for mouth reflection filter
                 if (!context.rm_y1_states || context.rm_y1_states.length !== chs) {
