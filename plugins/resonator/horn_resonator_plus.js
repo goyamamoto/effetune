@@ -20,6 +20,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.dp = 0.03; // Damping loss (dB/meter)
         this.tr = 0.99; // Throat reflection coefficient
         this.wg = 30.0; // Output signal gain (dB)
+        this.bl = 0.0;  // Blend between Bessel and simple mouth filter
 
         // Physical constants
         const C = 343;   // Speed of sound in air (m/s)
@@ -35,6 +36,57 @@ class HornResonatorPlusPlugin extends PluginBase {
             const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
             const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
 
+            // -- Bessel-based helper functions for radiation impedance --
+            function hHorner(arr, v) { let z = 0; for (let i = 0; i < arr.length; ++i) z = z * v + arr[i]; return z; }
+            function hBesselJ1(x) {
+                const W = 0.636619772; // 2/PI
+                const ax = Math.abs(x);
+                const a1 = [72362614232.0, -7895059235.0, 242396853.1, -2972611.439, 15704.48260, -30.16036606];
+                const a2 = [144725228442.0, 2300535178.0, 18583304.74, 99447.43394, 376.9991397, 1.0];
+                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                let y = x * x;
+                if (ax < 8.0) {
+                    return x * hHorner(a1.slice().reverse(), y) / hHorner(a2.slice().reverse(), y);
+                }
+                y = 64.0 / y;
+                const xx = ax - 2.356194491;
+                let ans = Math.sqrt(W / ax) * (Math.cos(xx) * hHorner(b1.slice().reverse(), y) - Math.sin(xx) * hHorner(b2.slice().reverse(), y) * 8 / ax);
+                return x < 0 ? -ans : ans;
+            }
+            function hBesselY1(x) {
+                const W = 0.636619772;
+                if (x < 8.0) {
+                    const y = x * x;
+                    const a1 = [-4.900604943e12, 1.27527439e13, -5.153438139e11, 7.349264551e9, -4.237922726e7, 8.511937935e4];
+                    const a2 = [2.49958057e13, 4.244419664e11, 3.733650367e9, 2.245904002e7, 1.02042605e5, 3.549632885e2, 1.0];
+                    const term1 = x * hHorner(a1.slice().reverse(), y);
+                    const term2 = hHorner(a2.slice().reverse(), y);
+                    return term1 / term2 + W * (hBesselJ1(x) * Math.log(x) - 1 / x);
+                }
+                const y = 64.0 / (x * x);
+                const xx = x - 2.356194491;
+                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                return Math.sqrt(W / x) * (Math.sin(xx) * hHorner(b1.slice().reverse(), y) + Math.cos(xx) * hHorner(b2.slice().reverse(), y) * 8 / x);
+            }
+            function solveReflectionPole(target, w) {
+                const mag = (p) => {
+                    const b0 = (1 - p) * (1 - p);
+                    const cosw = Math.cos(w); const sinw = Math.sin(w);
+                    const re = 1 - 2 * p * cosw + p * p * Math.cos(2 * w);
+                    const im = -2 * p * sinw + p * p * Math.sin(2 * w);
+                    const den = Math.sqrt(re * re + im * im);
+                    return b0 / den;
+                };
+                let low = 0.0, high = 0.999, mid;
+                for (let i = 0; i < 25; ++i) {
+                    mid = (low + high) / 2;
+                    if (mag(mid) < target) high = mid; else low = mid;
+                }
+                return (low + high) / 2;
+            }
+
             // If the plugin is disabled, bypass processing.
             if (!parameters.en) return data;
 
@@ -47,7 +99,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                                 context.sr  !== sr ||
                                 context.chs !== chs ||
                                 // List of parameters that necessitate recalculation
-                                ['ln','th','mo','cv','dp','tr','co','wg']
+                                ['ln','th','mo','cv','dp','tr','co','wg','bl']
                                 .some(key => context[key] !== parameters[key]);
 
             /* ---------- 1. Recalculate geometry & filter coefficients if needed -------- */
@@ -63,6 +115,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.tr = parameters.tr;
                 context.co = parameters.co;
                 context.wg = parameters.wg;
+                context.bl = parameters.bl;
 
                 // --- Horn Geometry Calculation ---
                 const dx = C / sr; // Spatial step size based on sample rate
@@ -122,16 +175,35 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.rt_y1_states.fill(0);
                 }
 
-                /* ---- Mouth Reflection Filter H_R(z) Design (2nd Order) ---- */
-                // Approximates frequency-dependent reflection using a two-pole filter.
+                /* ---- Mouth Reflection Filter H_R(z) Design ---- */
                 const effectiveMouthRadius = mouthRadius;
-                const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4; // Heuristic cutoff
-                const f_norm = Math.min(fc_mouth, sr * 0.45) / sr;
-                const pole = 0.99 * Math.exp(-TWO_PI * f_norm);
-                // context.rm_b0 = -(1 - pole) * (1 - pole);
-                context.rm_a1 = -2 * pole;
-                context.rm_a2 = pole * pole;
-                context.rm_b0 = -1 - context.rm_a1 -  context.rm_a2;
+                const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4;
+
+                // Bessel-based coefficients
+                const w_mouth = TWO_PI * fc_mouth / sr;
+                const ka = TWO_PI * fc_mouth * effectiveMouthRadius / C;
+                const J1 = hBesselJ1(2 * ka);
+                const Y1 = hBesselY1(2 * ka);
+                const zr = 1 - J1 / ka;
+                const zi = -Y1 / ka;
+                const rTarget = Math.sqrt((zr - 1) * (zr - 1) + zi * zi) / Math.sqrt((zr + 1) * (zr + 1) + zi * zi);
+                const poleBessel = solveReflectionPole(rTarget, w_mouth);
+                const bessel_a1 = -2 * poleBessel;
+                const bessel_a2 = poleBessel * poleBessel;
+                const bessel_b0 = -1 - bessel_a1 - bessel_a2;
+
+                // Simple two-pole approximation (repeated pole)
+                const f_norm_mouth = Math.min(fc_mouth, sr * 0.45) / sr;
+                const poleSimple = 0.99 * Math.exp(-TWO_PI * f_norm_mouth);
+                const simple_a1 = -2 * poleSimple;
+                const simple_a2 = poleSimple * poleSimple;
+                const simple_b0 = -1 - simple_a1 - simple_a2;
+
+                const blend = Math.max(0, Math.min(1, parameters.bl));
+                context.bl = blend;
+                context.rm_a1 = bessel_a1 * (1 - blend) + simple_a1 * blend;
+                context.rm_a2 = bessel_a2 * (1 - blend) + simple_a2 * blend;
+                context.rm_b0 = bessel_b0 * (1 - blend) + simple_b0 * blend;
 
                 // Allocate or resize state buffers for mouth reflection filter
                 if (!context.rm_y1_states || context.rm_y1_states.length !== chs) {
@@ -393,7 +465,8 @@ class HornResonatorPlusPlugin extends PluginBase {
             cv: this.cv,
             dp: this.dp, wg: this.wg,
             tr: this.tr,
-            co: this.co
+            co: this.co,
+            bl: this.bl
         };
     }
 
@@ -418,6 +491,8 @@ class HornResonatorPlusPlugin extends PluginBase {
         { this.dp = clamp(+p.dp, 0, 10);   up = true; }
         if (p.wg !== undefined && !isNaN(p.wg))
         { this.wg = clamp(+p.wg, -36, 36); up = true; }
+        if (p.bl !== undefined && !isNaN(p.bl))
+        { this.bl = clamp(+p.bl, 0, 1); up = true; }
 
         // Reflection & Crossover Parameters
         if (p.tr !== undefined && !isNaN(p.tr)) // Throat Reflection
@@ -444,6 +519,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         c.appendChild(this.createParameterControl('Damping', 0, 10, 0.01, this.dp, (v) => this.setParameters({ dp: v }), 'dB/m'));
         c.appendChild(this.createParameterControl('Throat Refl.', 0, 0.99, 0.01, this.tr, (v) => this.setParameters({ tr: v })));
         c.appendChild(this.createParameterControl('Output Gain', -36, 36, 0.1, this.wg, (v) => this.setParameters({ wg: v }), 'dB'));
+        c.appendChild(this.createParameterControl('Brightness', 0, 1, 0.01, this.bl, (v) => this.setParameters({ bl: v })));
 
         return c;
     }
