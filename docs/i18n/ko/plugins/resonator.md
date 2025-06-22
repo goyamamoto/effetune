@@ -5,6 +5,7 @@
 ## 플러그인 목록
 
 - [Horn Resonator](#horn-resonator) - 혼 스피커 시스템의 공명을 시뮬레이션합니다
+- [Horn Resonator Plus](#horn-resonator-plus) - 고급 반사 기능을 갖춘 향상된 혼 모델
 - [Modal Resonator](#modal-resonator) - 최대 5개의 공명기를 갖춘 주파수 공명 효과
 
 ## Horn Resonator
@@ -40,6 +41,37 @@
 4. 공명 특성을 미세 조정하기 위해 **Curve**를 사용합니다(원뿔형은 0%, 지수 형태는 양수, 트랙트릭스 형태의 플레어는 음수).
 5. 혼의 공명의 부드러움이나 강조를 위해 **Damping**과 **Throat Reflection**을 조정합니다.
 6. 바이패스된 저주파와 혼 사운드의 레벨을 균형 맞추기 위해 **Output Gain**을 사용합니다.
+
+## Horn Resonator Plus
+
+더 부드러운 공명을 위해 2차 입구 반사 필터와 주파수 의존적 목구멍 반사를 사용하는 향상된 혼 모델입니다.
+
+Horn Resonator Plus는 [Horn Resonator](#horn-resonator)를 기반으로 한 고급 구현으로, 다음과 같은 기술적 개선사항을 특징으로 하는 더 엄밀한 혼 전송선 모델입니다:
+
+### 기술적 개선사항
+
+- **2차 입구 반사 필터**: 더 부드러운 공명 특성을 위해 입구 개구부에서의 주파수 의존적 반사를 더 정확하게 모델링
+- **주파수 의존적 목구멍 반사**: 더 자연스러운 음향 행동을 위해 주파수에 적응하는 목구멍 반사 특성
+
+### 음향 특성
+
+Horn Resonator Plus는 표준 Horn Resonator와 비교하여 다음 측면에서 우수한 음질을 제공합니다:
+
+- **더 부드러운 주파수 응답**: 2차 입구 반사 필터가 더 자연스러운 공명 피크 감쇠를 생성
+- **더 현실적인 고주파 행동**: 고주파 범위에서의 그룹 지연 특성이 실제 음향 악기와 더 유사
+
+### 파라미터와 사용법
+
+Horn Resonator Plus는 [Horn Resonator](#horn-resonator)와 동일한 파라미터를 사용합니다. 파라미터 설명, 설정 및 권장 값은 Horn Resonator 섹션을 참조하세요.
+
+### 사용 지침
+
+- **Horn Resonator**: 기본적인 혼 특성을 가진 가벼운 처리가 필요할 때 선택
+- **Horn Resonator Plus**: 더 높은 품질과 더 자연스러운 혼 음향 특성이 필요할 때 선택 (약 +10% CPU 비용)
+
+### 빠른 시작 가이드
+
+[Horn Resonator](#horn-resonator)와 동일한 컨트롤을 사용하세요. 고품질 결과를 원할 때 Horn Resonator Plus를 선택하세요.
 
 ## Modal Resonator
 

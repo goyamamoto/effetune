@@ -249,6 +249,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Modulation | Tremolo | 基于音量的调制效果 | [详情](plugins/modulation.md#tremolo) |
 | Modulation | Wow Flutter | 基于时间的调制效果 | [详情](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | 具有可自定义尺寸的号角共鸣模拟 | [详情](plugins/resonator.md#horn-resonator) |
+| Resonator | Horn Resonator Plus | 具有高级反射的增强号角模型 | [详情](plugins/resonator.md#horn-resonator-plus) |
 | Resonator | Modal Resonator | 支持最多5个谐振器的频率共鸣效果 | [详情](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | 反馈延迟网络混响，产生丰富密集的混响纹理 | [详情](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 具有自然扩散的随机散射混响 | [详情](plugins/reverb.md#rs-reverb) |

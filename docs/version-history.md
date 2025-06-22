@@ -1,5 +1,10 @@
 # Version History
 
+### Version 1.56 (Jun 22, 2025)
+- Added Horn Resonator Plus effect
+- Added low latency mode
+- Various minor improvements
+
 ### Version 1.55 (Jun 9, 2025)
 - Added system presets feature
 - Added Digital Error Emulator and FDN Reverb effects

@@ -271,6 +271,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Modulation | Tremolo | वॉल्यूम-आधारित मॉड्यूलेशन प्रभाव | [विवरण](plugins/modulation.md#tremolo) |
 | Modulation | Wow Flutter | समय-आधारित मॉड्यूलेशन प्रभाव | [विवरण](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | अनुकूलनीय आयामों के साथ हॉर्न रेज़ोनेंस सिमुलेशन | [विवरण](plugins/resonator.md#horn-resonator) |
+| Resonator | Horn Resonator Plus | उन्नत प्रतिबिंबों के साथ संवर्धित हॉर्न मॉडल | [विवरण](plugins/resonator.md#horn-resonator-plus) |
 | Resonator | Modal Resonator | 5 तक रेज़ोनेटर के साथ आवृत्ति रेज़ोनेंस प्रभाव | [विवरण](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | फीडबैक डिले नेटवर्क रिवर्ब जो रिच और घने रिवर्ब टेक्सचर उत्पन्न करता है | [विवरण](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | प्राकृतिक प्रसार के साथ रैंडम स्कैटरिंग रिवर्ब | [विवरण](plugins/reverb.md#rs-reverb) |

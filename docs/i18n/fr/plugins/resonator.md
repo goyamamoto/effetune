@@ -5,6 +5,7 @@ Une collection de plugins qui mettent en valeur les caractéristiques résonante
 ## Liste des plugins
 
 - [Horn Resonator](#horn-resonator) - Simule la résonance des systèmes d'enceintes à pavillon
+- [Horn Resonator Plus](#horn-resonator-plus) - Modèle de pavillon amélioré avec réflexions avancées
 - [Modal Resonator](#modal-resonator) - Effet de résonance de fréquence avec jusqu'à 5 résonateurs
 
 ## Horn Resonator
@@ -39,6 +40,37 @@ Un plugin qui simule la résonance d'un haut-parleur à pavillon (horn-loaded sp
 4.  Utilisez **Curve** pour affiner le caractère résonant (essayez 0 % pour conique, positif pour exponentiel, négatif pour type tractrix).
 5.  Réglez **Damping** et **Throat Reflection** pour adoucir ou accentuer les résonances du pavillon.
 6.  Utilisez **Output Gain** pour équilibrer le niveau du son de la corne avec les basses fréquences bypassées.
+
+## Horn Resonator Plus
+
+Un modèle de pavillon amélioré qui utilise un filtre de réflexion de bouche de 2ème ordre et une réflexion de gorge dépendante de la fréquence pour une résonance plus douce.
+
+Horn Resonator Plus est une implémentation avancée basée sur [Horn Resonator](#horn-resonator), comportant un modèle de ligne de transmission de pavillon plus rigoureux avec les améliorations techniques suivantes :
+
+### Améliorations Techniques
+
+- **Filtre de réflexion de bouche de 2ème ordre** : Modélisation plus précise de la réflexion dépendante de la fréquence à l'ouverture de la bouche pour des caractéristiques de résonance plus douces
+- **Réflexion de gorge dépendante de la fréquence** : Caractéristiques de réflexion de gorge qui s'adaptent à la fréquence pour un comportement acoustique plus naturel
+
+### Caractéristiques Acoustiques
+
+Horn Resonator Plus fournit une qualité sonore supérieure comparée au Horn Resonator standard dans les aspects suivants :
+
+- **Réponse en fréquence plus douce** : Le filtre de réflexion de bouche de 2ème ordre crée une décroissance de pic de résonance plus naturelle
+- **Comportement haute fréquence plus réaliste** : Les caractéristiques de délai de groupe dans la plage haute fréquence ressemblent davantage aux vrais instruments acoustiques
+
+### Paramètres et Utilisation
+
+Horn Resonator Plus utilise les mêmes paramètres que [Horn Resonator](#horn-resonator). Veuillez vous référer à la section Horn Resonator pour les descriptions des paramètres, réglages et valeurs recommandées.
+
+### Directives d'Utilisation
+
+- **Horn Resonator** : Choisissez quand vous avez besoin d'un traitement léger avec des caractéristiques de pavillon de base
+- **Horn Resonator Plus** : Choisissez quand vous nécessitez une qualité supérieure et des caractéristiques acoustiques de pavillon plus naturelles (environ +10% de coût CPU)
+
+### Guide de Démarrage Rapide
+
+Utilisez les mêmes contrôles que [Horn Resonator](#horn-resonator). Choisissez Horn Resonator Plus quand vous voulez des résultats de haute qualité.
 
 ## Modal Resonator
 

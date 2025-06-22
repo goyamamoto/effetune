@@ -270,6 +270,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Modulation | Tremolo | 音量ベースのモジュレーション効果 | [詳細](plugins/modulation.md#tremolo) |
 | Modulation | Wow Flutter | 時間ベースのモジュレーション効果 | [詳細](plugins/modulation.md#wow-flutter) |
 | Resonator | Horn Resonator | カスタマイズ可能な寸法でのホーン共振シミュレーション | [詳細](plugins/resonator.md#horn-resonator) |
+| Resonator | Horn Resonator Plus | 高度な反射を備えた強化されたホーンモデル | [詳細](plugins/resonator.md#horn-resonator-plus) |
 | Resonator | Modal Resonator | 最大5つのレゾネーターを備えた周波数共振効果 | [詳細](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | リッチで密度の高いリバーブテクスチャを生成するフィードバック・ディレイ・ネットワーク・リバーブ | [詳細](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 自然な拡散を伴うランダム散乱リバーブ | [詳細](plugins/reverb.md#rs-reverb) |
