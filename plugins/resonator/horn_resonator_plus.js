@@ -20,7 +20,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.dp = 0.03; // Damping loss (dB/meter)
         this.tr = 0.99; // Throat reflection coefficient
         this.wg = 30.0; // Output signal gain (dB)
-        this.bl = 0.0;  // Blend between Bessel and simple mouth filter
+        this.bl = 1.0;  // Blend between Bessel and simple mouth filter
 
         // Physical constants
         const C = 343;   // Speed of sound in air (m/s)
