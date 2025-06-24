@@ -521,6 +521,14 @@ class HornResonatorPlusPlugin extends PluginBase {
         c.appendChild(this.createParameterControl('Output Gain', -36, 36, 0.1, this.wg, (v) => this.setParameters({ wg: v }), 'dB'));
         c.appendChild(this.createParameterControl('Brightness', 0, 1, 0.01, this.bl, (v) => this.setParameters({ bl: v })));
 
+        const viewBtn = document.createElement('button');
+        viewBtn.textContent = 'View Response Graph';
+        viewBtn.style.marginTop = '8px';
+        viewBtn.addEventListener('click', () => {
+            window.location.href = 'features/horn_resonator_plus_response.html';
+        });
+        c.appendChild(viewBtn);
+
         return c;
     }
 }
