@@ -316,3 +316,5 @@ Quer construir um aplicativo desktop? Confira nosso [Guia de Construção](../..
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

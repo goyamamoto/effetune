@@ -300,3 +300,5 @@ Frieve EffeTune был протестирован и подтвержден дл
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

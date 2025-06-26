@@ -323,3 +323,5 @@ Frieve EffeTune का परीक्षण किया गया है औ�
 [स्रोत कोड](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

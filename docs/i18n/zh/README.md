@@ -300,3 +300,5 @@ Frieve EffeTune 已在 Google Chrome 上测试验证运行。该应用需要支�
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

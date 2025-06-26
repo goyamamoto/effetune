@@ -316,3 +316,5 @@ Para un rendimiento óptimo con efectos no lineales, se recomienda usar EffeTune
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

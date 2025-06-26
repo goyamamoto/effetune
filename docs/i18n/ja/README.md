@@ -322,3 +322,5 @@ Frieve EffeTuneはGoogle Chromeで動作することがテストされ、確認�
 [ソースコード](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)
