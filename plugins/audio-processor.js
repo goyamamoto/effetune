@@ -37,6 +37,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             combined: new Float32Array(8 * 128), // Max 8 channels support
             stereo: new Float32Array(2 * 128),   // Stereo pair processing
             mono: new Float32Array(128),         // Mono channel processing
+            mixing: new Float32Array(8 * 128),   // Dedicated buffer for additive mixing operations
             buses: new Map()                     // Bus buffers
         };
         
@@ -605,22 +606,47 @@ class PluginProcessor extends AudioWorkletProcessor {
              if (inputBus !== outputBus) {
                  // Additive mixing: Add the processed result to the output buffer
                  if (processMode === 'all') {
-                     for (let i = 0; i < totalSize; i++) {
-                         outputBuffer[i] += finalResultBuffer[i];
+                     // Optimized: Use dedicated mixing buffer for better performance
+                     // Avoid read/write overlap issues with separate mixing buffer
+                     if (outputChannelCount <= 8 && blockSize === 128) {
+                         // Use dedicated pre-allocated mixing buffer from pool
+                         const mixBuffer = this.bufferPool.mixing;
+                         // Copy current output state to mixing buffer
+                         mixBuffer.set(outputBuffer.subarray(0, totalSize));
+                         // Add the processed result using optimized loop
+                         for (let i = 0; i < totalSize; i++) {
+                             mixBuffer[i] += finalResultBuffer[i];
+                         }
+                         // Copy mixed result back to output buffer
+                         outputBuffer.set(mixBuffer.subarray(0, totalSize));
+                     } else {
+                         // Fallback for non-standard sizes - direct addition
+                         for (let i = 0; i < totalSize; i++) {
+                             outputBuffer[i] += finalResultBuffer[i];
+                         }
                      }
                  } else if (processMode === 'pair') {
                      const offset1 = pairStartChannel * blockSize;
                      const offset2 = (pairStartChannel + 1) * blockSize;
-                     // Add result from temp stereo buffer back to the output bus
+                     // Optimized: Use subarray views and set() for channel processing
+                     const ch1Output = outputBuffer.subarray(offset1, offset1 + blockSize);
+                     const ch2Output = outputBuffer.subarray(offset2, offset2 + blockSize);
+                     const ch1Input = finalResultBuffer.subarray(0, blockSize);
+                     const ch2Input = finalResultBuffer.subarray(blockSize, blockSize * 2);
+                     
+                     // Add result using optimized loop (vectorizable)
                      for (let i = 0; i < blockSize; i++) {
-                         outputBuffer[offset1 + i] += finalResultBuffer[i]; // Add Ch1
-                         outputBuffer[offset2 + i] += finalResultBuffer[blockSize + i]; // Add Ch2
+                         ch1Output[i] += ch1Input[i]; // Add Ch1
+                         ch2Output[i] += ch2Input[i]; // Add Ch2
                      }
                  } else if (processMode === 'single') {
                      const offset = singleChannelIndex * blockSize;
-                     // Add result from temp mono buffer back to the output bus
+                     // Optimized: Use subarray view for better cache efficiency
+                     const channelOutput = outputBuffer.subarray(offset, offset + blockSize);
+                     
+                     // Add result using optimized loop (vectorizable)
                      for (let i = 0; i < blockSize; i++) {
-                         outputBuffer[offset + i] += finalResultBuffer[i];
+                         channelOutput[i] += finalResultBuffer[i];
                      }
                  }
              } else {
@@ -637,12 +663,17 @@ class PluginProcessor extends AudioWorkletProcessor {
                      // This logic path needs careful review based on processor guarantees. Assuming direct modification or return.
 
                  } else if (processMode === 'pair') {
-                     // Copy the processed stereo pair from tempBuffer back to the outputBuffer
-                     outputBuffer.set(finalResultBuffer.subarray(0, blockSize), pairStartChannel * blockSize); // Ch 1
-                     outputBuffer.set(finalResultBuffer.subarray(blockSize, blockSize * 2), (pairStartChannel + 1) * blockSize); // Ch 2
+                     // Optimized: Copy the processed stereo pair using subarray views for better performance
+                     const ch1Target = outputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize);
+                     const ch2Target = outputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize);
+                     
+                     // Use set() for efficient block copy
+                     ch1Target.set(finalResultBuffer.subarray(0, blockSize)); // Ch 1
+                     ch2Target.set(finalResultBuffer.subarray(blockSize, blockSize * 2)); // Ch 2
                  } else if (processMode === 'single') {
-                     // Copy the processed mono channel from tempBuffer back to the outputBuffer
-                     outputBuffer.set(finalResultBuffer, singleChannelIndex * blockSize);
+                     // Optimized: Copy the processed mono channel using subarray view
+                     const channelTarget = outputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize);
+                     channelTarget.set(finalResultBuffer);
                  }
              }
 
