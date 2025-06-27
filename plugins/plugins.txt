@@ -20,6 +20,7 @@ Control: Control tools
 # Plugins are sorted by category, then alphabetically by path
 [plugins]
 analyzer/level_meter: Level Meter | Analyzer | LevelMeterPlugin | css
+analyzer/memory_monitor: Memory Monitor | Analyzer | MemoryMonitorPlugin | css
 analyzer/oscilloscope: Oscilloscope | Analyzer | OscilloscopePlugin | css
 analyzer/spectrogram: Spectrogram | Analyzer | SpectrogramPlugin | css
 analyzer/spectrum_analyzer: Spectrum Analyzer | Analyzer | SpectrumAnalyzerPlugin | css

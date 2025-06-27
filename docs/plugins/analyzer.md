@@ -5,6 +5,7 @@ A collection of plugins that let you see your music in fascinating ways. These v
 ## Plugin List
 
 - [Level Meter](#level-meter) - Shows how loud the music is playing
+- [Memory Monitor](#memory-monitor) - Visualizes memory usage and garbage collection
 - [Oscilloscope](#oscilloscope) - Shows real-time waveform visualization
 - [Spectrogram](#spectrogram) - Creates beautiful visual patterns from your music
 - [Spectrum Analyzer](#spectrum-analyzer) - Shows the different frequencies in your music
@@ -20,6 +21,12 @@ A visual display that shows you how loud your music is playing in real-time. It 
 - Red marker shows the highest recent level
 - Red warning at the top means the volume might be too loud
 - For comfortable listening, try to keep levels in the middle range
+
+## Memory Monitor
+
+A diagnostic tool that tracks JavaScript heap usage over time. It displays a
+scrolling heatmap of memory consumption and marks sudden drops that may indicate
+garbage collection.
 
 ## Oscilloscope
 
