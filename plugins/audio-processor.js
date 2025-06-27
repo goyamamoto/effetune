@@ -46,6 +46,12 @@ class PluginProcessor extends AudioWorkletProcessor {
             _silenceThresholdAmplitude: Math.pow(10, -84 / 20)
         };
 
+        this.tempBufferStats = {
+            intervalCalls: 0,
+            intervalReuses: 0,
+            lastLogTime: 0
+        };
+
         // Message handler
         this.port.onmessage = (event) => {
             const data = event.data;
@@ -183,11 +189,23 @@ class PluginProcessor extends AudioWorkletProcessor {
      * @returns {Float32Array}
      */
     getTempBuffer(context, size) {
+        this.tempBufferStats.intervalCalls++;
         let buf = context._tempBuffer;
-        if (!buf || buf.length !== size) {
+        if (buf && buf.length === size) {
+            this.tempBufferStats.intervalReuses++;
+        } else {
             buf = new Float32Array(size);
             context._tempBuffer = buf;
         }
+
+        const time = this.currentFrame / globalThis.sampleRate;
+        if (time - this.tempBufferStats.lastLogTime >= 10) {
+            console.log(`getTempBuffer: ${this.tempBufferStats.intervalCalls} calls, ${this.tempBufferStats.intervalReuses} reuses`);
+            this.tempBufferStats.intervalCalls = 0;
+            this.tempBufferStats.intervalReuses = 0;
+            this.tempBufferStats.lastLogTime = time;
+        }
+
         return buf;
     }
 
