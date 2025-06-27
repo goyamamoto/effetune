@@ -42,6 +42,7 @@
   "ui.resetButton": "Сбросить аудио",
   "ui.configAudioButton": "Настроить аудио",
   "ui.shareButton": "Поделиться",
+  "ui.gcMonitorButton": "GC Monitor",
   "ui.dragEffectMessage": "Перетащите этот эффект в нужное место в цепочке эффектов.\nИли дважды кликните, чтобы добавить его.",
   "ui.dragPluginsHere": "Перетащите эффекты сюда, чтобы создать свой конвейер эффектов",
   "ui.effectsAvailable": "{count} доступных эффектов",
@@ -62,6 +63,7 @@
   "ui.title.paste": "Вставить эффекты",
   "ui.title.savePreset": "Сохранить пресет",
   "ui.title.deletePreset": "Удалить пресет",
+  "ui.title.gcMonitor": "Open GC monitor",
   "ui.title.sharePipeline": "Поделиться цепочкой",
   "ui.title.decreaseColumns": "Уменьшить число колонок",
   "ui.title.increaseColumns": "Увеличить число колонок",
@@ -129,6 +131,7 @@
   "menu.settings.audioDevices": "Аудиоустройства...",
   "menu.settings.performanceBenchmark": "Тест производительности",
   "menu.settings.frequencyResponseMeasurement": "Измерение частотной характеристики",
+  "menu.settings.gcMonitor": "GC Monitor",
 
   "menu.help": "Помощь",
   "menu.help.help": "Помощь",

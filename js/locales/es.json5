@@ -42,6 +42,7 @@
   "ui.resetButton": "Reiniciar audio",
   "ui.configAudioButton": "Configurar audio",
   "ui.shareButton": "Compartir",
+  "ui.gcMonitorButton": "GC Monitor",
   "ui.dragEffectMessage": "Arrastra este efecto para colocarlo en la posición deseada de la cadena de efectos.\nO haz doble clic para añadirlo.",
   "ui.dragPluginsHere": "Arrastra efectos aquí para crear tu cadena de efectos",
   "ui.effectsAvailable": "{count} efectos disponibles",
@@ -62,6 +63,7 @@
   "ui.title.paste": "Pegar efectos",
   "ui.title.savePreset": "Guardar preset",
   "ui.title.deletePreset": "Eliminar preset",
+  "ui.title.gcMonitor": "Open GC monitor",
   "ui.title.sharePipeline": "Compartir pipeline",
   "ui.title.decreaseColumns": "Disminuir columnas",
   "ui.title.increaseColumns": "Aumentar columnas",
@@ -129,6 +131,7 @@
   "menu.settings.audioDevices": "Dispositivos de audio...",
   "menu.settings.performanceBenchmark": "Prueba de rendimiento",
   "menu.settings.frequencyResponseMeasurement": "Medición de respuesta en frecuencia",
+  "menu.settings.gcMonitor": "GC Monitor",
 
   "menu.help": "Ayuda",
   "menu.help.help": "Ayuda",

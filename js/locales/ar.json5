@@ -42,6 +42,7 @@
   "ui.resetButton": "إعادة تعيين الصوت",
   "ui.configAudioButton": "إعداد الصوت",
   "ui.shareButton": "مشاركة",
+  "ui.gcMonitorButton": "GC Monitor",
   "ui.dragEffectMessage": "اسحب هذا التأثير لإضافته في الموقع المطلوب بسلسلة التأثيرات.\nأو انقر نقراً مزدوجاً لإضافته.",
   "ui.dragPluginsHere": "اسحب التأثيرات هنا لبناء سلسلة تأثيرات",
   "ui.effectsAvailable": "{count} تأثيرات متاحة",
@@ -62,6 +63,7 @@
   "ui.title.paste": "لصق المؤثرات",
   "ui.title.savePreset": "حفظ الإعداد المسبق",
   "ui.title.deletePreset": "حذف الإعداد المسبق",
+  "ui.title.gcMonitor": "Open GC monitor",
   "ui.title.sharePipeline": "مشاركة خط المعالجة",
   "ui.title.decreaseColumns": "تقليل الأعمدة",
   "ui.title.increaseColumns": "زيادة الأعمدة",
@@ -129,6 +131,7 @@
   "menu.settings.audioDevices": "أجهزة الصوت...",
   "menu.settings.performanceBenchmark": "معيار الأداء",
   "menu.settings.frequencyResponseMeasurement": "قياس الاستجابة الترددية",
+  "menu.settings.gcMonitor": "GC Monitor",
 
   "menu.help": "مساعدة",
   "menu.help.help": "مساعدة",

@@ -41,6 +41,7 @@
   "ui.resetButton": "オーディオをリセット",
   "ui.configAudioButton": "オーディオ設定",
   "ui.shareButton": "共有",
+  "ui.gcMonitorButton": "GC Monitor",
   "ui.dragEffectMessage": "エフェクトをドラッグして、エフェクトパイプライン内の希望する位置に追加してください。\nまたは、エフェクトをダブルクリックしてエフェクトパイプラインに追加できます。",
   "ui.dragPluginsHere": "エフェクトをここにドラッグしてエフェクトパイプラインを構築",
   "ui.effectsAvailable": "{count}種類のエフェクトが利用可能です",
@@ -61,6 +62,7 @@
   "ui.title.paste": "エフェクトを貼り付け",
   "ui.title.savePreset": "プリセットを保存",
   "ui.title.deletePreset": "プリセットを削除",
+  "ui.title.gcMonitor": "Open GC monitor",
   "ui.title.sharePipeline": "パイプラインを共有",
   "ui.title.decreaseColumns": "列を減らす",
   "ui.title.increaseColumns": "列を増やす",
@@ -128,6 +130,7 @@
   "menu.settings.audioDevices": "オーディオデバイス...",
   "menu.settings.performanceBenchmark": "パフォーマンスベンチマーク",
   "menu.settings.frequencyResponseMeasurement": "周波数応答測定",
+  "menu.settings.gcMonitor": "GC Monitor",
 
   "menu.help": "ヘルプ",
   "menu.help.help": "ヘルプ",
