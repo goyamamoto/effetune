@@ -1,0 +1,4 @@
+.memory-heatmap-ui canvas {
+    background-color: #000;
+    image-rendering: pixelated;
+}
