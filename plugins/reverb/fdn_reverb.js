@@ -45,16 +45,15 @@ class FDNReverbPlugin extends PluginBase {
 
             if (!context.initialized || context.sampleRate !== sampleRate) {
                 context.sampleRate = sampleRate;
-                context.hadamard = [
-                    [1, 1, 1, 1, 1, 1, 1, 1], [1, -1, 1, -1, 1, -1, 1, -1],
-                    [1, 1, -1, -1, 1, 1, -1, -1], [1, -1, -1, 1, 1, -1, -1, 1],
-                    [1, 1, 1, 1, -1, -1, -1, -1], [1, -1, 1, -1, -1, 1, -1, 1],
-                    [1, 1, -1, -1, -1, -1, 1, 1], [1, -1, -1, 1, -1, 1, 1, -1]
-                ];
                 context.delayLines = new Array(8); // Max density
                 context.delayPositions = new Uint32Array(8);
+                context.delayMasks = new Uint32Array(8);
                 context.lfoPhases = new Float32Array(8);
+                context.lfoSin = new Float32Array(8);
+                context.lfoCos = new Float32Array(8);
                 context.lfoOffsets = new Float32Array(8);
+                context.lfoOffsetSin = new Float32Array(8);
+                context.lfoOffsetCos = new Float32Array(8);
                 context.lpfStates = new Float32Array(8).fill(0.0);
                 context.hpfStates = new Float32Array(8).fill(0.0);
                 context.delayTimeRandomOffsetsMs = new Float32Array(8);
@@ -63,11 +62,19 @@ class FDNReverbPlugin extends PluginBase {
                     context.delayTimeRandomOffsetsMs[k] = (Math.random() - 0.5) * 2.0 * MAX_RANDOM_DELAY_OFFSET_MS;
                 }
                 const maxDelayTimeSeconds = 0.175; 
-                const maxDelaySamplesPerLine = Math.ceil(sampleRate * maxDelayTimeSeconds); 
+                const rawMaxDelaySamples = Math.ceil(sampleRate * maxDelayTimeSeconds);
+                const maxDelaySamplesPerLine = 1 << Math.ceil(Math.log2(rawMaxDelaySamples));
                 for (let i = 0; i < 8; i++) {
                     context.delayLines[i] = new Float32Array(maxDelaySamplesPerLine).fill(0.0);
-                    context.lfoPhases[i] = Math.random() * TWO_PI;
-                    context.lfoOffsets[i] = (i * TWO_PI) / 8.0;
+                    context.delayMasks[i] = maxDelaySamplesPerLine - 1;
+                    const phase = Math.random() * TWO_PI;
+                    context.lfoPhases[i] = phase;
+                    context.lfoSin[i] = Math.sin(phase);
+                    context.lfoCos[i] = Math.cos(phase);
+                    const offset = (i * TWO_PI) / 8.0;
+                    context.lfoOffsets[i] = offset;
+                    context.lfoOffsetSin[i] = Math.sin(offset);
+                    context.lfoOffsetCos[i] = Math.cos(offset);
                 }
                 context.initialized = true;
             }
@@ -171,8 +178,11 @@ class FDNReverbPlugin extends PluginBase {
             }
                         
             const lfoIncrement = (sampleRate > 0.00001) ? (TWO_PI * modRateHz / sampleRate) : 0.0;
+            const lfoIncCos = Math.cos(lfoIncrement);
+            const lfoIncSin = Math.sin(lfoIncrement);
 
             const invSqrtDensity = (densityLines > 0) ? (1.0 / Math.sqrt(densityLines)) : 1.0;
+            const hadamardScale = invSqrtDensity * diffusionAmount;
 
             const lTapActualCount = (densityLines + 1) / 2 | 0; 
             const rTapActualCount = densityLines / 2 | 0;     
@@ -190,8 +200,14 @@ class FDNReverbPlugin extends PluginBase {
 
 
             for (let i = 0; i < blockSize; i++) { 
-                // Update LFO phases for all 8 potential lines
-                for (let lineIdx = 0; lineIdx < 8; lineIdx++) { 
+                // Update LFO phases using sine/cosine recurrence
+                for (let lineIdx = 0; lineIdx < 8; lineIdx++) {
+                    const sinVal = context.lfoSin[lineIdx];
+                    const cosVal = context.lfoCos[lineIdx];
+                    const nextSin = sinVal * lfoIncCos + cosVal * lfoIncSin;
+                    const nextCos = cosVal * lfoIncCos - sinVal * lfoIncSin;
+                    context.lfoSin[lineIdx] = nextSin;
+                    context.lfoCos[lineIdx] = nextCos;
                     context.lfoPhases[lineIdx] += lfoIncrement;
                     if (context.lfoPhases[lineIdx] >= TWO_PI) {
                         context.lfoPhases[lineIdx] -= TWO_PI;
@@ -220,14 +236,17 @@ class FDNReverbPlugin extends PluginBase {
                     for (let line = 0; line < densityLines; line++) {
                         const delayLineBuffer = context.delayLines[line];
                         const allocatedBufferLength = delayLineBuffer.length; 
-                        const writePos = context.delayPositions[line]; 
+                        const writePos = context.delayPositions[line];
+                        const mask = context.delayMasks[line]; 
                         
-                        const lfoValue = Math.sin(context.lfoPhases[line] + context.lfoOffsets[line]);
+                        const sinPhase = context.lfoSin[line];
+                        const cosPhase = context.lfoCos[line];
+                        const lfoValue = sinPhase * context.lfoOffsetCos[line] + cosPhase * context.lfoOffsetSin[line];
                         const baseDelayForLine = unmodulatedDelayTimesSamples[line]; 
                         const modulatedDelay = baseDelayForLine * (1.0 + modDepthAsFraction * lfoValue);
                         
                         let localClampedDelay = modulatedDelay < 0.0 ? 0.0 : modulatedDelay;
-                        const upperClampLimit = allocatedBufferLength - 1.00001; 
+                        const upperClampLimit = mask - 0.00001; 
                         localClampedDelay = localClampedDelay > upperClampLimit ? upperClampLimit : localClampedDelay;
                         const readPosFloat = localClampedDelay;
 
@@ -235,23 +254,30 @@ class FDNReverbPlugin extends PluginBase {
                         const fraction = readPosFloat - readPosInt;
                         
                         // Original modulo logic is robust for positive results
-                        const idx0 = (writePos - 1 - readPosInt + allocatedBufferLength) % allocatedBufferLength;
-                        const idx1 = (writePos - 1 - (readPosInt + 1) + allocatedBufferLength) % allocatedBufferLength; 
+                        const idx0 = (writePos - 1 - readPosInt) & mask;
+                        const idx1 = (writePos - 1 - (readPosInt + 1)) & mask; 
                                                 
                         const sample0 = delayLineBuffer[idx0];
                         const sample1 = delayLineBuffer[idx1];
                         fdnOutputs_currentSample[line] = sample0 + (sample1 - sample0) * fraction; // Optimized lerp
                     }
                     
-                    // Hadamard mixing stage
-                    for (let row = 0; row < densityLines; row++) {
-                        let sum = 0.0;
-                        // Cache hadamard row for potentially faster access if JIT benefits
-                        const hadamardRow = context.hadamard[row];
-                        for (let col = 0; col < densityLines; col++) {
-                            sum += hadamardRow[col] * fdnOutputs_currentSample[col];
+                    // Hadamard mixing stage using fast transform
+                    for (let j = 0; j < densityLines; j++) {
+                        hadamardMixingOutput_currentSample[j] = fdnOutputs_currentSample[j];
+                    }
+                    for (let step = 1; step < densityLines; step <<= 1) {
+                        for (let iStep = 0; iStep < densityLines; iStep += step * 2) {
+                            for (let j = 0; j < step; j++) {
+                                const a = hadamardMixingOutput_currentSample[iStep + j];
+                                const b = hadamardMixingOutput_currentSample[iStep + j + step];
+                                hadamardMixingOutput_currentSample[iStep + j] = a + b;
+                                hadamardMixingOutput_currentSample[iStep + j + step] = a - b;
+                            }
                         }
-                        hadamardMixingOutput_currentSample[row] = (sum * invSqrtDensity) * diffusionAmount;
+                    }
+                    for (let j = 0; j < densityLines; j++) {
+                        hadamardMixingOutput_currentSample[j] *= hadamardScale;
                     }
                     
                     // FDN write stage (feedback, filtering, writing to delay lines)
@@ -259,7 +285,7 @@ class FDNReverbPlugin extends PluginBase {
                         const delayLineBuffer = context.delayLines[line];
                         const allocatedBufferLength = delayLineBuffer.length;
                         const writePos = context.delayPositions[line];
-                        let signalToFilter = fdnTankInput + hadamardMixingOutput_currentSample[line] * feedbackGains[line];
+                        const mask = context.delayMasks[line];
                         
                         if (p_hd > 0.01 && lpfAlphaForHfDamp > 0.000001 && lpfAlphaForHfDamp < 0.999999) { 
                             context.lpfStates[line] = (1.0 - lpfAlphaForHfDamp) * signalToFilter + lpfAlphaForHfDamp * context.lpfStates[line];
@@ -274,7 +300,7 @@ class FDNReverbPlugin extends PluginBase {
                         }
                         
                         delayLineBuffer[writePos] = signalToFilter;
-                        context.delayPositions[line] = (writePos + 1) % allocatedBufferLength;
+                        context.delayPositions[line] = (writePos + 1) & mask;
                     }
                     
                     // Output tapping and mixing
