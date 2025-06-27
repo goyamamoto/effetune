@@ -7,6 +7,22 @@ import { applySerializedState } from './utils/serialization-utils.js';
 // Make electronIntegration globally accessible first
 window.electronIntegration = electronIntegration;
 
+// Display garbage collection events when running in Electron
+const gcLogElement = document.getElementById('gcLog');
+if (gcLogElement && window.electronAPI &&
+    window.electronIntegration && window.electronIntegration.isElectron) {
+    window.electronAPI.onGCEvent(({ kind, duration }) => {
+        gcLogElement.style.display = 'block';
+        gcLogElement.textContent = `GC ${kind} - ${duration.toFixed(2)} ms`;
+        if (gcLogElement._timeout) {
+            clearTimeout(gcLogElement._timeout);
+        }
+        gcLogElement._timeout = setTimeout(() => {
+            gcLogElement.style.display = 'none';
+        }, 2000);
+    });
+}
+
 // Store the latest pipeline state in memory
 let latestPipelineState = null;
 

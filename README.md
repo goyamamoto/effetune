@@ -317,6 +317,12 @@ For optimal performance with nonlinear effects, it is recommended to use EffeTun
 Want to create your own audio plugins? Check out our [Plugin Development Guide](docs/plugin-development.md).
 Want to build a desktop app? Check out our [Build Guide](build.md).
 
+### Debugging Garbage Collection
+
+When running the desktop version, EffeTune now logs Node.js garbage collection events.
+These events appear briefly in the bottom-right corner of the window and in the
+developer console. Use this to verify whether audio glitches coincide with GC pauses.
+
 ## Links
 
 [Version History](docs/version-history.md)

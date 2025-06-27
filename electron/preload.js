@@ -113,6 +113,11 @@ contextBridge.exposeInMainWorld(
     // Signal that the renderer is ready to receive music files
     signalReadyForMusicFiles: () => {
       ipcRenderer.send('renderer-ready-for-music-files');
+    },
+
+    // Receive garbage collection events
+    onGCEvent: (callback) => {
+      ipcRenderer.on('gc-event', (_, data) => callback(data));
     }
   }
 );
