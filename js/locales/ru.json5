@@ -129,6 +129,7 @@
   "menu.settings.audioDevices": "Аудиоустройства...",
   "menu.settings.performanceBenchmark": "Тест производительности",
   "menu.settings.frequencyResponseMeasurement": "Измерение частотной характеристики",
+  "menu.settings.hornResonatorPlusResponse": "Частотная характеристика HornResonatorPlus",
 
   "menu.help": "Помощь",
   "menu.help.help": "Помощь",

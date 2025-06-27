@@ -63,7 +63,8 @@ export function updateApplicationMenu(isElectron) {
         submenu: [
           { label: t('menu.settings.audioDevices') },
           { label: t('menu.settings.performanceBenchmark') },
-          { label: t('menu.settings.frequencyResponseMeasurement') }
+          { label: t('menu.settings.frequencyResponseMeasurement') },
+          { label: t('menu.settings.hornResonatorPlusResponse') }
         ]
       },
       help: {
