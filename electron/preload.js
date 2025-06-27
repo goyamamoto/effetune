@@ -226,3 +226,37 @@ document.addEventListener('DOMContentLoaded', () => {
 // Note: We're not adding drag and drop event listeners here anymore
 // to avoid conflicts with the existing drag and drop functionality
 // The existing functionality is implemented in main.js
+
+// ============================================================================
+// GC Monitor API
+// ============================================================================
+const { PerformanceObserver } = require('perf_hooks');
+let gcObserver = null;
+
+function startGCMonitor() {
+  if (!gcObserver) {
+    try {
+      gcObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          window.postMessage({ type: 'gc-event', entry }, '*');
+        }
+      });
+      gcObserver.observe({ entryTypes: ['gc'], buffered: false });
+    } catch (err) {
+      console.error('Failed to start GC monitor:', err);
+    }
+  }
+}
+
+function stopGCMonitor() {
+  if (gcObserver) {
+    gcObserver.disconnect();
+    gcObserver = null;
+  }
+}
+
+contextBridge.exposeInMainWorld('gcMonitor', {
+  start: startGCMonitor,
+  stop: stopGCMonitor
+});
+

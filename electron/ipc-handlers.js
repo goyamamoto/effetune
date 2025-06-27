@@ -496,6 +496,15 @@ function registerIpcHandlers() {
                   mainWin.loadFile('features/measurement/measurement.html');
                 }
               }
+            },
+            {
+              label: menuTemplate.settings.submenu[3].label, // GC Monitor
+              click: () => {
+                const mainWin = constants.getMainWindow();
+                if (mainWin) {
+                  mainWin.loadFile('features/gc-monitor.html');
+                }
+              }
             }
           ]
         },
@@ -911,6 +920,15 @@ function createMenu() {
             const mainWin = constants.getMainWindow();
             if (mainWin) {
               mainWin.loadFile('features/measurement/measurement.html');
+            }
+          }
+        },
+        {
+          label: 'GC Monitor',
+          click: () => {
+            const mainWin = constants.getMainWindow();
+            if (mainWin) {
+              mainWin.loadFile('features/gc-monitor.html');
             }
           }
         }

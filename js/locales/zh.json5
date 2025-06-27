@@ -42,6 +42,7 @@
   "ui.resetButton": "重置音频",
   "ui.configAudioButton": "配置音频",
   "ui.shareButton": "分享",
+  "ui.gcMonitorButton": "GC Monitor",
   "ui.dragEffectMessage": "拖动此效果至效果管线的所需位置，或双击以添加。",
   "ui.dragPluginsHere": "将效果拖到此处以构建效果管道",
   "ui.effectsAvailable": "{count} 个效果可用",
@@ -62,6 +63,7 @@
   "ui.title.paste": "粘贴效果",
   "ui.title.savePreset": "保存预设",
   "ui.title.deletePreset": "删除预设",
+  "ui.title.gcMonitor": "Open GC monitor",
   "ui.title.sharePipeline": "共享处理链",
   "ui.title.decreaseColumns": "减少列数",
   "ui.title.increaseColumns": "增加列数",
@@ -129,6 +131,7 @@
   "menu.settings.audioDevices": "音频设备…",
   "menu.settings.performanceBenchmark": "性能基准测试",
   "menu.settings.frequencyResponseMeasurement": "频率响应测量",
+  "menu.settings.gcMonitor": "GC Monitor",
 
   "menu.help": "帮助",
   "menu.help.help": "帮助",
