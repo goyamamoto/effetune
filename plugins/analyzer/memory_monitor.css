@@ -1,0 +1,7 @@
+.memory-monitor canvas {
+    background-color: #1a1a1a;
+}
+
+.memory-monitor .graph-container {
+    margin-top: 20px;
+}
