@@ -65,6 +65,9 @@ contextBridge.exposeInMainWorld(
     
     // Get app version
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+
+    // Get process memory information
+    getMemoryInfo: () => ipcRenderer.invoke('get-memory-info'),
     
     // Get command line preset file
     getCommandLinePresetFile: () => ipcRenderer.invoke('get-command-line-preset-file'),

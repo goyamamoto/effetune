@@ -9,6 +9,7 @@ A collection of plugins that let you see your music in fascinating ways. These v
 - [Spectrogram](#spectrogram) - Creates beautiful visual patterns from your music
 - [Spectrum Analyzer](#spectrum-analyzer) - Shows the different frequencies in your music
 - [Stereo Meter](#stereo-meter) - Visualizes stereo balance and phase relationships
+- [Memory Heatmap](#memory-heatmap) - Displays JS heap usage to help spot garbage collection
 
 ## Level Meter
 
@@ -164,6 +165,15 @@ A fascinating visualization tool that lets you see how your music creates a sens
   - Lower values: See quick musical changes
   - Higher values: See overall sound patterns
   - Default: 100 ms works well for most music
+
+## Memory Heatmap
+
+This utility plugin visualizes how the JavaScript heap size changes over time. A color bar represents each memory sample, shifting from green (low usage) to red (high usage). When memory suddenly drops, the bar is marked in cyan so you can spot potential garbage collection events.
+
+### Usage Guide
+- Open the plugin to start monitoring automatically.
+- Watch for cyan markers indicating memory was freed by the runtime.
+- Use this information to correlate audio glitches with spikes or drops in memory use.
 
 ### Enjoying Your Music
 1. **Watch Different Styles**
