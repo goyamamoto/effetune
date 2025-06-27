@@ -256,6 +256,17 @@ function registerIpcHandlers() {
     return { success: false, error: 'Main window not available' };
   });
 
+  // Provide memory usage info
+  ipcMain.handle('get-memory-info', () => {
+    try {
+      const memInfo = process.memoryUsage();
+      return { success: true, memInfo };
+    } catch (error) {
+      console.error('Error getting memory info:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // Handle clear microphone permission request
   ipcMain.handle('clear-microphone-permission', async () => {
     try {

@@ -1,0 +1,6 @@
+.memory-heatmap-plugin-ui canvas {
+  width: 100%;
+  height: 100px;
+  background: #1a1a1a;
+  display: block;
+}
