@@ -7,6 +7,7 @@ const constants = require('./constants');
 const windowState = require('./window-state');
 const ipcHandlers = require('./ipc-handlers');
 const fileHandlers = require('./file-handlers');
+const gcMonitor = require('./gc-monitor');
 
 // Get app version from package.json
 const packageJson = require('../package.json');
@@ -67,6 +68,7 @@ function createWindow() {
   constants.setMainWindow(mainWindow);
   ipcHandlers.setMainWindow(mainWindow);
   fileHandlers.setMainWindow(mainWindow);
+  gcMonitor.startMonitoring();
   
   // Enable file drag and drop for the window
   mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
