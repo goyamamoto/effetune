@@ -258,6 +258,7 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | Lo-Fi     | Digital Error Emulator | Simule diverses erreurs de transmission audio numérique et caractéristiques d'équipements numériques vintage | [Détails](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | Génération et mixage de bruit | [Détails](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulation de gigue numérique | [Détails](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Simulation physique du bruit des disques analogiques | [Détails](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simule les changements naturels et dynamiques du son causés par de subtiles oscillations du cône de haut-parleur | [Détails](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Effet léger de modification de la hauteur | [Détails](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Effet de modulation basé sur le volume | [Détails](plugins/modulation.md#tremolo) |
@@ -267,6 +268,8 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | Resonator | Modal Resonator | Effet de résonance fréquentielle avec jusqu'à 5 résonateurs | [Détails](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Réverbération à réseau de délais avec rétroaction produisant des textures riches et denses | [Détails](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Réverbération à dispersion aléatoire avec diffusion naturelle | [Détails](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simule le déplacement non linéaire des cônes de haut-parleur | [Détails](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Ajoute du contenu harmonique pour améliorer la clarté et la présence | [Détails](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Effet d'écrêtage dur numérique | [Détails](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Ajoute un caractère unique grâce à la distorsion harmonique avec contrôle indépendant de chaque harmonique | [Détails](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | Effet de saturation 3 bandes pour une chaleur précise selon la fréquence | [Détails](plugins/saturation.md#multiband-saturation) |

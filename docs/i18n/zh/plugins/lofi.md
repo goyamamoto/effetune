@@ -8,6 +8,7 @@
 - [Digital Error Emulator](#digital-error-emulator) - 模拟各种数字音频传输错误
 - [Noise Blender](#noise-blender) - 添加氛围背景纹理
 - [Simple Jitter](#simple-jitter) - 创造细微的复古数字瑕疵
+- [Vinyl Artifacts](#vinyl-artifacts) - 模拟黑胶唱片的物理噪音特性
 
 ## Bit Crusher
 
@@ -231,5 +232,105 @@
    - Jitter: 非常轻微(5ps)
    - Digital Error: Dante/AES67(64 samp),BER 10^-7,Wet 100%
    - 完美适合:当代数字瑕疵
+
+## Vinyl Artifacts
+
+一个重现模拟黑胶唱片物理噪音特性的效果器。这个插件模拟播放黑胶唱片时出现的各种音频瑕疵,从表面噪音到播放链的电气特性。
+
+### 声音特色指南
+- 黑胶唱片体验:
+  - 重现播放黑胶唱片的真实声音
+  - 添加特有的表面噪音和瑕疵
+  - 创造温暖、怀旧的模拟感觉
+- 复古播放系统:
+  - 模拟完整的模拟播放链
+  - 包含RIAA均衡特性
+  - 添加对音乐产生反应的响应性噪音
+- 氛围质感:
+  - 创造丰富、有机的背景质感
+  - 为数字录音添加深度和特色
+  - 完美适合创造舒适、亲密的聆听体验
+
+### 参数
+- **Pops/min** - 控制每分钟大咔嗒声的频率 (0 到 120)
+  - 0-20: 偶尔温和的爆音
+  - 20-60: 适度的复古特色
+  - 60-120: 重度磨损声音
+- **Pop Level** - 控制爆音的音量 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的咔嗒声
+  - -48 到 -24 dB: 适度的爆音
+  - -24 到 0 dB: 响亮的爆音(极端设置)
+- **Crackles/min** - 控制每分钟爆裂噪音的密度 (0 到 2000)
+  - 0-200: 细微的表面质感
+  - 200-1000: 经典黑胶特色
+  - 1000-2000: 重度表面噪音
+- **Crackle Level** - 控制爆裂噪音的音量 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的爆裂声
+  - -48 到 -24 dB: 适度的爆裂声
+  - -24 到 0 dB: 响亮的爆裂声(极端设置)
+- **Hiss** - 控制持续表面噪音的级别 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的背景质感
+  - -48 到 -30 dB: 明显的表面噪音
+  - -30 到 0 dB: 突出的嘶嘶声(极端设置)
+- **Rumble** - 控制低频转台隆隆声 (-80.0 到 0.0 dB)
+  - -80 到 -60 dB: 细微的低频温暖感
+  - -60 到 -40 dB: 明显的隆隆声
+  - -40 到 0 dB: 重度隆隆声(极端设置)
+- **Crosstalk** - 控制左右声道之间的串扰 (0 到 100%)
+  - 0%: 完美的立体声分离
+  - 30-60%: 真实的黑胶串扰
+  - 100%: 最大声道混合
+- **Noise Profile** - 调整噪音的频响特性 (0.0 到 10.0)
+  - 0: RIAA曲线再现(真实黑胶频响)
+  - 5: 部分校正响应
+  - 10: 平坦响应(旁路)
+- **Wear** - 整体唱片状况的主控制 (0 到 200%)
+  - 0-50%: 保养良好的唱片
+  - 50-100%: 正常磨损和老化
+  - 100-200%: 严重磨损的唱片
+- **React** - 噪音对输入信号的响应程度 (0 到 100%)
+  - 0%: 静态噪音级别
+  - 25-50%: 对音乐的适度响应
+  - 75-100%: 对输入高度响应
+- **React Mode** - 选择信号的哪个方面控制响应
+  - Velocity: 响应高频内容(唱针速度)
+  - Amplitude: 响应整体信号级别
+- **Mix** - 控制噪音添加到干信号的量 (0 到 100%)
+  - 0%: 不添加噪音(仅干信号)
+  - 50%: 适度噪音添加
+  - 100%: 最大噪音添加
+  - 注意: 干信号级别保持不变;此参数仅控制噪音量
+
+### 不同风格的推荐设置
+
+1. 细微黑胶特色
+   - Pops/min: 20, Pop Level: -48dB, Crackles/min: 200, Crackle Level: -48dB
+   - Hiss: -48dB, Rumble: -60dB, Crosstalk: 30%, Noise Profile: 5.0
+   - Wear: 25%, React: 20%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 添加温和的模拟温暖感
+
+2. 经典黑胶体验
+   - Pops/min: 40, Pop Level: -36dB, Crackles/min: 400, Crackle Level: -36dB
+   - Hiss: -36dB, Rumble: -50dB, Crosstalk: 50%, Noise Profile: 4.0
+   - Wear: 60%, React: 30%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 真实的黑胶聆听体验
+
+3. 严重磨损唱片
+   - Pops/min: 80, Pop Level: -24dB, Crackles/min: 800, Crackle Level: -24dB
+   - Hiss: -30dB, Rumble: -40dB, Crosstalk: 70%, Noise Profile: 3.0
+   - Wear: 120%, React: 50%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 严重老化唱片特色
+
+4. Lo-Fi氛围
+   - Pops/min: 15, Pop Level: -54dB, Crackles/min: 150, Crackle Level: -54dB
+   - Hiss: -42dB, Rumble: -66dB, Crosstalk: 25%, Noise Profile: 6.0
+   - Wear: 40%, React: 15%, React Mode: Amplitude, Mix: 100%
+   - 完美适合: 背景氛围质感
+
+5. 动态黑胶
+   - Pops/min: 60, Pop Level: -30dB, Crackles/min: 600, Crackle Level: -30dB
+   - Hiss: -39dB, Rumble: -45dB, Crosstalk: 60%, Noise Profile: 5.0
+   - Wear: 80%, React: 75%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 对音乐产生戏剧性响应的噪音
 
 记住:这些效果旨在为您的音乐添加特色和怀旧感。从细微设置开始,根据喜好调整!

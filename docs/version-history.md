@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.57 (Jun xx, 2025)
+- Added Exciter and Vinyl Artifacts effects
+- Various minor improvements
+
 ### Version 1.56 (Jun 22, 2025)
 - Added Horn Resonator Plus effect
 - Added low latency mode

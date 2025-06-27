@@ -266,6 +266,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Lo-Fi     | Digital Error Emulator | विभिन्न डिजिटल ऑडियो ट्रांसमिशन त्रुटियों और विंटेज डिजिटल उपकरण विशेषताओं का सिमुलेशन | [विवरण](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | शोर उत्पन्न करना और मिलाना | [विवरण](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | डिजिटल जिटर सिमुलेशन | [विवरण](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | एनालॉग रिकॉर्ड नॉइज़ भौतिक सिमुलेशन | [विवरण](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | सूक्ष्म स्पीकर कोन आंदोलन द्वारा उत्पन्न प्राकृतिक, डायनेमिक ध्वनि परिवर्तन का अनुकरण करता है | [विवरण](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | लाइटवेट पिच शिफ्टिंग प्रभाव | [विवरण](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | वॉल्यूम-आधारित मॉड्यूलेशन प्रभाव | [विवरण](plugins/modulation.md#tremolo) |
@@ -275,6 +276,8 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Resonator | Modal Resonator | 5 तक रेज़ोनेटर के साथ आवृत्ति रेज़ोनेंस प्रभाव | [विवरण](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | फीडबैक डिले नेटवर्क रिवर्ब जो रिच और घने रिवर्ब टेक्सचर उत्पन्न करता है | [विवरण](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | प्राकृतिक प्रसार के साथ रैंडम स्कैटरिंग रिवर्ब | [विवरण](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | स्पीकर कोन के नॉन-लिनियर डिस्प्लेसमेंट का अनुकरण करता है | [विवरण](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | स्पष्टता और उपस्थिति बढ़ाने के लिए हार्मोनिक सामग्री जोड़ता है | [विवरण](plugins/saturation.md#exciter) |
 | Saturation | Hard Clipping | डिजिटल हार्ड क्लिपिंग प्रभाव | [विवरण](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | प्रत्येक हार्मोनिक के स्वतंत्र नियंत्रण के साथ हार्मोनिक विरूपण द्वारा अनूठा कैरेक्टर जोड़ता है | [विवरण](plugins/saturation.md#harmonic-distortion) |
 | Saturation | Multiband Saturation | सटीक आवृत्ति-आधारित वार्मथ के लिए 3-बैंड सैचुरेशन प्रभाव | [विवरण](plugins/saturation.md#multiband-saturation) |

@@ -244,6 +244,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Lo-Fi     | Digital Error Emulator | 模拟各种数字音频传输错误和复古数字设备特性 | [详情](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | 噪音生成与混合 | [详情](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 数字抖动模拟 | [详情](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | 模拟唱片噪音物理仿真 | [详情](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | 模拟因扬声器振膜微动引起的自然动态音色变化 | [详情](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | 轻量级移调效果 | [详情](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | 基于音量的调制效果 | [详情](plugins/modulation.md#tremolo) |
@@ -253,6 +254,8 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Resonator | Modal Resonator | 支持最多5个谐振器的频率共鸣效果 | [详情](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | 反馈延迟网络混响，产生丰富密集的混响纹理 | [详情](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 具有自然扩散的随机散射混响 | [详情](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | 模拟扬声器振膜的非线性位移 | [详情](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | 添加谐波内容以增强清晰度和存在感 | [详情](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | 数字硬削波效果 | [详情](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 通过独立控制各谐波添加独特音色 | [详情](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 用于精确频率基暖音的三频段饱和效果 | [详情](plugins/saturation.md#multiband-saturation) |

@@ -260,6 +260,7 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | Lo-Fi     | Digital Error Emulator | Simula varios errores de transmisión de audio digital y características de equipos digitales vintage | [Detalles](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | Generación y mezcla de ruido | [Detalles](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulación de jitter digital | [Detalles](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Simulación física de ruido de discos analógicos | [Detalles](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simula cambios dinámicos y naturales en el sonido causados por movimientos sutiles del cono del altavoz | [Detalles](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Efecto de cambio de tono ligero | [Detalles](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Efecto de modulación basado en volumen | [Detalles](plugins/modulation.md#tremolo) |
@@ -269,6 +270,8 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | Resonator | Modal Resonator | Efecto de resonancia de frecuencia con hasta 5 resonadores | [Detalles](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Reverberación de red de retardo con retroalimentación que produce texturas de reverb ricas y densas | [Detalles](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Reverberación de dispersión aleatoria con difusión natural | [Detalles](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simula el desplazamiento no lineal de conos de altavoz | [Detalles](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Añade contenido armónico para mejorar la claridad y presencia | [Detalles](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Efecto de recorte duro digital | [Detalles](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Añade carácter único mediante distorsión armónica con control independiente de cada armónico | [Detalles](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | Efecto de saturación de 3 bandas para un calentamiento preciso según frecuencia | [Detalles](plugins/saturation.md#multiband-saturation) |

@@ -8,6 +8,7 @@ Uma coleção de plugins que adicionam caráter vintage e qualidades nostálgica
 - [Digital Error Emulator](#digital-error-emulator) - Simula vários erros de transmissão de áudio digital
 - [Noise Blender](#noise-blender) - Adiciona textura atmosférica de fundo
 - [Simple Jitter](#simple-jitter) - Cria imperfeições digitais vintage sutis
+- [Vinyl Artifacts](#vinyl-artifacts) - Simulação física de ruído de discos analógicos
 
 ## Bit Crusher
 
@@ -231,5 +232,106 @@ Um efeito que adiciona variações sutis de tempo para criar aquele som digital 
    - Jitter: Muito leve (5ps)
    - Digital Error: Dante/AES67 (64 samp), BER 10^-7, Wet 100%
    - Perfeito para: Imperfeições digitais contemporâneas
+
+## Vinyl Artifacts
+
+Um efeito que recria as características de ruído físico dos discos de vinil analógicos. Este plugin simula os vários artefatos que ocorrem ao reproduzir discos de vinil, desde o ruído de superfície até as características elétricas da cadeia de reprodução.
+
+### Guia de Caráter Sonoro
+- Experiência de Disco de Vinil:
+  - Recria o som autêntico de reproduzir discos de vinil
+  - Adiciona o ruído de superfície característico e artefatos
+  - Cria aquela sensação analógica aconchegante e nostálgica
+- Sistema de Reprodução Vintage:
+  - Simula a cadeia de reprodução analógica completa
+  - Inclui características de equalização RIAA
+  - Adiciona ruído reativo que responde à música
+- Textura Atmosférica:
+  - Cria textura de fundo rica e orgânica
+  - Adiciona profundidade e caráter às gravações digitais
+  - Perfeito para criar experiências de audição aconchegantes e íntimas
+
+### Parâmetros
+- **Pops/min** - Controla a frequência de ruídos de clique grandes por minuto (0 a 120)
+  - 0-20: Pops suaves ocasionais
+  - 20-60: Caráter vintage moderado
+  - 60-120: Som de desgaste pesado
+- **Pop Level** - Controla o volume dos ruídos de pop (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Cliques sutis
+  - -48 a -24 dB: Pops moderados
+  - -24 a 0 dB: Pops altos (configurações extremas)
+- **Crackles/min** - Controla a densidade do ruído de crackling por minuto (0 a 2000)
+  - 0-200: Textura de superfície sutil
+  - 200-1000: Caráter de vinil clássico
+  - 1000-2000: Ruído de superfície pesado
+- **Crackle Level** - Controla o volume do ruído de crackling (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Crackling sutil
+  - -48 a -24 dB: Crackling moderado
+  - -24 a 0 dB: Crackling alto (configurações extremas)
+- **Hiss** - Controla o nível de ruído de superfície constante (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Textura de fundo sutil
+  - -48 a -30 dB: Ruído de superfície notável
+  - -30 a 0 dB: Chiado proeminente (configurações extremas)
+- **Rumble** - Controla o ronco de baixa frequência do toca-discos (-80.0 a 0.0 dB)
+  - -80 a -60 dB: Calor sutil nos graves
+  - -60 a -40 dB: Ronco notável
+  - -40 a 0 dB: Ronco pesado (configurações extremas)
+- **Crosstalk** - Controla o vazamento entre canais estéreo esquerdo e direito (0 a 100%)
+  - 0%: Separação estéreo perfeita
+  - 30-60%: Crosstalk realista de vinil
+  - 100%: Vazamento máximo entre canais
+- **Noise Profile** - Ajusta a resposta de frequência do ruído (0.0 a 10.0)
+  - 0: Reprodução da curva RIAA (resposta de frequência autêntica do vinil)
+  - 5: Resposta parcialmente corrigida
+  - 10: Resposta plana (bypassed)
+- **Wear** - Multiplicador mestre para a condição geral do disco (0 a 200%)
+  - 0-50%: Disco bem conservado
+  - 50-100%: Desgaste e idade normais
+  - 100-200%: Disco muito desgastado
+- **React** - Quão responsivo o ruído é ao sinal de entrada (0 a 100%)
+  - 0%: Níveis de ruído estáticos
+  - 25-50%: Resposta moderada à música
+  - 75-100%: Altamente reativo à entrada
+- **React Mode** - Seleciona qual aspecto do sinal controla a reação
+  - Velocity: Responde ao conteúdo de alta frequência (velocidade da agulha)
+  - Amplitude: Responde ao nível geral do sinal
+- **Mix** - Controla quanto ruído é adicionado ao sinal seco (0 a 100%)
+  - 0%: Nenhum ruído adicionado (apenas sinal seco)
+  - 50%: Adição moderada de ruído
+  - 100%: Adição máxima de ruído
+  - Nota: O nível do sinal seco permanece inalterado; este parâmetro controla apenas a quantidade de ruído
+
+
+### Configurações Recomendadas para Diferentes Estilos
+
+1. Caráter de Vinil Sutil
+   - Pops/min: 20, Pop Level: -48dB, Crackles/min: 200, Crackle Level: -48dB
+   - Hiss: -48dB, Rumble: -60dB, Crosstalk: 30%, Noise Profile: 5.0
+   - Wear: 25%, React: 20%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Adicionar aquecimento analógico suave
+
+2. Experiência de Vinil Clássica
+   - Pops/min: 40, Pop Level: -36dB, Crackles/min: 400, Crackle Level: -36dB
+   - Hiss: -36dB, Rumble: -50dB, Crosstalk: 50%, Noise Profile: 4.0
+   - Wear: 60%, React: 30%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Experiência autêntica de audição de vinil
+
+3. Disco Muito Desgastado
+   - Pops/min: 80, Pop Level: -24dB, Crackles/min: 800, Crackle Level: -24dB
+   - Hiss: -30dB, Rumble: -40dB, Crosstalk: 70%, Noise Profile: 3.0
+   - Wear: 120%, React: 50%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Caráter de disco muito envelhecido
+
+4. Lo-Fi Ambiental
+   - Pops/min: 15, Pop Level: -54dB, Crackles/min: 150, Crackle Level: -54dB
+   - Hiss: -42dB, Rumble: -66dB, Crosstalk: 25%, Noise Profile: 6.0
+   - Wear: 40%, React: 15%, React Mode: Amplitude, Mix: 100%
+   - Perfeito para: Textura ambiental de fundo
+
+5. Vinil Dinâmico
+   - Pops/min: 60, Pop Level: -30dB, Crackles/min: 600, Crackle Level: -30dB
+   - Hiss: -39dB, Rumble: -45dB, Crosstalk: 60%, Noise Profile: 5.0
+   - Wear: 80%, React: 75%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Ruído que responde dramaticamente à música
 
 Lembre-se: Esses efeitos são feitos para adicionar caráter e nostalgia à sua música. Comece com configurações sutis e ajuste ao gosto!

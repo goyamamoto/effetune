@@ -252,6 +252,7 @@
 | Lo-Fi     | Digital Error Emulator | يحاكي أخطاء الإرسال الصوتي الرقمي المختلفة وخصائص المعدات الرقمية القديمة | [تفاصيل](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | توليد الضوضاء ومزجها | [تفاصيل](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | محاكاة التذبذب الرقمي | [تفاصيل](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | محاكاة فيزيائية لضوضاء السجلات التناظرية | [تفاصيل](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | يحاكي التغيرات الديناميكية الطبيعية في الصوت الناتجة عن حركات مخددات السماعة الطفيفة | [تفاصيل](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | تأثير تغيير درجة الصوت خفيف الوزن | [تفاصيل](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | تأثير التضمين بناءً على مستوى الصوت | [تفاصيل](plugins/modulation.md#tremolo) |
@@ -261,6 +262,8 @@
 | Resonator | Modal Resonator | تأثير رنين ترددي مع ما يصل إلى 5 رنانات | [تفاصيل](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | صدى شبكة التأخير المرتد ينتج نسيج صدى غني وكثيف | [تفاصيل](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | صدى منتشر عشوائي مع انتشار طبيعي | [تفاصيل](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | يحاكي الإزاحة غير الخطية لمخاريط السماعة | [تفاصيل](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | يضيف محتوى توافقي لتعزيز الوضوح والحضور | [تفاصيل](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | تأثير القص الرقمي الصلب | [تفاصيل](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | يضيف طابعًا فريدًا من خلال التشويه التوافقي مع التحكم المستقل في كل توافقي | [تفاصيل](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | تأثير تشبع ثلاثي النطاقات لدفء دقيق حسب التردد | [تفاصيل](plugins/saturation.md#multiband-saturation) |

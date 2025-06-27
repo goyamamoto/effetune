@@ -266,6 +266,7 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Lo-Fi     | Digital Error Emulator | Simulates various digital audio transmission errors and vintage digital equipment characteristics | [Details](docs/plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | Noise generation and mixing | [Details](docs/plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Digital jitter simulation | [Details](docs/plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Analog record noise physical simulation | [Details](docs/plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simulates natural, dynamic changes in sound caused by subtle speaker cone movements | [Details](docs/plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Lightweight pitch shifting effect | [Details](docs/plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Volume-based modulation effect | [Details](docs/plugins/modulation.md#tremolo) |
@@ -275,6 +276,8 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Resonator | Modal Resonator | Frequency resonance effect with up to 5 resonators | [Details](docs/plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Feedback Delay Network reverb with rich, dense reverb textures | [Details](docs/plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Random scattering reverb with natural diffusion | [Details](docs/plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simulates the nonlinear displacement of speaker cones | [Details](docs/plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Add harmonic content to enhance clarity and presence | [Details](docs/plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Digital hard clipping effect | [Details](docs/plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Adds unique character through harmonic distortion with independent control of each harmonic | [Details](docs/plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 3-band saturation effect for precise frequency-based warmth | [Details](docs/plugins/saturation.md#multiband-saturation) |

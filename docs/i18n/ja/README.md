@@ -265,6 +265,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Lo-Fi     | Digital Error Emulator | 様々なデジタルオーディオ伝送エラーとビンテージデジタル機器の特性をシミュレート | [詳細](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | ノイズ生成とミキシング | [詳細](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | デジタルジッターシミュレーション | [詳細](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | アナログレコードノイズの物理的シミュレーション | [詳細](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | スピーカーコーンの微細な動きによる自然でダイナミックな音変化をシミュレート | [詳細](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | 軽量なピッチシフティングエフェクト | [詳細](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | 音量ベースのモジュレーション効果 | [詳細](plugins/modulation.md#tremolo) |
@@ -274,6 +275,8 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Resonator | Modal Resonator | 最大5つのレゾネーターを備えた周波数共振効果 | [詳細](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | リッチで密度の高いリバーブテクスチャを生成するフィードバック・ディレイ・ネットワーク・リバーブ | [詳細](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 自然な拡散を伴うランダム散乱リバーブ | [詳細](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | スピーカーコーンの非線形変位をシミュレート | [詳細](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | 明瞭さとプレゼンスを向上させるハーモニック成分を追加 | [詳細](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | デジタルハードクリッピング効果 | [詳細](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 各ハーモニックを独立制御できるハーモニックディストーションで独自のキャラクターを付与 | [詳細](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 周波数別のウォーム感を精密に制御する3バンドサチュレーション効果 | [詳細](plugins/saturation.md#multiband-saturation) |

@@ -256,6 +256,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Lo-Fi     | Digital Error Emulator | 다양한 디지털 오디오 전송 오류와 빈티지 디지털 장비 특성을 시뮬레이션 | [세부 정보](plugins/lofi.md#digital-error-emulator) |
 | Lo-Fi     | Noise Blender | 노이즈 생성 및 믹싱 | [세부 정보](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 디지털 지터 시뮬레이션 | [세부 정보](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | 아날로그 레코드 노이즈 물리적 시뮬레이션 | [세부 정보](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | 미묘한 스피커 콘 움직임으로 인한 자연스럽고 동적인 사운드 변화를 시뮬레이션 | [세부 정보](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | 가볍고 간편한 피치 시프팅 이펙트 | [세부 정보](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | 볼륨 기반 모듈레이션 이펙트 | [세부 정보](plugins/modulation.md#tremolo) |
@@ -265,6 +266,8 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Resonator | Modal Resonator | 최대 5개의 레조네이터를 갖춘 주파수 공명 효과 | [세부 정보](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | 풍부하고 조밀한 리버브 텍스처를 생성하는 피드백 딜레이 네트워크 리버브 | [세부 정보](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 자연스러운 확산을 갖춘 랜덤 스캐터링 리버브 | [세부 정보](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | 스피커 콘의 비선형 변위를 시뮬레이션 | [세부 정보](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | 명료성과 존재감을 향상시키기 위해 하모닉 내용을 추가 | [세부 정보](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | 디지털 하드 클리핑 이펙트 | [세부 정보](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 각 하모닉을 개별 제어하여 독특한 특성을 부여하는 하모닉 디스토션 | [세부 정보](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 주파수 기반 따뜻함을 위한 3밴드 새츄레이션 이펙트 | [세부 정보](plugins/saturation.md#multiband-saturation) |
