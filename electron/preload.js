@@ -109,7 +109,12 @@ contextBridge.exposeInMainWorld(
     onAudioFilesDropped: (callback) => {
       ipcRenderer.on('audio-files-dropped', (event, filePaths) => callback(filePaths));
     },
-    
+
+    // Listen for garbage collection events
+    onGcEvent: (callback) => {
+      ipcRenderer.on('gc-event', (_, data) => callback(data));
+    },
+
     // Signal that the renderer is ready to receive music files
     signalReadyForMusicFiles: () => {
       ipcRenderer.send('renderer-ready-for-music-files');
