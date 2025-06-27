@@ -49,6 +49,7 @@ export class UIManager {
         this.initShareButton();
         this.initPresetManagement();
         this.initOpenMusicButton();
+        this.initGCMonitorButton();
 
         // Initialize clipboard buttons
         this.undoButton = document.getElementById('undoButton');
@@ -557,6 +558,12 @@ export class UIManager {
             openMusicButton.title = this.t('ui.title.openMusic');
         }
 
+        const gcMonitorButton = document.getElementById('gcMonitorButton');
+        if (gcMonitorButton) {
+            gcMonitorButton.textContent = this.t('ui.gcMonitorButton');
+            gcMonitorButton.title = this.t('ui.title.gcMonitor');
+        }
+
         const sidebarButton = document.getElementById('sidebarButton');
         if (sidebarButton) {
             sidebarButton.title = this.t('ui.title.sidebar');
@@ -932,6 +939,21 @@ export class UIManager {
                         // Failed to read clipboard
                         this.setError('error.failedToReadClipboard', true);
                     });
+            });
+        }
+    }
+
+    /**
+     * Initialize GC monitor button
+     */
+    initGCMonitorButton() {
+        const btn = document.getElementById('gcMonitorButton');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (window.electronAPI) {
+                    window.electronAPI.hideApplicationMenu().catch(() => {});
+                }
+                window.location.href = 'features/gc-monitor.html';
             });
         }
     }
