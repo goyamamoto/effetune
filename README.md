@@ -83,12 +83,15 @@ To use EffeTune with CD players, network players, or other physical sources:
 2. Drag effects from the list to the Effect Pipeline area
 3. Effects are processed in order from top to bottom
 4. Drag the handle (⋮) or click the ▲▼ buttons to reorder the effects
+   - For Section effects: Shift+click the ▲▼ buttons to move entire sections (from one Section to the next Section, pipeline beginning, or end of pipeline)
 5. Click an effect's name to expand/collapse its settings
-   - Shift+click to collapse/expand all effects except for the Analyzer category
+   - Shift+click on a Section effect to collapse/expand all effects within that section
+   - Shift+click on other effects to collapse/expand all effects except for the Analyzer category
    - Ctrl+click to collapse/expand all effects
 6. Use the ON button to bypass individual effects
 7. Click the ? button to open its detailed documentation in a new tab
 8. Remove effects using the × button
+   - For Section effects: Shift+click the × button to remove entire sections
 9. Click the routing button to set the channels to be processed and the input and output busses
    - [More about bus functions](docs/bus-function.md)
 
@@ -264,8 +267,10 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | EQ        | Tone Control | Three-band tone control | [Details](docs/plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Bit depth reduction and zero-order hold effect | [Details](docs/plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simulates various digital audio transmission errors and vintage digital equipment characteristics | [Details](docs/plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | High-precision power hum noise generator | [Details](docs/plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Noise generation and mixing | [Details](docs/plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Digital jitter simulation | [Details](docs/plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Analog record noise physical simulation | [Details](docs/plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simulates natural, dynamic changes in sound caused by subtle speaker cone movements | [Details](docs/plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Lightweight pitch shifting effect | [Details](docs/plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Volume-based modulation effect | [Details](docs/plugins/modulation.md#tremolo) |
@@ -275,6 +280,8 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Resonator | Modal Resonator | Frequency resonance effect with up to 5 resonators | [Details](docs/plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Feedback Delay Network reverb with rich, dense reverb textures | [Details](docs/plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Random scattering reverb with natural diffusion | [Details](docs/plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simulates the nonlinear displacement of speaker cones | [Details](docs/plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Add harmonic content to enhance clarity and presence | [Details](docs/plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Digital hard clipping effect | [Details](docs/plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Adds unique character through harmonic distortion with independent control of each harmonic | [Details](docs/plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 3-band saturation effect for precise frequency-based warmth | [Details](docs/plugins/saturation.md#multiband-saturation) |
@@ -324,3 +331,5 @@ Want to build a desktop app? Check out our [Build Guide](build.md).
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

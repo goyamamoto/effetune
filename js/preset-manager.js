@@ -133,8 +133,31 @@ export class PresetManager {
                 }
             }
 
+            // Check if the plugin right after insertion position is a Section plugin
+            const targetIndex = insertionIndex !== null ? insertionIndex : audioManager.pipeline.length;
+            const isNextPluginSection = targetIndex < audioManager.pipeline.length && 
+                                      audioManager.pipeline[targetIndex].name === 'Section';
+
+            // Create end section plugin if needed (when next plugin is not Section AND not at the end of pipeline)
+            let endSectionPlugin = null;
+            if (!isNextPluginSection && targetIndex < audioManager.pipeline.length) {
+                try {
+                    if (pluginManager.isPluginAvailable('Section')) {
+                        endSectionPlugin = pluginManager.createPlugin('Section');
+                        endSectionPlugin.setParameters({
+                            cm: ''  // Empty comment as default
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Section plugin not available for end section:', error);
+                }
+            }
+
             // Prepare all plugins to add
-            const allPluginsToAdd = sectionPlugin ? [sectionPlugin, ...presetPlugins] : presetPlugins;
+            let allPluginsToAdd = sectionPlugin ? [sectionPlugin, ...presetPlugins] : presetPlugins;
+            if (endSectionPlugin) {
+                allPluginsToAdd = [...allPluginsToAdd, endSectionPlugin];
+            }
 
             // Add to expanded plugins
             allPluginsToAdd.forEach(plugin => {
@@ -142,7 +165,6 @@ export class PresetManager {
             });
 
             // Insert into pipeline
-            const targetIndex = insertionIndex !== null ? insertionIndex : audioManager.pipeline.length;
             audioManager.pipeline.splice(targetIndex, 0, ...allPluginsToAdd);
 
             // Update UI and worklet

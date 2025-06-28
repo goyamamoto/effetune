@@ -78,12 +78,15 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 2. 将效果从列表拖放到 Effect Pipeline 区域
 3. 效果按从上到下的顺序处理
 4. 拖动手柄 (⋮) 或点击 ▲▼ 按钮重新排序效果
+   - 对于Section效果：按住Shift键点击 ▲▼ 按钮可移动整个区段（从一个Section到下一个Section、管道开头或管道末尾）
 5. 点击效果名称以展开/折叠其设置
-   - 按住Shift键点击可折叠/展开除分析器类别以外的所有效果
+   - 在Section效果上按住Shift键点击可折叠/展开该区段内的所有效果
+   - 在其他效果上按住Shift键点击可折叠/展开除分析器类别以外的所有效果
    - 按住Ctrl键点击可折叠/展开所有效果
 6. 使用 ON 按钮绕过单个效果
 7. 点击 ? 按钮在新标签页中打开详细文档
 8. 使用 × 按钮移除效果
+   - 对于Section效果：按住Shift键点击 × 按钮可移除整个区段
 9. 单击路由按钮以设置要处理的通道以及输入和输出总线
    - [更多关于总线功能的信息](bus-function.md)
 
@@ -242,8 +245,10 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | EQ        | Tone Control | 三频段音色控制 | [详情](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | 降低位深并应用零阶保持效果 | [详情](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | 模拟各种数字音频传输错误和复古数字设备特性 | [详情](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | 高精度电源嗡鸣噪声生成器 | [详情](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | 噪音生成与混合 | [详情](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 数字抖动模拟 | [详情](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | 模拟唱片噪音物理仿真 | [详情](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | 模拟因扬声器振膜微动引起的自然动态音色变化 | [详情](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | 轻量级移调效果 | [详情](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | 基于音量的调制效果 | [详情](plugins/modulation.md#tremolo) |
@@ -253,6 +258,8 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Resonator | Modal Resonator | 支持最多5个谐振器的频率共鸣效果 | [详情](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | 反馈延迟网络混响，产生丰富密集的混响纹理 | [详情](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 具有自然扩散的随机散射混响 | [详情](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | 模拟扬声器振膜的非线性位移 | [详情](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | 添加谐波内容以增强清晰度和存在感 | [详情](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | 数字硬削波效果 | [详情](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 通过独立控制各谐波添加独特音色 | [详情](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 用于精确频率基暖音的三频段饱和效果 | [详情](plugins/saturation.md#multiband-saturation) |
@@ -300,3 +307,5 @@ Frieve EffeTune 已在 Google Chrome 上测试验证运行。该应用需要支�
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

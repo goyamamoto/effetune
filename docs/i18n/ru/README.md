@@ -78,12 +78,15 @@ No audiophile myths, Just pure science.
 2. Перетащите эффекты из списка в область Effect Pipeline
 3. Эффекты обрабатываются в порядке сверху вниз
 4. Перетащите маркер (⋮) или нажмите кнопки ▲▼ для изменения порядка эффектов
+   - Для эффектов Section: Shift+нажатие кнопок ▲▼ для перемещения целых секций (от одной Section к следующей Section, начало pipeline, или конец pipeline)
 5. Нажмите на название эффекта, чтобы развернуть/свернуть его настройки
-   - Shift+нажатие сворачивает/разворачивает все эффекты, кроме категории Analyzer
+   - Shift+нажатие на эффект Section сворачивает/разворачивает все эффекты в этой секции
+   - Shift+нажатие на другие эффекты сворачивает/разворачивает все эффекты, кроме категории Analyzer
    - Ctrl+нажатие сворачивает/разворачивает все эффекты
 6. Используйте кнопку ON, чтобы обходить отдельные эффекты
 7. Нажмите кнопку ? для открытия подробной документации в новой вкладке
-8. Удалите эффекты, используя кнопку ×  
+8. Удалите эффекты, используя кнопку ×
+   - Для эффектов Section: Shift+нажатие кнопки × для удаления целых секций  
 9. Нажмите кнопку маршрутизации, чтобы настроить каналы для обработки и входные и выходные шины  
    - [Подробнее о функциях шин](bus-function.md)
 
@@ -242,8 +245,10 @@ No audiophile myths, Just pure science.
 | EQ        | Tone Control | Трёхполосное управление тоном | [Подробнее](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Снижение битовой глубины и эффект «zero-order hold» | [Подробнее](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Имитирует различные ошибки передачи цифрового аудио и характеристики винтажного цифрового оборудования | [Подробнее](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Высокоточный генератор шума фона питания | [Подробнее](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Генерация и смешивание шума | [Подробнее](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Эмуляция цифрового джиттера | [Подробнее](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Физическая симуляция шума аналоговых записей | [Подробнее](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Симулирует естественные динамические изменения звука, вызванные небольшими движениями конуса динамика | [Подробнее](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Лёгкий эффект изменения высоты тона | [Подробнее](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Эффект модуляции громкости | [Подробнее](plugins/modulation.md#tremolo) |
@@ -253,6 +258,8 @@ No audiophile myths, Just pure science.
 | Resonator | Modal Resonator | Эффект резонанса частот с поддержкой до 5 резонаторов | [Подробнее](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Реверберация с сетью задержек с обратной связью, создающая богатые плотные текстуры | [Подробнее](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Реверберация с рандомным рассеянием и естественной диффузией | [Подробнее](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Симулирует нелинейное смещение диффузоров динамиков | [Подробнее](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Добавляет гармонический контент для улучшения ясности и присутствия | [Подробнее](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Цифровой эффект жесткого клиппирования | [Подробнее](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Добавляет уникальный характер через гармонические искажения с независимым управлением каждой гармоникой | [Подробнее](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 3-полосный эффект насыщения для точного придания теплоты на основе частот | [Подробнее](plugins/saturation.md#multiband-saturation) |
@@ -300,3 +307,5 @@ Frieve EffeTune был протестирован и подтвержден дл
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

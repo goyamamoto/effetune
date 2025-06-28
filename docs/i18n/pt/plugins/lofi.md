@@ -6,8 +6,10 @@ Uma coleção de plugins que adicionam caráter vintage e qualidades nostálgica
 
 - [Bit Crusher](#bit-crusher) - Cria sons de jogos retrô e digitais vintage
 - [Digital Error Emulator](#digital-error-emulator) - Simula vários erros de transmissão de áudio digital
+- [Hum Generator](#hum-generator) - Gerador de ruído de zumbido de alta precisão
 - [Noise Blender](#noise-blender) - Adiciona textura atmosférica de fundo
 - [Simple Jitter](#simple-jitter) - Cria imperfeições digitais vintage sutis
+- [Vinyl Artifacts](#vinyl-artifacts) - Simulação física de ruído de discos analógicos
 
 ## Bit Crusher
 
@@ -141,6 +143,79 @@ Um efeito que simula o som de vários erros de transmissão de áudio digital, d
 
 Nota: Todas as recomendações usam 100% de Wet Mix para comportamento realista de erro digital. Valores de mix úmido mais baixos podem ser usados para efeitos criativos, mas não representam como erros digitais reais realmente ocorrem.
 
+## Hum Generator
+
+Um efeito que gera ruído de zumbido de energia elétrica de alta precisão e autenticidade com sua estrutura harmônica característica e instabilidades sutis. Perfeito para adicionar zumbido de fundo realista de equipamentos vintage, fontes de alimentação, ou criar aquela sensação autêntica de estar "conectado à rede" que muitas gravações clássicas possuem.
+
+### Guia de Caráter Sonoro
+- Ambiente de Equipamento Vintage:
+  - Recria o zumbido sutil de amplificadores e equipamentos clássicos
+  - Adiciona o caráter de estar "conectado" à energia AC
+  - Cria autêntica atmosfera de estúdio vintage
+- Características de Fonte de Alimentação:
+  - Simula diferentes tipos de ruído de fonte de alimentação
+  - Recria características regionais da rede elétrica (50Hz vs 60Hz)
+  - Adiciona caráter sutil de infraestrutura elétrica
+- Textura de Fundo:
+  - Cria presença de fundo orgânica e de baixo nível
+  - Adiciona profundidade e "vida" a gravações digitais estéreis
+  - Perfeito para produções inspiradas em vintage
+
+### Parâmetros
+- **Frequency** - Define a frequência fundamental do zumbido (10-120 Hz)
+  - 50 Hz: Padrão da rede elétrica europeia/asiática
+  - 60 Hz: Padrão da rede elétrica norte-americana
+  - Outros valores: Frequências personalizadas para efeitos criativos
+- **Type** - Controla a estrutura harmônica do zumbido
+  - Standard: Contém apenas harmônicos ímpares (mais puro, tipo transformador)
+  - Rich: Contém todos os harmônicos (complexo, tipo equipamento)
+  - Dirty: Harmônicos ricos com distorção sutil (caráter de equipamento vintage)
+- **Harmonics** - Controla o brilho e conteúdo harmônico (0-100%)
+  - 0-30%: Zumbido quente e suave com harmônicos superiores mínimos
+  - 30-70%: Conteúdo harmônico equilibrado típico de equipamentos reais
+  - 70-100%: Zumbido brilhante e complexo com harmônicos superiores fortes
+- **Tone** - Frequência de corte do filtro de modelagem tonal final (1.0-20.0 kHz)
+  - 1-5 kHz: Caráter quente e abafado
+  - 5-10 kHz: Tom natural tipo equipamento
+  - 10-20 kHz: Caráter brilhante e presente
+- **Instability** - Quantidade de variação sutil de frequência e amplitude (0-10%)
+  - 0%: Zumbido perfeitamente estável (precisão digital)
+  - 1-3%: Instabilidade sutil do mundo real
+  - 3-7%: Caráter notável de equipamento vintage
+  - 7-10%: Efeitos de modulação criativa
+- **Level** - Nível de saída do sinal de zumbido (-80.0 a 0.0 dB)
+  - -80 a -60 dB: Presença de fundo quase inaudível
+  - -60 a -40 dB: Zumbido sutil mas perceptível
+  - -40 a -20 dB: Caráter vintage proeminente
+  - -20 a 0 dB: Níveis criativos ou de efeito especial
+
+### Configurações Recomendadas para Diferentes Estilos
+
+1. Amplificador Vintage Sutil
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 25%
+   - Tone: 8.0 kHz, Instability: 1.5%, Level: -54 dB
+   - Perfeito para: Adicionar caráter suave de amplificador vintage
+
+2. Estúdio de Gravação Clássico
+   - Frequency: 60 Hz, Type: Rich, Harmonics: 45%
+   - Tone: 6.0 kHz, Instability: 2.0%, Level: -48 dB
+   - Perfeito para: Atmosfera autêntica de estúdio da era analógica
+
+3. Equipamento Vintage com Válvulas
+   - Frequency: 50 Hz, Type: Dirty, Harmonics: 60%
+   - Tone: 5.0 kHz, Instability: 3.5%, Level: -42 dB
+   - Perfeito para: Caráter quente de amplificador valvulado
+
+4. Ambiente da Rede Elétrica
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 35%
+   - Tone: 10.0 kHz, Instability: 1.0%, Level: -60 dB
+   - Perfeito para: Fundo realista de fonte de alimentação
+
+5. Efeitos Criativos de Zumbido
+   - Frequency: 40 Hz, Type: Dirty, Harmonics: 80%
+   - Tone: 15.0 kHz, Instability: 6.0%, Level: -36 dB
+   - Perfeito para: Aplicações artísticas e experimentais
+
 ## Noise Blender
 
 Um efeito que adiciona textura atmosférica de fundo à sua música, semelhante ao som de discos de vinil ou equipamentos vintage. Perfeito para criar atmosferas aconchegantes e nostálgicas.
@@ -197,39 +272,125 @@ Um efeito que adiciona variações sutis de tempo para criar aquele som digital 
 
 ### Configurações Recomendadas para Diferentes Estilos
 
-1. Lo-Fi Relaxante
-   - Bit Crusher: 12 bits, dither on, erro de bit 1.5%, seed 42
-   - Noise Blender: Pink noise, -60dB
-   - Jitter: Leve (10ps)
-   - Digital Error: CD Audio, BER 10^-8, Wet 25%
-   - Perfeito para: Sessões de estudo, relaxamento
+1. Quase Imperceptível
+   - RMS Jitter: 1-5ps
+   - Perfeito para: Adicionar o mais sutil toque de calor analógico às gravações digitais
 
-2. Jogos Retrô
-   - Bit Crusher: 8 bits, dither off, erro de bit 3%, seed 888
-   - Noise Blender: White noise, -72dB
-   - Jitter: Nenhum
-   - Digital Error: AES3/S-PDIF, BER 10^-7, Wet 100%
-   - Perfeito para: Apreciação de música de videogame
+2. Caráter Clássico de CD Player
+   - RMS Jitter: 50-100ps
+   - Perfeito para: Recriar o som dos primeiros equipamentos de reprodução digital
 
-3. Digital Vintage
-   - Bit Crusher: 16 bits, erro de bit 0.8%, seed 123
-   - Noise Blender: Pink noise, -66dB
-   - Jitter: Médio (50ps)
-   - Digital Error: CD Audio, BER 10^-7, Wet 100%
-   - Perfeito para: Nostalgia dos anos 90
+3. Máquina DAT Vintage
+   - RMS Jitter: 200-500ps
+   - Perfeito para: Caráter de equipamentos de gravação digital dos anos 90
 
-4. Lo-Fi Ambiente
-   - Bit Crusher: 14 bits, dither on, erro de bit 2%, seed 456
-   - Noise Blender: Pink noise, -54dB
-   - Jitter: Leve (20ps)
-   - Digital Error: Bluetooth A2DP, BER 10^-8, Wet 100%
-   - Perfeito para: Atmosfera de fundo
+4. Equipamento Digital Desgastado
+   - RMS Jitter: 1-2ns (1000-2000ps)
+   - Perfeito para: Criar o som de equipamentos digitais envelhecidos ou mal conservados
 
-5. Ambiente de Streaming Moderno
-   - Bit Crusher: Desligado ou 24 bits
-   - Noise Blender: Pink noise, -78dB
-   - Jitter: Muito leve (5ps)
-   - Digital Error: Dante/AES67 (64 samp), BER 10^-7, Wet 100%
-   - Perfeito para: Imperfeições digitais contemporâneas
+5. Efeito Criativo de Oscilação
+   - RMS Jitter: 10-100µs (10000-100000ps)
+   - Perfeito para: Efeitos experimentais e modulação de pitch perceptível
+
+## Vinyl Artifacts
+
+Um efeito que recria as características de ruído físico dos discos de vinil analógicos. Este plugin simula os vários artefatos que ocorrem ao reproduzir discos de vinil, desde o ruído de superfície até as características elétricas da cadeia de reprodução.
+
+### Guia de Caráter Sonoro
+- Experiência de Disco de Vinil:
+  - Recria o som autêntico de reproduzir discos de vinil
+  - Adiciona o ruído de superfície característico e artefatos
+  - Cria aquela sensação analógica aconchegante e nostálgica
+- Sistema de Reprodução Vintage:
+  - Simula a cadeia de reprodução analógica completa
+  - Inclui características de equalização RIAA
+  - Adiciona ruído reativo que responde à música
+- Textura Atmosférica:
+  - Cria textura de fundo rica e orgânica
+  - Adiciona profundidade e caráter às gravações digitais
+  - Perfeito para criar experiências de audição aconchegantes e íntimas
+
+### Parâmetros
+- **Pops/min** - Controla a frequência de ruídos de clique grandes por minuto (0 a 120)
+  - 0-20: Pops suaves ocasionais
+  - 20-60: Caráter vintage moderado
+  - 60-120: Som de desgaste pesado
+- **Pop Level** - Controla o volume dos ruídos de pop (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Cliques sutis
+  - -48 a -24 dB: Pops moderados
+  - -24 a 0 dB: Pops altos (configurações extremas)
+- **Crackles/min** - Controla a densidade do ruído de crackling por minuto (0 a 2000)
+  - 0-200: Textura de superfície sutil
+  - 200-1000: Caráter de vinil clássico
+  - 1000-2000: Ruído de superfície pesado
+- **Crackle Level** - Controla o volume do ruído de crackling (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Crackling sutil
+  - -48 a -24 dB: Crackling moderado
+  - -24 a 0 dB: Crackling alto (configurações extremas)
+- **Hiss** - Controla o nível de ruído de superfície constante (-80.0 a 0.0 dB)
+  - -80 a -48 dB: Textura de fundo sutil
+  - -48 a -30 dB: Ruído de superfície notável
+  - -30 a 0 dB: Chiado proeminente (configurações extremas)
+- **Rumble** - Controla o ronco de baixa frequência do toca-discos (-80.0 a 0.0 dB)
+  - -80 a -60 dB: Calor sutil nos graves
+  - -60 a -40 dB: Ronco notável
+  - -40 a 0 dB: Ronco pesado (configurações extremas)
+- **Crosstalk** - Controla o vazamento entre canais estéreo esquerdo e direito (0 a 100%)
+  - 0%: Separação estéreo perfeita
+  - 30-60%: Crosstalk realista de vinil
+  - 100%: Vazamento máximo entre canais
+- **Noise Profile** - Ajusta a resposta de frequência do ruído (0.0 a 10.0)
+  - 0: Reprodução da curva RIAA (resposta de frequência autêntica do vinil)
+  - 5: Resposta parcialmente corrigida
+  - 10: Resposta plana (bypassed)
+- **Wear** - Multiplicador mestre para a condição geral do disco (0 a 200%)
+  - 0-50%: Disco bem conservado
+  - 50-100%: Desgaste e idade normais
+  - 100-200%: Disco muito desgastado
+- **React** - Quão responsivo o ruído é ao sinal de entrada (0 a 100%)
+  - 0%: Níveis de ruído estáticos
+  - 25-50%: Resposta moderada à música
+  - 75-100%: Altamente reativo à entrada
+- **React Mode** - Seleciona qual aspecto do sinal controla a reação
+  - Velocity: Responde ao conteúdo de alta frequência (velocidade da agulha)
+  - Amplitude: Responde ao nível geral do sinal
+- **Mix** - Controla quanto ruído é adicionado ao sinal seco (0 a 100%)
+  - 0%: Nenhum ruído adicionado (apenas sinal seco)
+  - 50%: Adição moderada de ruído
+  - 100%: Adição máxima de ruído
+  - Nota: O nível do sinal seco permanece inalterado; este parâmetro controla apenas a quantidade de ruído
+
+
+### Configurações Recomendadas para Diferentes Estilos
+
+1. Caráter de Vinil Sutil
+   - Pops/min: 20, Pop Level: -48dB, Crackles/min: 200, Crackle Level: -48dB
+   - Hiss: -48dB, Rumble: -60dB, Crosstalk: 30%, Noise Profile: 5.0
+   - Wear: 25%, React: 20%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Adicionar aquecimento analógico suave
+
+2. Experiência de Vinil Clássica
+   - Pops/min: 40, Pop Level: -36dB, Crackles/min: 400, Crackle Level: -36dB
+   - Hiss: -36dB, Rumble: -50dB, Crosstalk: 50%, Noise Profile: 4.0
+   - Wear: 60%, React: 30%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Experiência autêntica de audição de vinil
+
+3. Disco Muito Desgastado
+   - Pops/min: 80, Pop Level: -24dB, Crackles/min: 800, Crackle Level: -24dB
+   - Hiss: -30dB, Rumble: -40dB, Crosstalk: 70%, Noise Profile: 3.0
+   - Wear: 120%, React: 50%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Caráter de disco muito envelhecido
+
+4. Lo-Fi Ambiental
+   - Pops/min: 15, Pop Level: -54dB, Crackles/min: 150, Crackle Level: -54dB
+   - Hiss: -42dB, Rumble: -66dB, Crosstalk: 25%, Noise Profile: 6.0
+   - Wear: 40%, React: 15%, React Mode: Amplitude, Mix: 100%
+   - Perfeito para: Textura ambiental de fundo
+
+5. Vinil Dinâmico
+   - Pops/min: 60, Pop Level: -30dB, Crackles/min: 600, Crackle Level: -30dB
+   - Hiss: -39dB, Rumble: -45dB, Crosstalk: 60%, Noise Profile: 5.0
+   - Wear: 80%, React: 75%, React Mode: Velocity, Mix: 100%
+   - Perfeito para: Ruído que responde dramaticamente à música
 
 Lembre-se: Esses efeitos são feitos para adicionar caráter e nostalgia à sua música. Comece com configurações sutis e ajuste ao gosto!

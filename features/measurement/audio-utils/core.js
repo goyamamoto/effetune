@@ -43,7 +43,7 @@ class AudioUtils {
             }
             
             // Create options object if preferred sample rate is provided
-            let contextOptions = {latencyHint: 'playback'};
+            let contextOptions = {latencyHint: 'interactive'};
             if (preferredSampleRate) {
                 contextOptions.sampleRate = preferredSampleRate;
             }

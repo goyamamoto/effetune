@@ -749,8 +749,12 @@ export class UIEventHandler {
         try {
             const data = JSON.parse(dataText);
             if (data.type === 'preset' && data.name) {
-                // Handle preset drop
+                // Handle system preset drop
                 await this.handlePresetDrop(e, data.name);
+                return;
+            } else if (data.type === 'userPreset' && data.name) {
+                // Handle user preset drop
+                await this.handleUserPresetDrop(e, data.name);
                 return;
             }
         } catch (error) {
@@ -812,6 +816,37 @@ export class UIEventHandler {
             pluginListManager.checkWindowWidthAndAdjust();
         } else {
             // This can happen if the drag source is not a valid plugin
+        }
+    }
+
+    async handleUserPresetDrop(e, presetName) {
+        try {
+            const pluginListManager = this.pipelineManager?.pluginListManager || window.uiManager?.pluginListManager;
+            if (!pluginListManager) {
+                console.error("PluginListManager not found in handleUserPresetDrop");
+                return;
+            }
+
+            // Calculate insertion index
+            const rawDropEventX = e.clientX;
+            const rawDropEventY = e.clientY;
+
+            const targetIndex = pluginListManager.findInsertionIndex(
+                rawDropEventX, 
+                rawDropEventY, 
+                this.pipelineManager.audioManager.pipeline
+            );
+
+            // Use the plugin list manager's user preset handling
+            await pluginListManager.addUserPresetToPipeline(presetName, targetIndex);
+
+            // Check window width and adjust plugin list collapse state after adding a preset
+            pluginListManager.checkWindowWidthAndAdjust();
+        } catch (error) {
+            console.error('Error handling user preset drop:', error);
+            if (window.uiManager) {
+                window.uiManager.setError(`Error adding user preset: ${error.message}`, true);
+            }
         }
     }
 
@@ -948,6 +983,7 @@ export class UIEventHandler {
               const sourcePluginId = e.dataTransfer.getData('application/plugin-id');
               const sourceIndexStr = e.dataTransfer.getData('application/plugin-index'); // Corrected key
               const newPluginName = e.dataTransfer.getData('text/plain');
+              
               
               let handled = false; // Flag to check if drop was handled
               if (sourceIndexStr !== null && sourceIndexStr !== undefined && sourceIndexStr !== "") {

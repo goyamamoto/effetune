@@ -5,6 +5,7 @@ Une collection de plugins qui ajoutent de la chaleur et du caractère à votre m
 ## Plugin List
 
 - [Dynamic Saturation](#dynamic-saturation) - Simule le déplacement non linéaire des cônes de haut-parleur
+- [Exciter](#exciter) - Ajoute du contenu harmonique pour améliorer la clarté et la présence
 - [Hard Clipping](#hard-clipping) - Ajoute de l'intensité et du mordant au son
 - [Harmonic Distortion](#harmonic-distortion) - Apporte un caractère unique via la distorsion harmonique avec contrôle indépendant de chaque harmonique
 - [Multiband Saturation](#multiband-saturation) - Façonne et améliore différentes plages de fréquences indépendamment
@@ -95,6 +96,81 @@ Un effet basé sur la physique qui simule le déplacement non linéaire des côn
 5. Réglez le Distortion Mix à 50% et le Cone Motion Mix à 50%
 6. Ajustez la Speaker Mass pour changer le caractère de l'effet
 7. Affinez avec l'Output Gain pour équilibrer les niveaux
+
+## Exciter
+
+Un effet qui ajoute du contenu harmonique pour améliorer la clarté et la présence. En filtrant le contenu haute fréquence et en appliquant une saturation, il crée des harmoniques supplémentaires qui illuminent et améliorent votre musique.
+
+### Guide d'Amélioration de l'Écoute
+- **Amélioration Subtile :**
+  - Ajoute de la clarté et de l'air aux voix
+  - Améliore la présence des instruments
+  - Crée un son plus ouvert et détaillé
+- **Effet Modéré :**
+  - Révèle les détails cachés dans le mix
+  - Ajoute de l'éclat et de la brillance
+  - Rend la musique plus "hi-fi"
+- **Effet Créatif :**
+  - Crée des tonalités brillantes et tranchantes
+  - Ajoute une présence agressive
+  - Parfait pour les styles de production modernes
+
+### Paramètres
+- **HPF Freq** (500-10000Hz) - Définit la fréquence de coupure pour le filtrage passe-haut
+  - Valeurs basses (500-2000Hz) : Affecte plus du signal
+  - Valeurs moyennes (2000-5000Hz) : Cible les fréquences de présence
+  - Valeurs hautes (5000-10000Hz) : Se concentre sur l'air et la brillance
+- **HPF Slope** - Contrôle la pente du filtre
+  - Off : Pas de filtrage, traite tout le spectre
+  - 6dB/oct : Filtrage doux
+  - 12dB/oct : Filtrage plus prononcé
+- **Drive** (0.0-10.0) - Contrôle l'intensité de la saturation
+  - Léger (0.0-3.0) : Amélioration harmonique subtile
+  - Moyen (3.0-6.0) : Brillance notable
+  - Élevé (6.0-10.0) : Excitation forte
+- **Bias** (-0.3 à 0.3) - Ajuste l'asymétrie de la saturation
+  - Négatif : Accentue les portions négatives du signal
+  - Zéro : Saturation symétrique
+  - Positif : Accentue les portions positives du signal
+- **Mix** (0-100%) - Mélange le signal excité avec le signal sec
+  - Bas (0-30%) : Amélioration subtile
+  - Moyen (30-60%) : Effet équilibré
+  - Élevé (60-100%) : Excitation forte
+
+### Affichage Visuel
+- Graphique de réponse en fréquence du filtre passe-haut
+- Visualisation de la courbe de transfert de saturation
+- Retour visuel clair pour le filtre et la saturation
+
+### Conseils d'Amélioration Musicale
+- Pour la Présence Vocale :
+  - HPF Freq : 3000-5000Hz
+  - HPF Slope : 6dB/oct
+  - Drive : 2.0-4.0
+  - Bias : 0.05 à 0.1
+  - Mix : 20-40%
+
+- Pour la Clarté des Instruments :
+  - HPF Freq : 2000-4000Hz
+  - HPF Slope : 12dB/oct
+  - Drive : 3.0-5.0
+  - Bias : 0.0
+  - Mix : 30-50%
+
+- Pour l'Amélioration du Bus Master :
+  - HPF Freq : 5000-8000Hz
+  - HPF Slope : 6dB/oct
+  - Drive : 1.0-3.0
+  - Bias : 0.0 à 0.1
+  - Mix : 10-25%
+
+### Guide de Démarrage Rapide
+1. Réglez HPF Freq pour cibler la plage de fréquences désirée
+2. Choisissez HPF Slope (commencez avec 6dB/oct)
+3. Commencez avec un Drive modéré (3.0)
+4. Gardez le Bias proche de 0.1 pour la brillance
+5. Réglez Mix à 25% et ajustez selon votre goût
+6. Affinez tous les paramètres en écoutant
 
 ## Hard Clipping
 

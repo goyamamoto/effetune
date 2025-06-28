@@ -78,12 +78,15 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
 2. Arraste os efeitos da lista para a área **Effect Pipeline**
 3. Os efeitos são processados na ordem de cima para baixo
 4. Arraste o manipulador (⋮) ou clique nos botões ▲▼ para reordenar os efeitos
+   - Para efeitos Section: Shift+clique nos botões ▲▼ para mover seções inteiras (de uma Section para a próxima Section, início do pipeline, ou fim do pipeline)
 5. Clique no nome do efeito para expandir/ocultar suas configurações
-   - Shift+clique para expandir/ocultar todos os efeitos, exceto a categoria Analyzer
+   - Shift+clique em um efeito Section para expandir/ocultar todos os efeitos dentro dessa seção
+   - Shift+clique em outros efeitos para expandir/ocultar todos os efeitos, exceto a categoria Analyzer
    - Ctrl+clique para expandir/ocultar todos os efeitos
 6. Use o botão **ON** para desativar (bypass) efeitos individuais
 7. Clique no botão **?** para abrir sua documentação detalhada em uma nova aba
 8. Remova os efeitos utilizando o botão ×
+   - Para efeitos Section: Shift+clique no botão × para remover seções inteiras
 9. Clique no botão de roteamento para definir os canais a serem processados e os barramentos de entrada e saída  
    - [Mais sobre funções de bus](bus-function.md)
 
@@ -258,8 +261,10 @@ Se o problema continuar, reporte em [GitHub Issues](https://github.com/Frieve-A/
 | EQ        | Tone Control | Controle de tonalidade de três bandas | [Detalhes](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Redução de profundidade de bits e efeito de retenção de ordem zero | [Detalhes](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simula vários erros de transmissão de áudio digital e características de equipamentos digitais vintage | [Detalhes](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Gerador de ruído de zumbido de alta precisão | [Detalhes](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Geração e mistura de ruído | [Detalhes](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulação de jitter digital | [Detalhes](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Simulação física de ruído de discos analógicos | [Detalhes](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simula mudanças naturais e dinâmicas no som causadas por sutis movimentos do cone do alto-falante | [Detalhes](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Efeito de alteração de pitch leve | [Detalhes](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Efeito de modulação baseado em volume | [Detalhes](plugins/modulation.md#tremolo) |
@@ -269,6 +274,8 @@ Se o problema continuar, reporte em [GitHub Issues](https://github.com/Frieve-A/
 | Resonator | Modal Resonator | Efeito de ressonância de frequência com até 5 ressonadores | [Detalhes](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Reverberação de rede de atraso com feedback que produz texturas de reverb ricas e densas | [Detalhes](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Reverberação por espalhamento randômico com difusão natural | [Detalhes](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simula o deslocamento não linear de cones de alto-falantes | [Detalhes](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Adiciona conteúdo harmônico para melhorar clareza e presença | [Detalhes](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Efeito de hard clipping digital | [Detalhes](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Adiciona caráter único através de distorção harmônica com controle independente de cada harmônico | [Detalhes](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | Efeito de saturação de 3 bandas para aquecimento preciso baseado em frequência | [Detalhes](plugins/saturation.md#multiband-saturation) |
@@ -316,3 +323,5 @@ Quer construir um aplicativo desktop? Confira nosso [Guia de Construção](../..
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)
