@@ -264,6 +264,7 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | EQ        | Tone Control | Three-band tone control | [Details](docs/plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Bit depth reduction and zero-order hold effect | [Details](docs/plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simulates various digital audio transmission errors and vintage digital equipment characteristics | [Details](docs/plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | High-precision power hum noise generator | [Details](docs/plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Noise generation and mixing | [Details](docs/plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Digital jitter simulation | [Details](docs/plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | Analog record noise physical simulation | [Details](docs/plugins/lofi.md#vinyl-artifacts) |

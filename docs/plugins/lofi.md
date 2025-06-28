@@ -6,6 +6,7 @@ A collection of plugins that add vintage character and nostalgic qualities to yo
 
 - [Bit Crusher](#bit-crusher) - Creates retro gaming and vintage digital sounds
 - [Digital Error Emulator](#digital-error-emulator) - Simulates various digital audio transmission errors
+- [Hum Generator](#hum-generator) - High-precision power hum noise generator
 - [Noise Blender](#noise-blender) - Adds atmospheric background texture
 - [Simple Jitter](#simple-jitter) - Creates subtle vintage digital imperfections
 - [Vinyl Artifacts](#vinyl-artifacts) - Analog record noise physical simulation
@@ -142,6 +143,79 @@ An effect that simulates the sound of various digital audio transmission errors,
 
 Note: All recommendations use 100% Wet Mix for realistic digital error behavior. Lower wet mix values can be used for creative effects, but they don't represent how real digital errors actually occur.
 
+## Hum Generator
+
+An effect that generates high-precision, authentic electrical power hum noise with its characteristic harmonic structure and subtle instabilities. Perfect for adding realistic background hum from vintage equipment, power supplies, or creating that authentic "plugged-in" feel that many classic recordings possess.
+
+### Sound Character Guide
+- Vintage Equipment Ambience:
+  - Recreates the subtle hum of classic amplifiers and equipment
+  - Adds the character of being "plugged in" to AC power
+  - Creates authentic vintage studio atmosphere
+- Power Supply Characteristics:
+  - Simulates different types of power supply noise
+  - Recreates regional power grid characteristics (50Hz vs 60Hz)
+  - Adds subtle electrical infrastructure character
+- Background Texture:
+  - Creates organic, low-level background presence
+  - Adds depth and "life" to sterile digital recordings
+  - Perfect for vintage-inspired productions
+
+### Parameters
+- **Frequency** - Sets the fundamental hum frequency (10-120 Hz)
+  - 50 Hz: European/Asian power grid standard
+  - 60 Hz: North American power grid standard  
+  - Other values: Custom frequencies for creative effects
+- **Type** - Controls the harmonic structure of the hum
+  - Standard: Contains only odd harmonics (more pure, transformer-like)
+  - Rich: Contains all harmonics (complex, equipment-like)
+  - Dirty: Rich harmonics with subtle distortion (vintage gear character)
+- **Harmonics** - Controls the brightness and harmonic content (0-100%)
+  - 0-30%: Warm, mellow hum with minimal upper harmonics
+  - 30-70%: Balanced harmonic content typical of real equipment
+  - 70-100%: Bright, complex hum with strong upper harmonics
+- **Tone** - Final tone shaping filter cutoff frequency (1.0-20.0 kHz)
+  - 1-5 kHz: Warm, muffled character
+  - 5-10 kHz: Natural equipment-like tone
+  - 10-20 kHz: Bright, present character
+- **Instability** - Amount of subtle frequency and amplitude variation (0-10%)
+  - 0%: Perfectly stable hum (digital precision)
+  - 1-3%: Subtle real-world instability
+  - 3-7%: Noticeable vintage equipment character
+  - 7-10%: Creative modulation effects
+- **Level** - Output level of the hum signal (-80.0 to 0.0 dB)
+  - -80 to -60 dB: Barely audible background presence
+  - -60 to -40 dB: Subtle but noticeable hum
+  - -40 to -20 dB: Prominent vintage character
+  - -20 to 0 dB: Creative or special effect levels
+
+### Recommended Settings for Different Styles
+
+1. Subtle Vintage Amplifier
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 25%
+   - Tone: 8.0 kHz, Instability: 1.5%, Level: -54 dB
+   - Perfect for: Adding gentle vintage amplifier character
+
+2. Classic Recording Studio
+   - Frequency: 60 Hz, Type: Rich, Harmonics: 45%
+   - Tone: 6.0 kHz, Instability: 2.0%, Level: -48 dB
+   - Perfect for: Authentic studio atmosphere from the analog era
+
+3. Vintage Tube Equipment
+   - Frequency: 50 Hz, Type: Dirty, Harmonics: 60%
+   - Tone: 5.0 kHz, Instability: 3.5%, Level: -42 dB
+   - Perfect for: Warm tube amplifier character
+
+4. Power Grid Ambience
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 35%
+   - Tone: 10.0 kHz, Instability: 1.0%, Level: -60 dB
+   - Perfect for: Realistic power supply background
+
+5. Creative Hum Effects
+   - Frequency: 40 Hz, Type: Dirty, Harmonics: 80%
+   - Tone: 15.0 kHz, Instability: 6.0%, Level: -36 dB
+   - Perfect for: Artistic and experimental applications
+
 ## Noise Blender
 
 An effect that adds atmospheric background texture to your music, similar to the sound of vinyl records or vintage equipment. Perfect for creating cozy, nostalgic atmospheres.
@@ -198,40 +272,25 @@ An effect that adds subtle timing variations to create that imperfect, vintage d
 
 ### Recommended Settings for Different Styles
 
-1. Relaxing Lo-Fi
-   - Bit Crusher: 12 bits, dither on, bit error 1.5%, seed 42
-   - Noise Blender: Pink noise, -60dB
-   - Jitter: Light (10ps)
-   - Digital Error: CD Audio, BER 10^-8, Wet 25%
-   - Perfect for: Study sessions, relaxation
+1. Barely Perceptible
+   - RMS Jitter: 1-5ps
+   - Perfect for: Adding the subtlest hint of analog warmth to digital recordings
 
-2. Retro Gaming
-   - Bit Crusher: 8 bits, dither off, bit error 3%, seed 888
-   - Noise Blender: White noise, -72dB
-   - Jitter: None
-   - Digital Error: AES3/S-PDIF, BER 10^-7, Wet 100%
-   - Perfect for: Video game music appreciation
+2. Classic CD Player Character
+   - RMS Jitter: 50-100ps
+   - Perfect for: Recreating the sound of early digital playback equipment
 
-3. Vintage Digital
-   - Bit Crusher: 16 bits, bit error 0.8%, seed 123
-   - Noise Blender: Pink noise, -66dB
-   - Jitter: Medium (50ps)
-   - Digital Error: CD Audio, BER 10^-7, Wet 100%
-   - Perfect for: 90s music nostalgia
+3. Vintage DAT Machine
+   - RMS Jitter: 200-500ps
+   - Perfect for: 90s digital recording equipment character
 
-4. Ambient Lo-Fi
-   - Bit Crusher: 14 bits, dither on, bit error 2%, seed 456
-   - Noise Blender: Pink noise, -54dB
-   - Jitter: Light (20ps)
-   - Digital Error: Bluetooth A2DP, BER 10^-8, Wet 100%
-   - Perfect for: Background atmosphere
+4. Worn Digital Equipment
+   - RMS Jitter: 1-2ns (1000-2000ps)
+   - Perfect for: Creating the sound of aging or poorly maintained digital gear
 
-5. Modern Streaming Vibe
-   - Bit Crusher: Off or 24 bits
-   - Noise Blender: Pink noise, -78dB
-   - Jitter: Very light (5ps)
-   - Digital Error: Dante/AES67 (64 samp), BER 10^-7, Wet 100%
-   - Perfect for: Contemporary digital imperfections
+5. Creative Wobble Effect
+   - RMS Jitter: 10-100µs (10000-100000ps)
+   - Perfect for: Experimental effects and noticeable pitch modulation
 
 ## Vinyl Artifacts
 

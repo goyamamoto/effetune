@@ -256,6 +256,7 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | EQ        | Tone Control | Contrôle tonal en trois bandes | [Détails](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Réduction de la profondeur de bits et effet de maintien d'ordre zéro | [Détails](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simule diverses erreurs de transmission audio numérique et caractéristiques d'équipements numériques vintage | [Détails](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Générateur de bruit de ronflement haute précision | [Détails](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Génération et mixage de bruit | [Détails](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulation de gigue numérique | [Détails](plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | Simulation physique du bruit des disques analogiques | [Détails](plugins/lofi.md#vinyl-artifacts) |

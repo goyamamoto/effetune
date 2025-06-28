@@ -263,6 +263,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | EQ        | Tone Control | 3バンドトーンコントロール | [詳細](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | ビット深度削減とゼロオーダーホールド効果 | [詳細](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | 様々なデジタルオーディオ伝送エラーとビンテージデジタル機器の特性をシミュレート | [詳細](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | 高精度電源ハムノイズジェネレーター | [詳細](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | ノイズ生成とミキシング | [詳細](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | デジタルジッターシミュレーション | [詳細](plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | アナログレコードノイズの物理的シミュレーション | [詳細](plugins/lofi.md#vinyl-artifacts) |

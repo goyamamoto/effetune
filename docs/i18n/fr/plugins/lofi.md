@@ -6,6 +6,7 @@ Une collection de plugins qui ajoutent du caractère vintage et des qualités no
 
 - [Bit Crusher](#bit-crusher) - Crée des sons rétro de jeux vidéo et numériques vintage
 - [Digital Error Emulator](#digital-error-emulator) - Simule diverses erreurs de transmission audio numérique
+- [Hum Generator](#hum-generator) - Générateur de bruit de ronflement haute précision
 - [Noise Blender](#noise-blender) - Ajoute une texture atmosphérique en arrière-plan
 - [Simple Jitter](#simple-jitter) - Crée des imperfections numériques vintage subtiles
 - [Vinyl Artifacts](#vinyl-artifacts) - Simulation physique du bruit de disques analogiques
@@ -142,6 +143,79 @@ Un effet qui simule le son de diverses erreurs de transmission audio numérique,
 
 Note : Toutes les recommandations utilisent 100% de Wet Mix pour un comportement d'erreur numérique réaliste. Les valeurs de mix humide plus basses peuvent être utilisées pour des effets créatifs, mais elles ne représentent pas comment les vraies erreurs numériques se produisent réellement.
 
+## Hum Generator
+
+Un effet qui génère un bruit de ronflement électrique authentique et de haute précision avec sa structure harmonique caractéristique et ses instabilités subtiles. Parfait pour ajouter un ronflement de fond réaliste d'équipements vintage, d'alimentations électriques, ou créer cette sensation authentique d'être "branché" que possèdent de nombreux enregistrements classiques.
+
+### Guide de Caractère Sonore
+- Ambiance d'Équipement Vintage :
+  - Recrée le ronflement subtil d'amplificateurs et équipements classiques
+  - Ajoute le caractère d'être "branché" à l'alimentation AC
+  - Crée une atmosphère authentique de studio vintage
+- Caractéristiques d'Alimentation Électrique :
+  - Simule différents types de bruit d'alimentation électrique
+  - Recrée les caractéristiques régionales du réseau électrique (50Hz vs 60Hz)
+  - Ajoute un caractère subtil d'infrastructure électrique
+- Texture d'Arrière-plan :
+  - Crée une présence organique de bas niveau en arrière-plan
+  - Ajoute de la profondeur et de la "vie" aux enregistrements numériques stériles
+  - Parfait pour les productions inspirées du vintage
+
+### Paramètres
+- **Frequency** - Définit la fréquence fondamentale du ronflement (10-120 Hz)
+  - 50 Hz : Standard du réseau électrique européen/asiatique
+  - 60 Hz : Standard du réseau électrique nord-américain
+  - Autres valeurs : Fréquences personnalisées pour effets créatifs
+- **Type** - Contrôle la structure harmonique du ronflement
+  - Standard : Contient uniquement des harmoniques impaires (plus pur, type transformateur)
+  - Rich : Contient tous les harmoniques (complexe, type équipement)
+  - Dirty : Harmoniques riches avec distorsion subtile (caractère d'équipement vintage)
+- **Harmonics** - Contrôle la brillance et le contenu harmonique (0-100%)
+  - 0-30% : Ronflement chaud et doux avec harmoniques supérieures minimales
+  - 30-70% : Contenu harmonique équilibré typique d'équipements réels
+  - 70-100% : Ronflement brillant et complexe avec harmoniques supérieures fortes
+- **Tone** - Fréquence de coupure du filtre de modelage tonal final (1.0-20.0 kHz)
+  - 1-5 kHz : Caractère chaud et étouffé
+  - 5-10 kHz : Ton naturel type équipement
+  - 10-20 kHz : Caractère brillant et présent
+- **Instability** - Quantité de variation subtile de fréquence et d'amplitude (0-10%)
+  - 0% : Ronflement parfaitement stable (précision numérique)
+  - 1-3% : Instabilité subtile du monde réel
+  - 3-7% : Caractère notable d'équipement vintage
+  - 7-10% : Effets de modulation créatifs
+- **Level** - Niveau de sortie du signal de ronflement (-80.0 à 0.0 dB)
+  - -80 à -60 dB : Présence d'arrière-plan à peine audible
+  - -60 à -40 dB : Ronflement subtil mais notable
+  - -40 à -20 dB : Caractère vintage proéminent
+  - -20 à 0 dB : Niveaux créatifs ou d'effets spéciaux
+
+### Réglages Recommandés pour Différents Styles
+
+1. Amplificateur Vintage Subtil
+   - Frequency : 50/60 Hz, Type : Standard, Harmonics : 25%
+   - Tone : 8.0 kHz, Instability : 1.5%, Level : -54 dB
+   - Parfait pour : Ajouter un caractère doux d'amplificateur vintage
+
+2. Studio d'Enregistrement Classique
+   - Frequency : 60 Hz, Type : Rich, Harmonics : 45%
+   - Tone : 6.0 kHz, Instability : 2.0%, Level : -48 dB
+   - Parfait pour : Atmosphère authentique de studio de l'ère analogique
+
+3. Équipement Vintage à Tubes
+   - Frequency : 50 Hz, Type : Dirty, Harmonics : 60%
+   - Tone : 5.0 kHz, Instability : 3.5%, Level : -42 dB
+   - Parfait pour : Caractère chaud d'amplificateur à tubes
+
+4. Ambiance de Réseau Électrique
+   - Frequency : 50/60 Hz, Type : Standard, Harmonics : 35%
+   - Tone : 10.0 kHz, Instability : 1.0%, Level : -60 dB
+   - Parfait pour : Arrière-plan réaliste d'alimentation électrique
+
+5. Effets Créatifs de Ronflement
+   - Frequency : 40 Hz, Type : Dirty, Harmonics : 80%
+   - Tone : 15.0 kHz, Instability : 6.0%, Level : -36 dB
+   - Parfait pour : Applications artistiques et expérimentales
+
 ## Noise Blender
 
 Un effet qui ajoute une texture atmosphérique en arrière-plan à votre musique, similaire au son des disques vinyles ou des équipements vintage. Parfait pour créer des atmosphères chaleureuses et nostalgiques.
@@ -198,40 +272,25 @@ Un effet qui ajoute des variations de timing subtiles pour créer ce son numéri
 
 ### Réglages Recommandés pour Différents Styles
 
-1. Lo-Fi Relaxant
-   - Bit Crusher : 12 bits, dither activé, erreur bit 1.5%, seed 42
-   - Noise Blender : Pink noise, -60dB
-   - Jitter : Léger (10ps)
-   - Digital Error : CD Audio, BER 10^-8, Wet 25%
-   - Parfait pour : Sessions d'étude, relaxation
+1. À Peine Perceptible
+   - RMS Jitter : 1-5ps
+   - Parfait pour : Ajouter la plus subtile touche de chaleur analogique aux enregistrements numériques
 
-2. Rétro Gaming
-   - Bit Crusher : 8 bits, dither désactivé, erreur bit 3%, seed 888
-   - Noise Blender : White noise, -72dB
-   - Jitter : Aucun
-   - Digital Error : AES3/S-PDIF, BER 10^-7, Wet 100%
-   - Parfait pour : Appréciation de musique de jeux vidéo
+2. Caractère de Lecteur CD Classique
+   - RMS Jitter : 50-100ps
+   - Parfait pour : Recréer le son des premiers équipements de lecture numérique
 
-3. Numérique Vintage
-   - Bit Crusher : 16 bits, erreur bit 0.8%, seed 123
-   - Noise Blender : Pink noise, -66dB
-   - Jitter : Moyen (50ps)
-   - Digital Error : CD Audio, BER 10^-7, Wet 100%
-   - Parfait pour : Nostalgie des années 90
+3. Machine DAT Vintage
+   - RMS Jitter : 200-500ps
+   - Parfait pour : Caractère d'équipement d'enregistrement numérique des années 90
 
-4. Lo-Fi Ambiant
-   - Bit Crusher : 14 bits, dither activé, erreur bit 2%, seed 456
-   - Noise Blender : Pink noise, -54dB
-   - Jitter : Léger (20ps)
-   - Digital Error : Bluetooth A2DP, BER 10^-8, Wet 100%
-   - Parfait pour : Atmosphère d'arrière-plan
+4. Équipement Numérique Usé
+   - RMS Jitter : 1-2ns (1000-2000ps)
+   - Parfait pour : Créer le son d'équipements numériques vieillissants ou mal entretenus
 
-5. Ambiance Streaming Moderne
-   - Bit Crusher : Désactivé ou 24 bits
-   - Noise Blender : Pink noise, -78dB
-   - Jitter : Très léger (5ps)
-   - Digital Error : Dante/AES67 (64 samp), BER 10^-7, Wet 100%
-   - Parfait pour : Imperfections numériques contemporaines
+5. Effet de Fluctuation Créatif
+   - RMS Jitter : 10-100µs (10000-100000ps)
+   - Parfait pour : Effets expérimentaux et modulation de hauteur notable
 
 ## Vinyl Artifacts
 

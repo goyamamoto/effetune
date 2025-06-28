@@ -250,6 +250,7 @@
 | EQ        | Tone Control | تحكم في النغمة بثلاث نطاقات | [تفاصيل](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | تقليل العمق الثنائي وتأثير التثبيت الصفري | [تفاصيل](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | يحاكي أخطاء الإرسال الصوتي الرقمي المختلفة وخصائص المعدات الرقمية القديمة | [تفاصيل](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | مولد ضوضاء الطنين عالي الدقة | [تفاصيل](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | توليد الضوضاء ومزجها | [تفاصيل](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | محاكاة التذبذب الرقمي | [تفاصيل](plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | محاكاة فيزيائية لضوضاء السجلات التناظرية | [تفاصيل](plugins/lofi.md#vinyl-artifacts) |

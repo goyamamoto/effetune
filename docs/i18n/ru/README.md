@@ -242,6 +242,7 @@ No audiophile myths, Just pure science.
 | EQ        | Tone Control | Трёхполосное управление тоном | [Подробнее](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Снижение битовой глубины и эффект «zero-order hold» | [Подробнее](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Имитирует различные ошибки передачи цифрового аудио и характеристики винтажного цифрового оборудования | [Подробнее](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Высокоточный генератор шума фона питания | [Подробнее](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Генерация и смешивание шума | [Подробнее](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Эмуляция цифрового джиттера | [Подробнее](plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | Физическая симуляция шума аналоговых записей | [Подробнее](plugins/lofi.md#vinyl-artifacts) |

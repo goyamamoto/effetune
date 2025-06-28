@@ -242,6 +242,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | EQ        | Tone Control | 三频段音色控制 | [详情](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | 降低位深并应用零阶保持效果 | [详情](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | 模拟各种数字音频传输错误和复古数字设备特性 | [详情](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | 高精度电源嗡鸣噪声生成器 | [详情](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | 噪音生成与混合 | [详情](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | 数字抖动模拟 | [详情](plugins/lofi.md#simple-jitter) |
 | Lo-Fi     | Vinyl Artifacts | 模拟唱片噪音物理仿真 | [详情](plugins/lofi.md#vinyl-artifacts) |
