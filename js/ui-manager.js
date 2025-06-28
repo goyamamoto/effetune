@@ -620,6 +620,22 @@ export class UIManager {
         if (increaseColumnsButton) {
             increaseColumnsButton.title = this.t('ui.title.increaseColumns');
         }
+
+        // Update tab button titles
+        const effectsTab = document.getElementById('effectsTab');
+        if (effectsTab) {
+            effectsTab.title = this.t('ui.title.availableEffects');
+        }
+
+        const systemPresetsTab = document.getElementById('systemPresetsTab');
+        if (systemPresetsTab) {
+            systemPresetsTab.title = this.t('ui.title.systemPresets');
+        }
+
+        const userPresetsTab = document.getElementById('userPresetsTab');
+        if (userPresetsTab) {
+            userPresetsTab.title = this.t('ui.title.userPresets');
+        }
     }
 
     getLocalizedDocPath(basePath) {
