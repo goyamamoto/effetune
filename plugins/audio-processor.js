@@ -423,10 +423,9 @@ class PluginProcessor extends AudioWorkletProcessor {
                 pluginContexts.set(plugin.id, pluginContext);
             }
             // Prepare the context object for the processor call.
-            // Avoid spreading unless necessary; pass specific needed properties.
-            // Here, we keep the original structure for compatibility.
-            const context = { ...pluginContext, port: port }; // Pass port for potential messaging from plugin
-
+            // Use the persistent pluginContext directly to allow state reuse (e.g. temp buffers)
+            pluginContext.port = port; // Expose the port for optional messaging
+            const context = pluginContext;
 
             // Determine input and output buses for this plugin
             const inputBus = plugin.inputBus; // Use normalized property
