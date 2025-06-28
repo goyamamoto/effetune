@@ -76,12 +76,15 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
 2. Glissez-déposez les effets de la liste vers la zone de l'Effect Pipeline
 3. Les effets sont traités dans l'ordre du haut vers le bas
 4. Faites glisser la poignée (⋮) ou cliquez sur les boutons ▲▼ pour réorganiser les effets
+   - Pour les effets Section : Maj+clic sur les boutons ▲▼ pour déplacer des sections entières (d'une Section à la Section suivante, début de pipeline, ou fin de pipeline)
 5. Cliquez sur le nom d'un effet pour développer/réduire ses paramètres
-   - Maj+Clic pour développer/réduire tous les effets sauf la catégorie Analyzer
+   - Maj+Clic sur un effet Section pour développer/réduire tous les effets dans cette section
+   - Maj+Clic sur d'autres effets pour développer/réduire tous les effets sauf la catégorie Analyzer
    - Ctrl+Clic pour développer/réduire tous les effets
 6. Utilisez le bouton ON pour contourner les effets individuels
 7. Cliquez sur le bouton ? pour ouvrir sa documentation détaillée dans un nouvel onglet
-8. Supprimez les effets en utilisant le bouton ×  
+8. Supprimez les effets en utilisant le bouton ×
+   - Pour les effets Section : Maj+clic sur le bouton × pour supprimer des sections entières  
 9. Cliquez sur le bouton de routage pour définir les canaux à traiter et les bus d'entrée et de sortie  
    - [Plus d'informations sur les fonctions de bus](bus-function.md)
 
@@ -256,8 +259,10 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | EQ        | Tone Control | Contrôle tonal en trois bandes | [Détails](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Réduction de la profondeur de bits et effet de maintien d'ordre zéro | [Détails](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simule diverses erreurs de transmission audio numérique et caractéristiques d'équipements numériques vintage | [Détails](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Générateur de bruit de ronflement haute précision | [Détails](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Génération et mixage de bruit | [Détails](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulation de gigue numérique | [Détails](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Simulation physique du bruit des disques analogiques | [Détails](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simule les changements naturels et dynamiques du son causés par de subtiles oscillations du cône de haut-parleur | [Détails](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Effet léger de modification de la hauteur | [Détails](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Effet de modulation basé sur le volume | [Détails](plugins/modulation.md#tremolo) |
@@ -267,6 +272,8 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | Resonator | Modal Resonator | Effet de résonance fréquentielle avec jusqu'à 5 résonateurs | [Détails](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Réverbération à réseau de délais avec rétroaction produisant des textures riches et denses | [Détails](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Réverbération à dispersion aléatoire avec diffusion naturelle | [Détails](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simule le déplacement non linéaire des cônes de haut-parleur | [Détails](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Ajoute du contenu harmonique pour améliorer la clarté et la présence | [Détails](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Effet d'écrêtage dur numérique | [Détails](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Ajoute un caractère unique grâce à la distorsion harmonique avec contrôle indépendant de chaque harmonique | [Détails](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | Effet de saturation 3 bandes pour une chaleur précise selon la fréquence | [Détails](plugins/saturation.md#multiband-saturation) |
@@ -314,3 +321,5 @@ Vous souhaitez créer une application de bureau ? Consultez notre [Guide de cons
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

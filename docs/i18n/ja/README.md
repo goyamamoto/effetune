@@ -77,12 +77,15 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 2. リストからエフェクトをドラッグして、**Effect Pipeline** エリアに配置します
 3. エフェクトは上から下へ順番に処理されます
 4. ハンドル (⋮) をドラッグまたは▲▼ボタンで順序を変更
+   - Sectionエフェクトの場合：Shift+▲▼ボタンクリックでセクション全体を移動（あるSectionから次のSection、パイプライン開始、またはパイプライン末尾まで）
 5. エフェクト名をクリックし設定の展開・折りたたみ
-   - Shift+クリックでAnalyzerカテゴリー以外の全エフェクトを一括展開・折りたたみ
+   - SectionエフェクトでのShift+クリックでそのセクション内の全エフェクトを展開・折りたたみ
+   - その他のエフェクトでのShift+クリックでAnalyzerカテゴリー以外の全エフェクトを一括展開・折りたたみ
    - Ctrl+クリックで全エフェクトを一括展開・折りたたみ
 6. **ON** ボタンを使用して、個々のエフェクトをバイパスします
 7. ？ボタンをクリックすると、詳細なドキュメントが新しいタブで開きます
 8. ×ボタンを使ってエフェクトを削除します
+   - Sectionエフェクトの場合：Shift+×ボタンクリックでセクション全体を削除
 9. ルーティングボタンをクリックして、処理するチャンネルと入出力バスを設定します
    - [バス機能の詳細](bus-function.md)
 
@@ -263,8 +266,10 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | EQ        | Tone Control | 3バンドトーンコントロール | [詳細](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | ビット深度削減とゼロオーダーホールド効果 | [詳細](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | 様々なデジタルオーディオ伝送エラーとビンテージデジタル機器の特性をシミュレート | [詳細](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | 高精度電源ハムノイズジェネレーター | [詳細](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | ノイズ生成とミキシング | [詳細](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | デジタルジッターシミュレーション | [詳細](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | アナログレコードノイズの物理的シミュレーション | [詳細](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | スピーカーコーンの微細な動きによる自然でダイナミックな音変化をシミュレート | [詳細](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | 軽量なピッチシフティングエフェクト | [詳細](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | 音量ベースのモジュレーション効果 | [詳細](plugins/modulation.md#tremolo) |
@@ -274,6 +279,8 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Resonator | Modal Resonator | 最大5つのレゾネーターを備えた周波数共振効果 | [詳細](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | リッチで密度の高いリバーブテクスチャを生成するフィードバック・ディレイ・ネットワーク・リバーブ | [詳細](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | 自然な拡散を伴うランダム散乱リバーブ | [詳細](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | スピーカーコーンの非線形変位をシミュレート | [詳細](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | 明瞭さとプレゼンスを向上させるハーモニック成分を追加 | [詳細](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | デジタルハードクリッピング効果 | [詳細](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | 各ハーモニックを独立制御できるハーモニックディストーションで独自のキャラクターを付与 | [詳細](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | 周波数別のウォーム感を精密に制御する3バンドサチュレーション効果 | [詳細](plugins/saturation.md#multiband-saturation) |
@@ -322,3 +329,5 @@ Frieve EffeTuneはGoogle Chromeで動作することがテストされ、確認�
 [ソースコード](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

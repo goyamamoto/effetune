@@ -5,6 +5,7 @@ A collection of plugins that add warmth and character to your music. These effec
 ## Plugin List
 
 - [Dynamic Saturation](#dynamic-saturation) - Simulates the nonlinear displacement of speaker cones
+- [Exciter](#exciter) - Add harmonic content to enhance clarity and presence
 - [Hard Clipping](#hard-clipping) - Adds intensity and edge to the sound
 - [Harmonic Distortion](#harmonic-distortion) - Adds unique character via harmonic distortion with independent control of each harmonic
 - [Multiband Saturation](#multiband-saturation) - Shape and enhance different frequency ranges independently
@@ -95,6 +96,81 @@ A physics-based effect that simulates the nonlinear displacement of speaker cone
 5. Set Distortion Mix to 50% and Cone Motion Mix to 50%
 6. Adjust Speaker Mass to change the character of the effect
 7. Fine-tune with Output Gain to balance levels
+
+## Exciter
+
+An effect that adds harmonic content to enhance clarity and presence. By filtering the high-frequency content and applying saturation, it creates additional harmonics that brighten and enhance your music.
+
+### Listening Enhancement Guide
+- **Subtle Enhancement:**
+  - Adds clarity and air to vocals
+  - Enhances the presence of instruments
+  - Creates a more open, detailed sound
+- **Moderate Effect:**
+  - Brings out hidden details in the mix
+  - Adds sparkle and brilliance
+  - Makes music sound more "hi-fi"
+- **Creative Effect:**
+  - Creates bright, cutting tones
+  - Adds aggressive presence
+  - Perfect for modern production styles
+
+### Parameters
+- **HPF Freq** (500-10000Hz) - Sets the cutoff frequency for high-pass filtering
+  - Low values (500-2000Hz): Affects more of the signal
+  - Mid values (2000-5000Hz): Targets presence frequencies
+  - High values (5000-10000Hz): Focuses on air and brilliance
+- **HPF Slope** - Controls the filter steepness
+  - Off: No filtering, processes full spectrum
+  - 6dB/oct: Gentle filtering
+  - 12dB/oct: Steeper filtering
+- **Drive** (0.0-10.0) - Controls saturation intensity
+  - Light (0.0-3.0): Subtle harmonic enhancement
+  - Medium (3.0-6.0): Notable brightness
+  - High (6.0-10.0): Strong excitation
+- **Bias** (-0.3 to 0.3) - Adjusts saturation asymmetry
+  - Negative: Emphasizes negative signal portions
+  - Zero: Symmetrical saturation
+  - Positive: Emphasizes positive signal portions
+- **Mix** (0-100%) - Blends excited signal with dry
+  - Low (0-30%): Subtle enhancement
+  - Medium (30-60%): Balanced effect
+  - High (60-100%): Strong excitation
+
+### Visual Display
+- High-pass filter frequency response graph
+- Saturation transfer curve visualization
+- Clear visual feedback for both filter and saturation
+
+### Music Enhancement Tips
+- For Vocal Presence:
+  - HPF Freq: 3000-5000Hz
+  - HPF Slope: 6dB/oct
+  - Drive: 2.0-4.0
+  - Bias: 0.05 to 0.1
+  - Mix: 20-40%
+
+- For Instrument Clarity:
+  - HPF Freq: 2000-4000Hz
+  - HPF Slope: 12dB/oct
+  - Drive: 3.0-5.0
+  - Bias: 0.0
+  - Mix: 30-50%
+
+- For Master Bus Enhancement:
+  - HPF Freq: 5000-8000Hz
+  - HPF Slope: 6dB/oct
+  - Drive: 1.0-3.0
+  - Bias: 0.0 to 0.1
+  - Mix: 10-25%
+
+### Quick Start Guide
+1. Set HPF Freq to target the desired frequency range
+2. Choose HPF Slope (start with 6dB/oct)
+3. Begin with moderate Drive (3.0)
+4. Keep Bias near 0.1 for brightness
+5. Set Mix to 25% and adjust to taste
+6. Fine-tune all parameters while listening
 
 ## Hard Clipping
 

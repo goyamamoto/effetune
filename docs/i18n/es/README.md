@@ -78,12 +78,15 @@ Para usar EffeTune con reproductores de CD, reproductores de red u otras fuentes
 2. Arrastra los efectos desde la lista hasta el área de **Effect Pipeline**
 3. Los efectos se procesan en orden de arriba a abajo
 4. Arrastra el manejador (⋮) o pulsa los botones ▲▼ para reordenar los efectos
+   - Para efectos Section: Shift+clic en los botones ▲▼ para mover secciones completas (de una Section a la siguiente Section, inicio de pipeline, o final de pipeline)
 5. Haz clic en el nombre de un efecto para expandir o colapsar sus ajustes
-   - Shift+clic para colapsar/expandir todos los efectos excepto la categoría Analizador
+   - Shift+clic en un efecto Section para colapsar/expandir todos los efectos dentro de esa sección
+   - Shift+clic en otros efectos para colapsar/expandir todos los efectos excepto la categoría Analizador
    - Ctrl+clic para colapsar/expandir todos los efectos
 6. Utiliza el botón **ON** para omitir efectos individuales
 7. Haz clic en el botón **?** para abrir su documentación detallada en una nueva pestaña
 8. Elimina efectos utilizando el botón ×
+   - Para efectos Section: Shift+clic en el botón × para eliminar secciones completas
 9. Haga clic en el botón de enrutamiento para configurar los canales que se procesarán y los buses de entrada y salida  
    - [Más información sobre las funciones de los buses](bus-function.md)
 
@@ -258,8 +261,10 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | EQ        | Tone Control | Control de tono de tres bandas | [Detalles](plugins/eq.md#tone-control) |
 | Lo-Fi     | Bit Crusher | Reducción de profundidad de bits y efecto de retención de orden cero | [Detalles](plugins/lofi.md#bit-crusher) |
 | Lo-Fi     | Digital Error Emulator | Simula varios errores de transmisión de audio digital y características de equipos digitales vintage | [Detalles](plugins/lofi.md#digital-error-emulator) |
+| Lo-Fi     | Hum Generator | Generador de ruido de zumbido de alta precisión | [Detalles](plugins/lofi.md#hum-generator) |
 | Lo-Fi     | Noise Blender | Generación y mezcla de ruido | [Detalles](plugins/lofi.md#noise-blender) |
 | Lo-Fi     | Simple Jitter | Simulación de jitter digital | [Detalles](plugins/lofi.md#simple-jitter) |
+| Lo-Fi     | Vinyl Artifacts | Simulación física de ruido de discos analógicos | [Detalles](plugins/lofi.md#vinyl-artifacts) |
 | Modulation | Doppler Distortion | Simula cambios dinámicos y naturales en el sonido causados por movimientos sutiles del cono del altavoz | [Detalles](plugins/modulation.md#doppler-distortion) |
 | Modulation | Pitch Shifter | Efecto de cambio de tono ligero | [Detalles](plugins/modulation.md#pitch-shifter) |
 | Modulation | Tremolo | Efecto de modulación basado en volumen | [Detalles](plugins/modulation.md#tremolo) |
@@ -269,6 +274,8 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | Resonator | Modal Resonator | Efecto de resonancia de frecuencia con hasta 5 resonadores | [Detalles](plugins/resonator.md#modal-resonator) |
 | Reverb    | FDN Reverb | Reverberación de red de retardo con retroalimentación que produce texturas de reverb ricas y densas | [Detalles](plugins/reverb.md#fdn-reverb) |
 | Reverb    | RS Reverb | Reverberación de dispersión aleatoria con difusión natural | [Detalles](plugins/reverb.md#rs-reverb) |
+| Saturation| Dynamic Saturation | Simula el desplazamiento no lineal de conos de altavoz | [Detalles](plugins/saturation.md#dynamic-saturation) |
+| Saturation| Exciter | Añade contenido armónico para mejorar la claridad y presencia | [Detalles](plugins/saturation.md#exciter) |
 | Saturation| Hard Clipping | Efecto de recorte duro digital | [Detalles](plugins/saturation.md#hard-clipping) |
 | Saturation | Harmonic Distortion | Añade carácter único mediante distorsión armónica con control independiente de cada armónico | [Detalles](plugins/saturation.md#harmonic-distortion) |
 | Saturation| Multiband Saturation | Efecto de saturación de 3 bandas para un calentamiento preciso según frecuencia | [Detalles](plugins/saturation.md#multiband-saturation) |
@@ -316,3 +323,5 @@ Para un rendimiento óptimo con efectos no lineales, se recomienda usar EffeTune
 [Source Code](https://github.com/Frieve-A/effetune)
 
 [YouTube](https://www.youtube.com/@frieveamusic)
+
+[Discord](https://discord.gg/gf95v3Gza2)

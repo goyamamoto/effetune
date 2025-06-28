@@ -197,6 +197,14 @@ Un limitador de picos de alta calidad que asegura que tu música nunca exceda un
 - Oversampling: 4x
 
 ## Compressor
+
+Un efecto que gestiona automáticamente las diferencias de volumen en tu música reduciendo suavemente los sonidos fuertes y realzando los silenciosos. Esto crea una experiencia de escucha más equilibrada y agradable al suavizar los cambios de volumen repentinos que podrían resultar molestos o incómodos.
+
+### Guía de Mejora de Escucha
+- Música Clásica:
+  - Hace que los crescendos orquestales dramáticos sean más cómodos de escuchar
+  - Equilibra la diferencia entre pasajes suaves y fuertes del piano
+  - Ayuda a escuchar detalles silenciosos incluso en secciones potentes
 - Música Pop/Rock:
   - Crea una experiencia de escucha más cómoda durante secciones intensas
   - Hace que las voces sean más claras y fáciles de entender

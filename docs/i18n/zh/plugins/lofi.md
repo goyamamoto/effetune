@@ -6,8 +6,10 @@
 
 - [Bit Crusher](#bit-crusher) - 创造复古游戏和复古数字声音
 - [Digital Error Emulator](#digital-error-emulator) - 模拟各种数字音频传输错误
+- [Hum Generator](#hum-generator) - 高精度电源嗡鸣噪声生成器
 - [Noise Blender](#noise-blender) - 添加氛围背景纹理
 - [Simple Jitter](#simple-jitter) - 创造细微的复古数字瑕疵
+- [Vinyl Artifacts](#vinyl-artifacts) - 模拟黑胶唱片的物理噪音特性
 
 ## Bit Crusher
 
@@ -141,6 +143,79 @@
 
 注意:所有推荐都使用100%湿混合以获得真实的数字错误行为。较低的湿混合值可用于创意效果，但它们不代表真实数字错误实际发生的方式。
 
+## Hum Generator
+
+一个生成高精度、真实电源嗡鸣噪声的效果器，具有其特有的谐波结构和微妙的不稳定性。完美适合添加来自复古设备、电源的真实背景嗡鸣声，或创造许多经典录音所具有的真正"通电"感觉。
+
+### 声音特色指南
+- 复古设备氛围:
+  - 重现经典放大器和设备的微妙嗡鸣
+  - 添加"接入"交流电源的特色
+  - 创造真实的复古录音室氛围
+- 电源供应特性:
+  - 模拟不同类型的电源噪声
+  - 重现地区电网特性(50Hz vs 60Hz)
+  - 添加微妙的电气基础设施特色
+- 背景纹理:
+  - 创造有机的低级背景存在感
+  - 为无菌的数字录音添加深度和"生命力"
+  - 完美适合复古风格的制作
+
+### 参数
+- **Frequency** - 设置基本嗡鸣频率(10-120 Hz)
+  - 50 Hz: 欧洲/亚洲电网标准
+  - 60 Hz: 北美电网标准
+  - 其他值: 创意效果的自定义频率
+- **Type** - 控制嗡鸣的谐波结构
+  - Standard: 仅包含奇次谐波(更纯净，变压器般)
+  - Rich: 包含所有谐波(复杂，设备般)
+  - Dirty: 丰富谐波带有微妙失真(复古设备特色)
+- **Harmonics** - 控制亮度和谐波内容(0-100%)
+  - 0-30%: 温暖、柔和的嗡鸣，最少上层谐波
+  - 30-70%: 真实设备典型的平衡谐波内容
+  - 70-100%: 明亮、复杂的嗡鸣，强烈上层谐波
+- **Tone** - 最终音色塑形滤波器截止频率(1.0-20.0 kHz)
+  - 1-5 kHz: 温暖、闷声特色
+  - 5-10 kHz: 自然的设备般音色
+  - 10-20 kHz: 明亮、突出特色
+- **Instability** - 微妙频率和振幅变化量(0-10%)
+  - 0%: 完全稳定的嗡鸣(数字精度)
+  - 1-3%: 微妙的现实世界不稳定性
+  - 3-7%: 明显的复古设备特色
+  - 7-10%: 创意调制效果
+- **Level** - 嗡鸣信号的输出电平(-80.0 到 0.0 dB)
+  - -80 到 -60 dB: 几乎听不见的背景存在感
+  - -60 到 -40 dB: 微妙但明显的嗡鸣
+  - -40 到 -20 dB: 突出的复古特色
+  - -20 到 0 dB: 创意或特效级别
+
+### 不同风格的推荐设置
+
+1. 微妙复古放大器
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 25%
+   - Tone: 8.0 kHz, Instability: 1.5%, Level: -54 dB
+   - 完美适合: 添加温和的复古放大器特色
+
+2. 经典录音室
+   - Frequency: 60 Hz, Type: Rich, Harmonics: 45%
+   - Tone: 6.0 kHz, Instability: 2.0%, Level: -48 dB
+   - 完美适合: 模拟时代的真实录音室氛围
+
+3. 复古电子管设备
+   - Frequency: 50 Hz, Type: Dirty, Harmonics: 60%
+   - Tone: 5.0 kHz, Instability: 3.5%, Level: -42 dB
+   - 完美适合: 温暖的电子管放大器特色
+
+4. 电网氛围
+   - Frequency: 50/60 Hz, Type: Standard, Harmonics: 35%
+   - Tone: 10.0 kHz, Instability: 1.0%, Level: -60 dB
+   - 完美适合: 真实的电源背景
+
+5. 创意嗡鸣效果
+   - Frequency: 40 Hz, Type: Dirty, Harmonics: 80%
+   - Tone: 15.0 kHz, Instability: 6.0%, Level: -36 dB
+   - 完美适合: 艺术和实验应用
+
 ## Noise Blender
 
 一个为音乐添加氛围背景纹理的效果器,类似于黑胶唱片或复古设备的声音。完美适合创造舒适、怀旧的氛围。
@@ -197,39 +272,124 @@
 
 ### 不同风格的推荐设置
 
-1. 放松的 Lo-Fi
-   - Bit Crusher: 12 位,抖动开启,位错误 1.5%,种子 42
-   - Noise Blender: 粉红噪声,-60dB
-   - Jitter: 轻微(10ps)
-   - Digital Error: CD Audio,BER 10^-8,Wet 25%
-   - 完美适合:学习会话、放松
+1. 几乎察觉不到
+   - RMS Jitter: 1-5ps
+   - 完美适合: 为数字录音添加最微妙的模拟温暖感
 
-2. 复古游戏
-   - Bit Crusher: 8 位,抖动关闭,位错误 3%,种子 888
-   - Noise Blender: 白噪声,-72dB
-   - Jitter: 无
-   - Digital Error: AES3/S-PDIF,BER 10^-7,Wet 100%
-   - 完美适合:视频游戏音乐欣赏
+2. 经典CD播放器特色
+   - RMS Jitter: 50-100ps
+   - 完美适合: 重现早期数字播放设备的声音
 
-3. 复古数字
-   - Bit Crusher: 16 位,位错误 0.8%,种子 123
-   - Noise Blender: 粉红噪声,-66dB
-   - Jitter: 中等(50ps)
-   - Digital Error: CD Audio,BER 10^-7,Wet 100%
-   - 完美适合:90 年代音乐怀旧
+3. 复古DAT录音机
+   - RMS Jitter: 200-500ps
+   - 完美适合: 90年代数字录音设备特色
 
-4. 环境 Lo-Fi
-   - Bit Crusher: 14 位,抖动开启,位错误 2%,种子 456
-   - Noise Blender: 粉红噪声,-54dB
-   - Jitter: 轻微(20ps)
-   - Digital Error: Bluetooth A2DP,BER 10^-8,Wet 100%
-   - 完美适合:背景氛围
+4. 老化的数字设备
+   - RMS Jitter: 1-2ns (1000-2000ps)
+   - 完美适合: 创造老化或维护不良的数字设备声音
 
-5. 现代流媒体氛围
-   - Bit Crusher: 关闭或 24 位
-   - Noise Blender: 粉红噪声,-78dB
-   - Jitter: 非常轻微(5ps)
-   - Digital Error: Dante/AES67(64 samp),BER 10^-7,Wet 100%
-   - 完美适合:当代数字瑕疵
+5. 创意摇摆效果
+   - RMS Jitter: 10-100µs (10000-100000ps)
+   - 完美适合: 实验性效果和明显的音高调制
+
+## Vinyl Artifacts
+
+一个重现模拟黑胶唱片物理噪音特性的效果器。这个插件模拟播放黑胶唱片时出现的各种音频瑕疵,从表面噪音到播放链的电气特性。
+
+### 声音特色指南
+- 黑胶唱片体验:
+  - 重现播放黑胶唱片的真实声音
+  - 添加特有的表面噪音和瑕疵
+  - 创造温暖、怀旧的模拟感觉
+- 复古播放系统:
+  - 模拟完整的模拟播放链
+  - 包含RIAA均衡特性
+  - 添加对音乐产生反应的响应性噪音
+- 氛围质感:
+  - 创造丰富、有机的背景质感
+  - 为数字录音添加深度和特色
+  - 完美适合创造舒适、亲密的聆听体验
+
+### 参数
+- **Pops/min** - 控制每分钟大咔嗒声的频率 (0 到 120)
+  - 0-20: 偶尔温和的爆音
+  - 20-60: 适度的复古特色
+  - 60-120: 重度磨损声音
+- **Pop Level** - 控制爆音的音量 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的咔嗒声
+  - -48 到 -24 dB: 适度的爆音
+  - -24 到 0 dB: 响亮的爆音(极端设置)
+- **Crackles/min** - 控制每分钟爆裂噪音的密度 (0 到 2000)
+  - 0-200: 细微的表面质感
+  - 200-1000: 经典黑胶特色
+  - 1000-2000: 重度表面噪音
+- **Crackle Level** - 控制爆裂噪音的音量 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的爆裂声
+  - -48 到 -24 dB: 适度的爆裂声
+  - -24 到 0 dB: 响亮的爆裂声(极端设置)
+- **Hiss** - 控制持续表面噪音的级别 (-80.0 到 0.0 dB)
+  - -80 到 -48 dB: 细微的背景质感
+  - -48 到 -30 dB: 明显的表面噪音
+  - -30 到 0 dB: 突出的嘶嘶声(极端设置)
+- **Rumble** - 控制低频转台隆隆声 (-80.0 到 0.0 dB)
+  - -80 到 -60 dB: 细微的低频温暖感
+  - -60 到 -40 dB: 明显的隆隆声
+  - -40 到 0 dB: 重度隆隆声(极端设置)
+- **Crosstalk** - 控制左右声道之间的串扰 (0 到 100%)
+  - 0%: 完美的立体声分离
+  - 30-60%: 真实的黑胶串扰
+  - 100%: 最大声道混合
+- **Noise Profile** - 调整噪音的频响特性 (0.0 到 10.0)
+  - 0: RIAA曲线再现(真实黑胶频响)
+  - 5: 部分校正响应
+  - 10: 平坦响应(旁路)
+- **Wear** - 整体唱片状况的主控制 (0 到 200%)
+  - 0-50%: 保养良好的唱片
+  - 50-100%: 正常磨损和老化
+  - 100-200%: 严重磨损的唱片
+- **React** - 噪音对输入信号的响应程度 (0 到 100%)
+  - 0%: 静态噪音级别
+  - 25-50%: 对音乐的适度响应
+  - 75-100%: 对输入高度响应
+- **React Mode** - 选择信号的哪个方面控制响应
+  - Velocity: 响应高频内容(唱针速度)
+  - Amplitude: 响应整体信号级别
+- **Mix** - 控制噪音添加到干信号的量 (0 到 100%)
+  - 0%: 不添加噪音(仅干信号)
+  - 50%: 适度噪音添加
+  - 100%: 最大噪音添加
+  - 注意: 干信号级别保持不变;此参数仅控制噪音量
+
+### 不同风格的推荐设置
+
+1. 细微黑胶特色
+   - Pops/min: 20, Pop Level: -48dB, Crackles/min: 200, Crackle Level: -48dB
+   - Hiss: -48dB, Rumble: -60dB, Crosstalk: 30%, Noise Profile: 5.0
+   - Wear: 25%, React: 20%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 添加温和的模拟温暖感
+
+2. 经典黑胶体验
+   - Pops/min: 40, Pop Level: -36dB, Crackles/min: 400, Crackle Level: -36dB
+   - Hiss: -36dB, Rumble: -50dB, Crosstalk: 50%, Noise Profile: 4.0
+   - Wear: 60%, React: 30%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 真实的黑胶聆听体验
+
+3. 严重磨损唱片
+   - Pops/min: 80, Pop Level: -24dB, Crackles/min: 800, Crackle Level: -24dB
+   - Hiss: -30dB, Rumble: -40dB, Crosstalk: 70%, Noise Profile: 3.0
+   - Wear: 120%, React: 50%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 严重老化唱片特色
+
+4. Lo-Fi氛围
+   - Pops/min: 15, Pop Level: -54dB, Crackles/min: 150, Crackle Level: -54dB
+   - Hiss: -42dB, Rumble: -66dB, Crosstalk: 25%, Noise Profile: 6.0
+   - Wear: 40%, React: 15%, React Mode: Amplitude, Mix: 100%
+   - 完美适合: 背景氛围质感
+
+5. 动态黑胶
+   - Pops/min: 60, Pop Level: -30dB, Crackles/min: 600, Crackle Level: -30dB
+   - Hiss: -39dB, Rumble: -45dB, Crosstalk: 60%, Noise Profile: 5.0
+   - Wear: 80%, React: 75%, React Mode: Velocity, Mix: 100%
+   - 完美适合: 对音乐产生戏剧性响应的噪音
 
 记住:这些效果旨在为您的音乐添加特色和怀旧感。从细微设置开始,根据喜好调整!

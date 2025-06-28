@@ -19,6 +19,7 @@ class RecorderProcessor extends AudioWorkletProcessor {
         this.recordBuffer = [];
         this.isRecording = false;
         this.maxRecordLength = 0; // Set to > 0 to limit recording length
+        this.bufferThreshold = 4096; // Send data in chunks to prevent memory issues
         
         // Message port for communication with main thread
         this.port.onmessage = (event) => this.handleMessage(event.data);
@@ -32,9 +33,10 @@ class RecorderProcessor extends AudioWorkletProcessor {
             this.port.postMessage({ status: 'started' });
         } else if (data.command === 'stop') {
             this.isRecording = false;
+            const flatBuffer = this.recordBuffer.flat();
             this.port.postMessage({
                 status: 'stopped',
-                buffer: this.recordBuffer.flat()
+                buffer: new Float32Array(flatBuffer)
             });
             this.recordBuffer = [];
         }
@@ -49,6 +51,12 @@ class RecorderProcessor extends AudioWorkletProcessor {
         // Get input channels
         const input = inputs[0];
         const channelCount = input.length;
+        
+        // Validate input stability
+        if (!input[0] || input[0].length === 0) {
+            console.warn('Empty input buffer detected');
+            return true;
+        }
         
         // Record if active
         if (this.isRecording) {
@@ -94,18 +102,30 @@ class RecorderProcessor extends AudioWorkletProcessor {
             if (sample.length > 0) {
                 this.recordBuffer.push(sample);
                 
-                // Check if we've reached the maximum length
-                if (this.maxRecordLength > 0) {
-                    const totalSamples = this.recordBuffer.reduce((sum, chunk) => sum + chunk.length, 0);
-                    if (totalSamples >= this.maxRecordLength) {
-                        // Stop recording and send back the buffer
-                        this.isRecording = false;
+                // Send data in chunks to prevent memory issues
+                const totalSamples = this.recordBuffer.reduce((sum, chunk) => sum + chunk.length, 0);
+                
+                if (totalSamples >= this.bufferThreshold) {
+                    try {
+                        // Send current buffer chunk
+                        const flatBuffer = this.recordBuffer.flat();
                         this.port.postMessage({
-                            status: 'complete',
-                            buffer: this.recordBuffer.flat().slice(0, this.maxRecordLength)
+                            buffer: new Float32Array(flatBuffer)
                         });
-                        this.recordBuffer = [];
+                        this.recordBuffer = []; // Clear buffer after sending
+                    } catch (error) {
+                        console.error('Error sending audio buffer:', error);
+                        // Continue recording even if send fails
                     }
+                }
+                
+                // Check if we've reached the maximum length
+                if (this.maxRecordLength > 0 && totalSamples >= this.maxRecordLength) {
+                    // Stop recording
+                    this.isRecording = false;
+                    this.port.postMessage({
+                        status: 'complete'
+                    });
                 }
             }
         }

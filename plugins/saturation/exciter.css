@@ -1,0 +1,38 @@
+/* Exciter plugin specific styles */
+.exciter-plugin-ui {
+    position: relative;
+}
+
+.exciter-plugin-ui .slope-select {
+    padding: 2px;
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 3px;
+    font-size: 12px;
+    width: 90px;
+    cursor: pointer;
+}
+
+.exciter-plugin-ui .slope-select:focus {
+    outline: none;
+    border-color: #777;
+}
+
+.exciter-plugin-ui .slope-select option {
+    background: #333;
+    color: #ccc;
+    padding: 2px;
+}
+
+.exciter-plugin-ui .graphs-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.exciter-plugin-ui canvas {
+    display: block;
+    border: 1px solid #333;
+}

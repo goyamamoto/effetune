@@ -1,0 +1,28 @@
+# Configure line endings - LF only for all environments
+# Force LF line endings for all text files
+* text=auto eol=lf
+
+# Explicitly set LF for common text files
+*.js text eol=lf
+*.json text eol=lf
+*.json5 text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.txt text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary

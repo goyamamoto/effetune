@@ -76,8 +76,8 @@ export class PresetManager {
         // Get presets from local storage or file
         const presets = await this.getPresets();
         
-        // Add preset options
-        Object.keys(presets).forEach(name => {
+        // Add preset options (sorted alphabetically)
+        Object.keys(presets).sort().forEach(name => {
             const option = document.createElement('option');
             option.value = name;
             datalist.appendChild(option);
@@ -168,6 +168,11 @@ export class PresetManager {
             // Update UI
             this.loadPresetList();
             this.presetSelect.value = name;
+            
+            // Update plugin list presets tab if it's visible
+            if (window.uiManager && window.uiManager.pluginListManager) {
+                await window.uiManager.pluginListManager.refreshPresetsIfVisible();
+            }
             
             if (window.uiManager) {
                 window.uiManager.setError('success.presetSaved', false, { name });
@@ -362,6 +367,11 @@ export class PresetManager {
             // Update UI
             this.loadPresetList();
             this.presetSelect.value = '';
+            
+            // Update plugin list presets tab if it's visible
+            if (window.uiManager && window.uiManager.pluginListManager) {
+                await window.uiManager.pluginListManager.refreshPresetsIfVisible();
+            }
             
             if (window.uiManager) {
                 window.uiManager.setError('success.presetDeleted', false, { name });
