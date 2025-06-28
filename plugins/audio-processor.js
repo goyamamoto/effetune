@@ -46,6 +46,12 @@ class PluginProcessor extends AudioWorkletProcessor {
             _silenceThresholdAmplitude: Math.pow(10, -84 / 20)
         };
 
+        this.tempBufferStats = {
+            intervalCalls: 0,
+            intervalReuses: 0,
+            lastLogTime: 0
+        };
+
         // Message handler
         this.port.onmessage = (event) => {
             const data = event.data;
@@ -173,6 +179,34 @@ class PluginProcessor extends AudioWorkletProcessor {
         // Or handle context cleanup based on removed IDs.
         // For simplicity, we keep existing contexts; they won't be used if plugin is gone.
         // console.log(`Updated plugin chain (${this.plugins.length} plugins)`);
+    }
+
+    /**
+     * Retrieve a reusable temporary buffer for a plugin context.
+     * This avoids per-block allocations which can cause GC pauses.
+     * @param {Object} context - Plugin specific context object
+     * @param {number} size - Required length of the buffer
+     * @returns {Float32Array}
+     */
+    getTempBuffer(context, size) {
+        this.tempBufferStats.intervalCalls++;
+        let buf = context._tempBuffer;
+        if (buf && buf.length === size) {
+            this.tempBufferStats.intervalReuses++;
+        } else {
+            buf = new Float32Array(size);
+            context._tempBuffer = buf;
+        }
+
+        const time = this.currentFrame / globalThis.sampleRate;
+        if (time - this.tempBufferStats.lastLogTime >= 10) {
+            //console.log(`getTempBuffer: ${this.tempBufferStats.intervalCalls} calls, ${this.tempBufferStats.intervalReuses} reuses`);
+            this.tempBufferStats.intervalCalls = 0;
+            this.tempBufferStats.intervalReuses = 0;
+            this.tempBufferStats.lastLogTime = time;
+        }
+
+        return buf;
     }
 
     // Optimized process method
@@ -394,7 +428,9 @@ class PluginProcessor extends AudioWorkletProcessor {
             // Prepare the context object for the processor call.
             // Avoid spreading unless necessary; pass specific needed properties.
             // Here, we keep the original structure for compatibility.
-            const context = { ...pluginContext, port: port }; // Pass port for potential messaging from plugin
+            // Use the persistent pluginContext directly to allow state reuse (e.g. temp buffers)
+            pluginContext.port = port; // Expose the port for optional messaging
+            const context = pluginContext;
 
 
             // Determine input and output buses for this plugin
@@ -493,7 +529,8 @@ class PluginProcessor extends AudioWorkletProcessor {
             if (processMode === 'all') {
                 if (requiresCopy) {
                     // Need to copy input to a temporary buffer if output is a different bus
-                    tempBuffer = new Float32Array(inputBuffer); // Full copy
+                    tempBuffer = this.getTempBuffer(pluginContext, inputBuffer.length);
+                    tempBuffer.set(inputBuffer);
                     processingBuffer = tempBuffer;
                 } else {
                     // Process directly in the input/output buffer (which are the same)
@@ -503,7 +540,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             } else if (processMode === 'pair') {
                 // Always use a temporary stereo buffer for pair processing
                 const stereoSize = blockSize * 2;
-                tempBuffer = new Float32Array(stereoSize);
+                tempBuffer = this.getTempBuffer(pluginContext, stereoSize);
                 // Copy the selected pair from inputBuffer to the temporary stereo buffer efficiently
                 tempBuffer.set(inputBuffer.subarray(pairStartChannel * blockSize, (pairStartChannel + 1) * blockSize), 0); // Ch 1
                 tempBuffer.set(inputBuffer.subarray((pairStartChannel + 1) * blockSize, (pairStartChannel + 2) * blockSize), blockSize); // Ch 2
@@ -511,7 +548,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                 // Result will be written back from tempBuffer to the correct place in outputBuffer later
             } else if (processMode === 'single') {
                 // Always use a temporary mono buffer for single channel processing
-                tempBuffer = new Float32Array(blockSize);
+                tempBuffer = this.getTempBuffer(pluginContext, blockSize);
                 // Copy the selected channel from inputBuffer to the temporary mono buffer
                 tempBuffer.set(inputBuffer.subarray(singleChannelIndex * blockSize, (singleChannelIndex + 1) * blockSize));
                 processingBuffer = tempBuffer; // Plugin processes this temp buffer
