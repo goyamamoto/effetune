@@ -78,12 +78,15 @@ Para usar EffeTune con reproductores de CD, reproductores de red u otras fuentes
 2. Arrastra los efectos desde la lista hasta el área de **Effect Pipeline**
 3. Los efectos se procesan en orden de arriba a abajo
 4. Arrastra el manejador (⋮) o pulsa los botones ▲▼ para reordenar los efectos
+   - Para efectos Section: Shift+clic en los botones ▲▼ para mover secciones completas (de una Section a la siguiente Section, inicio de pipeline, o final de pipeline)
 5. Haz clic en el nombre de un efecto para expandir o colapsar sus ajustes
-   - Shift+clic para colapsar/expandir todos los efectos excepto la categoría Analizador
+   - Shift+clic en un efecto Section para colapsar/expandir todos los efectos dentro de esa sección
+   - Shift+clic en otros efectos para colapsar/expandir todos los efectos excepto la categoría Analizador
    - Ctrl+clic para colapsar/expandir todos los efectos
 6. Utiliza el botón **ON** para omitir efectos individuales
 7. Haz clic en el botón **?** para abrir su documentación detallada en una nueva pestaña
 8. Elimina efectos utilizando el botón ×
+   - Para efectos Section: Shift+clic en el botón × para eliminar secciones completas
 9. Haga clic en el botón de enrutamiento para configurar los canales que se procesarán y los buses de entrada y salida  
    - [Más información sobre las funciones de los buses](bus-function.md)
 

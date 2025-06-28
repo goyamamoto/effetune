@@ -83,12 +83,15 @@ To use EffeTune with CD players, network players, or other physical sources:
 2. Drag effects from the list to the Effect Pipeline area
 3. Effects are processed in order from top to bottom
 4. Drag the handle (⋮) or click the ▲▼ buttons to reorder the effects
+   - For Section effects: Shift+click the ▲▼ buttons to move entire sections (from one Section to the next Section, pipeline beginning, or end of pipeline)
 5. Click an effect's name to expand/collapse its settings
-   - Shift+click to collapse/expand all effects except for the Analyzer category
+   - Shift+click on a Section effect to collapse/expand all effects within that section
+   - Shift+click on other effects to collapse/expand all effects except for the Analyzer category
    - Ctrl+click to collapse/expand all effects
 6. Use the ON button to bypass individual effects
 7. Click the ? button to open its detailed documentation in a new tab
 8. Remove effects using the × button
+   - For Section effects: Shift+click the × button to remove entire sections
 9. Click the routing button to set the channels to be processed and the input and output busses
    - [More about bus functions](docs/bus-function.md)
 

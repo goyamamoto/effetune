@@ -124,7 +124,11 @@ export class PipelineCore {
         // Plugin name
         const name = document.createElement('div');
         name.className = 'plugin-name';
-        name.textContent = plugin.name;
+        if (plugin.name === 'Section' && plugin.cm && plugin.cm !== '') {
+            name.textContent = `${plugin.cm} Section`;
+        } else {
+            name.textContent = plugin.name;
+        }
         
         // Update the plugin name display state based on section status
         this.updatePluginNameDisplayState(plugin, name);
@@ -221,30 +225,35 @@ export class PipelineCore {
             // Use the common selection function
             this.handlePluginSelection(plugin, e);
             
-            // Get the index of the plugin
-            const index = this.audioManager.pipeline.indexOf(plugin);
-            
-            // Can't move up if it's the first plugin
-            if (index <= 0) return;
-            
-            // Swap with the plugin above
-            const temp = this.audioManager.pipeline[index - 1];
-            this.audioManager.pipeline[index - 1] = plugin;
-            this.audioManager.pipeline[index] = temp;
-            
-            // Update worklet directly without rebuilding pipeline
-            this.updateWorkletPlugins();
-            
-            // Update UI display state for all plugins
-            this.updateAllPluginDisplayState();
-            
-            // Save state for undo/redo
-            if (this.pipelineManager && this.pipelineManager.historyManager) {
-                this.pipelineManager.historyManager.saveState();
+            // Check if this is a Section plugin with Shift+click
+            if (plugin.constructor.name === 'SectionPlugin' && e.shiftKey) {
+                this.moveSectionUp(plugin);
+            } else {
+                // Get the index of the plugin
+                const index = this.audioManager.pipeline.indexOf(plugin);
+                
+                // Can't move up if it's the first plugin
+                if (index <= 0) return;
+                
+                // Swap with the plugin above
+                const temp = this.audioManager.pipeline[index - 1];
+                this.audioManager.pipeline[index - 1] = plugin;
+                this.audioManager.pipeline[index] = temp;
+                
+                // Update worklet directly without rebuilding pipeline
+                this.updateWorkletPlugins();
+                
+                // Update UI display state for all plugins
+                this.updateAllPluginDisplayState();
+                
+                // Save state for undo/redo
+                if (this.pipelineManager && this.pipelineManager.historyManager) {
+                    this.pipelineManager.historyManager.saveState();
+                }
+                
+                // Update UI
+                this.updatePipelineUI();
             }
-            
-            // Update UI
-            this.updatePipelineUI();
         };
         header.appendChild(moveUpBtn);
 
@@ -259,30 +268,35 @@ export class PipelineCore {
             // Use the common selection function
             this.handlePluginSelection(plugin, e);
             
-            // Get the index of the plugin
-            const index = this.audioManager.pipeline.indexOf(plugin);
-            
-            // Can't move down if it's the last plugin
-            if (index >= this.audioManager.pipeline.length - 1) return;
-            
-            // Swap with the plugin below
-            const temp = this.audioManager.pipeline[index + 1];
-            this.audioManager.pipeline[index + 1] = plugin;
-            this.audioManager.pipeline[index] = temp;
-            
-            // Update worklet directly without rebuilding pipeline
-            this.updateWorkletPlugins();
-            
-            // Update UI display state for all plugins
-            this.updateAllPluginDisplayState();
-            
-            // Save state for undo/redo
-            if (this.pipelineManager && this.pipelineManager.historyManager) {
-                this.pipelineManager.historyManager.saveState();
+            // Check if this is a Section plugin with Shift+click
+            if (plugin.constructor.name === 'SectionPlugin' && e.shiftKey) {
+                this.moveSectionDown(plugin);
+            } else {
+                // Get the index of the plugin
+                const index = this.audioManager.pipeline.indexOf(plugin);
+                
+                // Can't move down if it's the last plugin
+                if (index >= this.audioManager.pipeline.length - 1) return;
+                
+                // Swap with the plugin below
+                const temp = this.audioManager.pipeline[index + 1];
+                this.audioManager.pipeline[index + 1] = plugin;
+                this.audioManager.pipeline[index] = temp;
+                
+                // Update worklet directly without rebuilding pipeline
+                this.updateWorkletPlugins();
+                
+                // Update UI display state for all plugins
+                this.updateAllPluginDisplayState();
+                
+                // Save state for undo/redo
+                if (this.pipelineManager && this.pipelineManager.historyManager) {
+                    this.pipelineManager.historyManager.saveState();
+                }
+                
+                // Update UI
+                this.updatePipelineUI();
             }
-            
-            // Update UI
-            this.updatePipelineUI();
         };
         header.appendChild(moveDownBtn);
 
@@ -384,6 +398,21 @@ export class PipelineCore {
                 // Only update URL without rebuilding pipeline
                 if (window.uiManager) {
                     window.uiManager.updateURL();
+                }
+                
+                // Update Section name display if this is a Section plugin and cm parameter changed
+                if (this.name === 'Section') {
+                    const pipelineItem = document.querySelector(`[data-plugin-id="${this.id}"]`);
+                    if (pipelineItem) {
+                        const nameElement = pipelineItem.querySelector('.plugin-name');
+                        if (nameElement) {
+                            if (this.cm && this.cm !== '') {
+                                nameElement.textContent = `${this.cm} Section`;
+                            } else {
+                                nameElement.textContent = this.name;
+                            }
+                        }
+                    }
                 }
                 
                 const now = Date.now();
@@ -494,51 +523,92 @@ export class PipelineCore {
                 // Determine if we're expanding or collapsing based on current state
                 const shouldExpand = !this.expandedPlugins.has(plugin);
                 
-                // Check if the clicked plugin is in the Analyzer category
-                const clickedPluginCategory = Object.entries(this.pluginManager.effectCategories)
-                    .find(([_, {plugins}]) => plugins.includes(plugin.name))?.[0];
-                const isClickedPluginAnalyzer = clickedPluginCategory &&
-                    clickedPluginCategory.toLowerCase() === 'analyzer';
-                
-                // Process all plugins
-                this.audioManager.pipeline.forEach(p => {
-                    // If clicked plugin is NOT in Analyzer category, skip Analyzer category plugins
-                    if (!isClickedPluginAnalyzer) {
+                // Special handling for Section plugins - expand/collapse entire section
+                if (plugin.constructor.name === 'SectionPlugin') {
+                    const pipeline = this.audioManager.pipeline;
+                    const sectionIndex = pipeline.findIndex(p => p.id === plugin.id);
+                    
+                    if (sectionIndex !== -1) {
+                        // Find the next Section plugin or end of pipeline
+                        let endIndex = pipeline.length;
+                        for (let i = sectionIndex + 1; i < pipeline.length; i++) {
+                            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                                endIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        // Process all plugins in this section
+                        for (let i = sectionIndex; i < endIndex; i++) {
+                            const p = pipeline[i];
+                            
+                            // Find the corresponding pipeline item using plugin ID
+                            const itemEl = document.querySelector(`.pipeline-item[data-plugin-id="${p.id}"]`);
+                            if (!itemEl) continue;
+                            
+                            const pluginUI = itemEl.querySelector('.plugin-ui');
+                            if (!pluginUI) continue;
+                            
+                            // Set expanded state
+                            if (shouldExpand) {
+                                pluginUI.classList.add('expanded');
+                                this.expandedPlugins.add(p);
+                                if (p.updateMarkers && p.updateResponse) {
+                                    requestAnimationFrame(() => {
+                                        p.updateMarkers();
+                                        p.updateResponse();
+                                    });
+                                }
+                            } else {
+                                pluginUI.classList.remove('expanded');
+                                this.expandedPlugins.delete(p);
+                            }
+                        }
+                    }
+                } else {
+                    // Process all plugins except Analyzer category
+                    this.audioManager.pipeline.forEach(p => {
+                        // Check if this plugin is in the Analyzer category
                         const category = Object.entries(this.pluginManager.effectCategories)
                             .find(([_, {plugins}]) => plugins.includes(p.name))?.[0];
                         
                         if (category && category.toLowerCase() === 'analyzer') {
-                            return; // Skip Analyzer category plugins
+                            return; // Always skip Analyzer category plugins
                         }
-                    }
-                    // If clicked plugin IS in Analyzer category, process all plugins
-                    
-                    // Get the UI element for this plugin
-                    const pipelineItem = this.pipelineList.children[this.audioManager.pipeline.indexOf(p)];
-                    if (!pipelineItem) return;
-                    
-                    const pluginUI = pipelineItem.querySelector('.plugin-ui');
-                    if (!pluginUI) return;
-                    
-                    // Set expanded state
-                    if (shouldExpand) {
-                        pluginUI.classList.add('expanded');
-                        this.expandedPlugins.add(p);
-                        if (p.updateMarkers && p.updateResponse) {
-                            requestAnimationFrame(() => {
-                                p.updateMarkers();
-                                p.updateResponse();
-                            });
+                        
+                        // Find the corresponding pipeline item using plugin ID instead of index
+                        const itemEl = document.querySelector(`.pipeline-item[data-plugin-id="${p.id}"]`);
+                        if (!itemEl) return;
+                        
+                        const pluginUI = itemEl.querySelector('.plugin-ui');
+                        if (!pluginUI) return;
+                        
+                        // Set expanded state
+                        if (shouldExpand) {
+                            pluginUI.classList.add('expanded');
+                            this.expandedPlugins.add(p);
+                            if (p.updateMarkers && p.updateResponse) {
+                                requestAnimationFrame(() => {
+                                    p.updateMarkers();
+                                    p.updateResponse();
+                                });
+                            }
+                        } else {
+                            pluginUI.classList.remove('expanded');
+                            this.expandedPlugins.delete(p);
                         }
-                    } else {
-                        pluginUI.classList.remove('expanded');
-                        this.expandedPlugins.delete(p);
-                    }
-                });
+                    });
+                }
                 
-                // Update all titles
-                this.pipelineList.querySelectorAll('.plugin-name').forEach((nameEl, index) => {
-                    const p = this.audioManager.pipeline[index];
+                // Update all tooltips - using correct element selection
+                document.querySelectorAll('.pipeline-item').forEach(item => {
+                    const pluginId = parseInt(item.dataset.pluginId);
+                    const p = this.audioManager.pipeline.find(plugin => plugin.id === pluginId);
+                    if (!p) return;
+                    
+                    const nameEl = item.querySelector('.plugin-name');
+                    if (!nameEl) return;
+                    
                     nameEl.title = this.expandedPlugins.has(p)
                         ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
                         : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
@@ -855,6 +925,145 @@ export class PipelineCore {
         // Save state for undo/redo
         if (this.pipelineManager && this.pipelineManager.historyManager) {
             this.pipelineManager.historyManager.saveState();
+        }
+    }
+
+    /**
+     * Move an entire section up
+     * @param {Plugin} sectionPlugin - The section plugin to move
+     */
+    moveSectionUp(sectionPlugin) {
+        const pipeline = this.audioManager.pipeline;
+        const sectionIndex = pipeline.findIndex(p => p.id === sectionPlugin.id);
+        
+        if (sectionIndex === -1 || sectionIndex === 0) {
+            return; // Section not found or already at top
+        }
+        
+        // Find the end of this section
+        let sectionEndIndex = pipeline.length;
+        for (let i = sectionIndex + 1; i < pipeline.length; i++) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                sectionEndIndex = i;
+                break;
+            }
+        }
+        
+        // Find target position (before previous section)
+        let targetIndex = 0;
+        for (let i = sectionIndex - 1; i >= 0; i--) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                targetIndex = i;
+                break;
+            }
+        }
+        
+        // Extract section plugins
+        const sectionPlugins = pipeline.splice(sectionIndex, sectionEndIndex - sectionIndex);
+        
+        // Check if we need to add end section to preserve separation
+        // Only add if there are plugins after insertion point and they're not immediately followed by a Section
+        if (targetIndex < pipeline.length && pipeline[targetIndex].constructor.name !== 'SectionPlugin') {
+            this.addEndSectionPluginAtPosition(sectionPlugins, pipeline.length);
+        }
+        
+        // Insert at target position
+        pipeline.splice(targetIndex, 0, ...sectionPlugins);
+        
+        this.updatePipelineUI();
+        this.updateWorkletPlugins();
+        
+        if (this.pipelineManager && this.pipelineManager.historyManager) {
+            this.pipelineManager.historyManager.saveState();
+        }
+    }
+
+    /**
+     * Move an entire section down
+     * @param {Plugin} sectionPlugin - The section plugin to move
+     */
+    moveSectionDown(sectionPlugin) {
+        const pipeline = this.audioManager.pipeline;
+        const sectionIndex = pipeline.findIndex(p => p.id === sectionPlugin.id);
+        
+        if (sectionIndex === -1) {
+            return; // Section not found
+        }
+        
+        // Find the end of this section
+        let sectionEndIndex = pipeline.length;
+        for (let i = sectionIndex + 1; i < pipeline.length; i++) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                sectionEndIndex = i;
+                break;
+            }
+        }
+        
+        // Find target position (after next section)
+        let targetIndex = pipeline.length;
+        let nextSectionFound = false;
+        for (let i = sectionEndIndex; i < pipeline.length; i++) {
+            if (pipeline[i].constructor.name === 'SectionPlugin') {
+                nextSectionFound = true;
+                // Find end of next section
+                for (let j = i + 1; j < pipeline.length; j++) {
+                    if (pipeline[j].constructor.name === 'SectionPlugin') {
+                        targetIndex = j;
+                        break;
+                    }
+                }
+                if (targetIndex === pipeline.length) {
+                    // Next section extends to end
+                    targetIndex = pipeline.length;
+                }
+                break;
+            }
+        }
+        
+        if (!nextSectionFound) {
+            return; // No section below to move past
+        }
+        
+        // Extract section plugins
+        const sectionPlugins = pipeline.splice(sectionIndex, sectionEndIndex - sectionIndex);
+        
+        // Adjust target index after extraction
+        targetIndex -= sectionPlugins.length;
+        
+        // Insert at target position
+        pipeline.splice(targetIndex, 0, ...sectionPlugins);
+        
+        this.updatePipelineUI();
+        this.updateWorkletPlugins();
+        
+        if (this.pipelineManager && this.pipelineManager.historyManager) {
+            this.pipelineManager.historyManager.saveState();
+        }
+    }
+
+    /**
+     * Add end section plugin if moving to beginning
+     * @param {Array} sectionPlugins - The section plugins being moved
+     * @param {number} pipelineLength - Current pipeline length
+     */
+    addEndSectionPluginAtPosition(sectionPlugins, pipelineLength) {
+        try {
+            const pluginManager = window.pluginManager;
+            if (pluginManager && pluginManager.isPluginAvailable('Section')) {
+                const endSectionPlugin = pluginManager.createPlugin('Section');
+                endSectionPlugin.setParameters({
+                    cm: '' // Empty comment as default
+                });
+                
+                // Add to expanded plugins
+                if (this.pipelineManager) {
+                    this.pipelineManager.expandedPlugins.add(endSectionPlugin);
+                }
+                
+                sectionPlugins.push(endSectionPlugin);
+            }
+        } catch (error) {
+            console.warn('Failed to create end section plugin:', error);
         }
     }
 

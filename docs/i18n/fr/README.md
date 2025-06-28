@@ -76,12 +76,15 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
 2. Glissez-déposez les effets de la liste vers la zone de l'Effect Pipeline
 3. Les effets sont traités dans l'ordre du haut vers le bas
 4. Faites glisser la poignée (⋮) ou cliquez sur les boutons ▲▼ pour réorganiser les effets
+   - Pour les effets Section : Maj+clic sur les boutons ▲▼ pour déplacer des sections entières (d'une Section à la Section suivante, début de pipeline, ou fin de pipeline)
 5. Cliquez sur le nom d'un effet pour développer/réduire ses paramètres
-   - Maj+Clic pour développer/réduire tous les effets sauf la catégorie Analyzer
+   - Maj+Clic sur un effet Section pour développer/réduire tous les effets dans cette section
+   - Maj+Clic sur d'autres effets pour développer/réduire tous les effets sauf la catégorie Analyzer
    - Ctrl+Clic pour développer/réduire tous les effets
 6. Utilisez le bouton ON pour contourner les effets individuels
 7. Cliquez sur le bouton ? pour ouvrir sa documentation détaillée dans un nouvel onglet
-8. Supprimez les effets en utilisant le bouton ×  
+8. Supprimez les effets en utilisant le bouton ×
+   - Pour les effets Section : Maj+clic sur le bouton × pour supprimer des sections entières  
 9. Cliquez sur le bouton de routage pour définir les canaux à traiter et les bus d'entrée et de sortie  
    - [Plus d'informations sur les fonctions de bus](bus-function.md)
 

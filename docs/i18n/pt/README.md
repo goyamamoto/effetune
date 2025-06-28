@@ -78,12 +78,15 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
 2. Arraste os efeitos da lista para a área **Effect Pipeline**
 3. Os efeitos são processados na ordem de cima para baixo
 4. Arraste o manipulador (⋮) ou clique nos botões ▲▼ para reordenar os efeitos
+   - Para efeitos Section: Shift+clique nos botões ▲▼ para mover seções inteiras (de uma Section para a próxima Section, início do pipeline, ou fim do pipeline)
 5. Clique no nome do efeito para expandir/ocultar suas configurações
-   - Shift+clique para expandir/ocultar todos os efeitos, exceto a categoria Analyzer
+   - Shift+clique em um efeito Section para expandir/ocultar todos os efeitos dentro dessa seção
+   - Shift+clique em outros efeitos para expandir/ocultar todos os efeitos, exceto a categoria Analyzer
    - Ctrl+clique para expandir/ocultar todos os efeitos
 6. Use o botão **ON** para desativar (bypass) efeitos individuais
 7. Clique no botão **?** para abrir sua documentação detalhada em uma nova aba
 8. Remova os efeitos utilizando o botão ×
+   - Para efeitos Section: Shift+clique no botão × para remover seções inteiras
 9. Clique no botão de roteamento para definir os canais a serem processados e os barramentos de entrada e saída  
    - [Mais sobre funções de bus](bus-function.md)
 
