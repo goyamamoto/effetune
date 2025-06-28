@@ -700,7 +700,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                     messageQueue.set(plugin.id, { measurements });
                 }
                 // Clear measurements from context after handling to avoid re-sending
-                context.measurements = null;
+                result.measurements = null;
                 // pluginContexts.set(plugin.id, context); // Ensure context update if not done implicitly
             }
         } // End of plugin processing loop

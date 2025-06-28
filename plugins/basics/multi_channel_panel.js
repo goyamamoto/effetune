@@ -24,7 +24,7 @@ class MultiChannelPanelPlugin extends PluginBase {
         this.animationFrameId = null;
         this.isVisible = true;
 
-        // Register processor function
+        // Register processor function that measures audio levels over 1/30 second window
         this.registerProcessor(`
             // This function processes audio data for multiple channels.
             // It applies mute, solo, volume, and delay effects, and calculates peak levels for metering.
@@ -37,6 +37,7 @@ class MultiChannelPanelPlugin extends PluginBase {
             const numChannelsToProcess = Math.min(inputBufferChannelCount, 8); // Limit processing to a maximum of 8 channels.
             const blockSize = parameters.blockSize;       // The number of samples in each block per channel.
             const sampleRate = parameters.sampleRate;     // The sample rate of the audio context.
+            const blocksPerWindow = Math.floor(sampleRate / 30 / blockSize); // Number of blocks in ~1/30 second
 
             // Get parameter arrays holding the current state for each channel.
             const muteStates = parameters.m;     // Array of mute states (boolean).
@@ -53,6 +54,25 @@ class MultiChannelPanelPlugin extends PluginBase {
                 
                 context.delayBuffers = Array.from({ length: numChannelsToProcess }, () => new Float32Array(maxDelaySamples));
                 context.delayWriteIndices = Array.from({ length: numChannelsToProcess }, () => 0); // Stores the current write position for each delay buffer.
+            }
+
+            // Initialize context state for block-based peak tracking over 1/30 second window
+            if (!context.peakTrackingInitialized) {
+                context.peakBuffers = new Array(numChannelsToProcess)
+                    .fill()
+                    .map(() => new Float32Array(blocksPerWindow).fill(0));
+                context.blockIndex = 0;
+                context.blocksPerWindow = blocksPerWindow;
+                context.peakTrackingInitialized = true;
+            }
+            
+            // Reset peak tracking state if channel count or window size changes
+            if (context.peakBuffers.length !== numChannelsToProcess || context.blocksPerWindow !== blocksPerWindow) {
+                context.peakBuffers = new Array(numChannelsToProcess)
+                    .fill()
+                    .map(() => new Float32Array(blocksPerWindow).fill(0));
+                context.blockIndex = 0;
+                context.blocksPerWindow = blocksPerWindow;
             }
 
             // Determine if any channel is currently soloed.
@@ -153,10 +173,24 @@ class MultiChannelPanelPlugin extends PluginBase {
                 // Store the updated write index for the next processing block.
                 context.delayWriteIndices[ch] = writeIndex;
 
-                // Store the raw peak value (pre-gain, pre-mute absolute peak) for this channel.
+                // Store block peak in circular buffer for 1/30 second window tracking
+                context.peakBuffers[ch][context.blockIndex] = channelBlockPeak;
+                
+                // Find maximum peak across the stored blocks (~1/30 second window)
+                let windowPeak = 0.0;
+                for (let i = 0; i < blocksPerWindow; i++) {
+                    if (context.peakBuffers[ch][i] > windowPeak) {
+                        windowPeak = context.peakBuffers[ch][i];
+                    }
+                }
+                
+                // Store the window peak value (pre-gain, pre-mute absolute peak) for this channel.
                 // The main thread will use this along with the 'muted' status for meter display.
-                currentBlockPeakValues[ch] = channelBlockPeak;
+                currentBlockPeakValues[ch] = windowPeak;
             }
+            
+            // Advance block index for next processing call
+            context.blockIndex = (context.blockIndex + 1) % blocksPerWindow;
 
             // Prepare measurement data to be sent to the main thread for UI updates.
             const channelMeasurements = new Array(numChannelsToProcess);

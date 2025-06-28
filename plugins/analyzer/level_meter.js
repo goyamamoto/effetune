@@ -14,67 +14,79 @@ class LevelMeterPlugin extends PluginBase {
         this.METER_UPDATE_INTERVAL = 16; // Match with plugin-base.js
         this.observer = null;
 
-        // Register processor function that measures audio levels
+        // Register processor function that measures audio levels over 1/60 second window
         this.registerProcessor(`
-            // Input data reference (assuming data is Float32Array)
-            // Parameters assumed available: parameters.channelCount, parameters.blockSize
-            // Time assumed available: time
-        
-            // 1. Create result buffer and copy data (as per original requirement)
-            const result = data; // Using direct reference instead of copying
-        
-            // 2. Calculate peaks efficiently
-            const numChannels = parameters.channelCount; // Cache parameter lookup
-            const blockSize = parameters.blockSize;     // Cache parameter lookup
-            // Allocate peak storage - Float32Array is appropriate and efficient
+            const numChannels = parameters.channelCount;
+            const blockSize = parameters.blockSize;
+            const sampleRate = parameters.sampleRate;
+            const blocksPerWindow = Math.floor(sampleRate / 30 / blockSize); // Number of blocks in ~1/30 second
+
+            // Initialize context state for block-based peak tracking
+            if (!context.initialized) {
+                context.peakBuffers = new Array(numChannels)
+                    .fill()
+                    .map(() => new Float32Array(blocksPerWindow).fill(0));
+                context.blockIndex = 0;
+                context.blocksPerWindow = blocksPerWindow;
+                context.initialized = true;
+            }
+            
+            // Reset state if channel count or window size changes
+            if (context.peakBuffers.length !== numChannels || context.blocksPerWindow !== blocksPerWindow) {
+                context.peakBuffers = new Array(numChannels)
+                    .fill()
+                    .map(() => new Float32Array(blocksPerWindow).fill(0));
+                context.blockIndex = 0;
+                context.blocksPerWindow = blocksPerWindow;
+            }
+            
+            // Calculate current block peaks and store in circular buffers
             const peaks = new Float32Array(numChannels);
-        
-            // Iterate through channels
+            
             for (let ch = 0; ch < numChannels; ch++) {
                 const offset = ch * blockSize;
-                // Calculate the end index *once* per channel loop iteration
                 const end = offset + blockSize;
-                // Initialize peak for the current channel
-                let peak = 0.0;
-        
-                // Iterate through samples for the current channel
-                // Using direct indexing from offset to end avoids addition inside the tight loop
+                let blockPeak = 0.0;
+                
+                // Find peak in current block
                 for (let i = offset; i < end; i++) {
-                    // Cache the sample value - avoids repeated array access if used multiple times (here only once, but good practice)
                     const sample = data[i];
-                    // Calculate absolute value.
                     const absSample = sample < 0 ? -sample : sample;
-                    // Update peak if current absolute sample is larger.
-                    // Math.max is also typically well-optimized. Direct comparison might be
-                    // negligibly faster/slower depending on the engine, but Math.max is clear.
-                    if (absSample > peak) {
-                         peak = absSample;
+                    if (absSample > blockPeak) {
+                        blockPeak = absSample;
                     }
-                    // Alternative using Math.max (likely similar performance):
-                    // peak = Math.max(peak, absSample);
                 }
-                // Store the calculated peak for the channel
-                peaks[ch] = peak;
+                
+                // Store block peak in circular buffer
+                context.peakBuffers[ch][context.blockIndex] = blockPeak;
+                
+                // Find maximum peak across the stored blocks (~1/30 second window)
+                let windowPeak = 0.0;
+                for (let i = 0; i < blocksPerWindow; i++) {
+                    if (context.peakBuffers[ch][i] > windowPeak) {
+                        windowPeak = context.peakBuffers[ch][i];
+                    }
+                }
+                
+                peaks[ch] = windowPeak;
             }
-        
-            // 3. Create measurements object efficiently
-            //    Avoid Array.from() and .map() which create intermediate arrays and objects unnecessarily.
-            //    Pre-allocate the standard JavaScript array for the desired output structure.
+            
+            // Advance block index for next processing call
+            context.blockIndex = (context.blockIndex + 1) % blocksPerWindow;
+            
+            // Create measurements object
             const channelMeasurements = new Array(numChannels);
-            // Populate the array directly, creating only the necessary objects.
             for (let ch = 0; ch < numChannels; ch++) {
-                // Directly create the object structure required by the original code
                 channelMeasurements[ch] = { peak: peaks[ch] };
             }
-        
-            // Assign measurements to the result buffer (as per original code)
-            result.measurements = {
+            
+            // Attach measurements to the data buffer for the main thread
+            data.measurements = {
                 channels: channelMeasurements,
-                time: time // Assuming 'time' is available in the scope from the process method arguments
+                time: time
             };
-        
-            // 4. Return the result buffer with measurements
-            return result;
+            
+            return data;
         `);
     }
 
