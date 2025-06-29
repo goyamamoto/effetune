@@ -413,7 +413,7 @@ export class PipelineItemBuilder {
                 // Use direct path without extension, let getLocalizedDocPath handle it
                 const path = `/plugins/${category.toLowerCase().replace(/-/g, '')}#${anchor}`;
                 // Get the full URL from getLocalizedDocPath (which will convert .md to .html)
-                const localizedPath = this.pipelineManager.getLocalizedDocPath(path);
+                const localizedPath = window.uiManager ? window.uiManager.getLocalizedDocPath(path) : path;
                 
                 
                 // For both Electron and web, open the URL in external browser

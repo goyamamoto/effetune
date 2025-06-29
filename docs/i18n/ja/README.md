@@ -253,6 +253,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Dynamics  | Gate | ノイズリダクションのためのしきい値、レシオ、ニーコントロール付きノイズゲート | [詳細](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | FMラジオ風のサウンドシェイピングを備えたプロフェッショナルな5バンドダイナミクスプロセッサ | [詳細](plugins/dynamics.md#multiband-compressor) |
 | Dynamics  | Multiband Transient | 周波数別のアタックとサステインを独立制御する高度な3バンドトランジェントシェイパー | [詳細](plugins/dynamics.md#multiband-transient) |
+| Dynamics  | Power Amp Sag | 高負荷時のパワーアンプの電圧降下をシミュレート | [詳細](plugins/dynamics.md#power-amp-sag) |
 | Dynamics  | Transient Shaper | 信号のアタックとサステイン部分を独立してコントロール | [詳細](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15バンドグラフィックイコライザー | [詳細](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | 15の完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#15band-peq) |

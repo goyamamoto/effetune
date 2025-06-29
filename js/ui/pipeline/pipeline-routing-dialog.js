@@ -219,30 +219,70 @@ export class PipelineRoutingDialog {
      * @param {HTMLElement} button - The button element
      */
     positionDialog(dialog, button) {
-        // Calculate current zoom factor - This is what was missing in previous solutions
-        // Create a temporary measuring element to accurately determine zoom level
-        const zoomMeasureEl = document.createElement('div');
-        zoomMeasureEl.style.width = '100px';
-        zoomMeasureEl.style.height = '100px';
-        zoomMeasureEl.style.position = 'absolute';
-        zoomMeasureEl.style.opacity = '0';
-        zoomMeasureEl.style.pointerEvents = 'none';
-        document.body.appendChild(zoomMeasureEl);
+        // Use established Electron detection pattern from the codebase
+        const isElectron = window.electronIntegration && window.electronIntegration.isElectronEnvironment();
         
-        // Get the actual rendered size which changes with zoom
-        const actualSize = zoomMeasureEl.getBoundingClientRect();
-        // Calculate zoom factor (100px is expected size at 100% zoom)
-        const zoomFactor = 100 / actualSize.width;
-        // Clean up the measuring element
-        document.body.removeChild(zoomMeasureEl);
-        
-        // Position the dialog near the button, accounting for zoom
         const buttonRect = button.getBoundingClientRect();
         dialog.style.position = 'absolute';
         
-        // Apply zoom correction to make position consistent at any zoom level
-        const correctedTop = buttonRect.bottom * zoomFactor + window.scrollY;
-        const correctedLeft = buttonRect.left * zoomFactor + window.scrollX;
+        
+        let correctedTop, correctedLeft;
+        
+        if (isElectron) {
+            // Electron environment: Root cause analysis and mathematical correction
+            
+            // Get current CSS zoom level from document.body.style.zoom
+            const cssZoom = parseFloat(document.body.style.zoom || '1');
+            
+            // Get window scroll values (these are affected by CSS zoom)
+            const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+            
+            
+            // ROOT CAUSE: In Electron with CSS zoom:
+            // 1. getBoundingClientRect() returns coordinates in "zoomed viewport pixels"
+            // 2. window.scrollX/Y return scroll positions in "zoomed viewport pixels"  
+            // 3. But absolute positioning (top/left CSS) expects "CSS pixels" (unzoomed)
+            //
+            // MATHEMATICAL SOLUTION:
+            // To convert from "zoomed viewport pixels" to "CSS pixels", divide by zoom
+            
+            // Convert button position from zoomed viewport to CSS pixels
+            const buttonBottomCssPixels = buttonRect.bottom / cssZoom;
+            const buttonLeftCssPixels = buttonRect.left / cssZoom;
+            
+            // Convert scroll position from zoomed viewport to CSS pixels
+            const scrollXCssPixels = scrollX / cssZoom;
+            const scrollYCssPixels = scrollY / cssZoom;
+            
+            // Calculate final position in CSS pixels (for absolute positioning)
+            correctedTop = buttonBottomCssPixels + scrollYCssPixels;
+            correctedLeft = buttonLeftCssPixels + scrollXCssPixels;
+            
+            
+        } else {
+            // Web browser environment: Use standard zoom detection
+            
+            // Create a temporary measuring element to accurately determine zoom level
+            const zoomMeasureEl = document.createElement('div');
+            zoomMeasureEl.style.width = '100px';
+            zoomMeasureEl.style.height = '100px';
+            zoomMeasureEl.style.position = 'absolute';
+            zoomMeasureEl.style.opacity = '0';
+            zoomMeasureEl.style.pointerEvents = 'none';
+            document.body.appendChild(zoomMeasureEl);
+            
+            // Get the actual rendered size which changes with zoom
+            const actualSize = zoomMeasureEl.getBoundingClientRect();
+            // Calculate zoom factor (100px is expected size at 100% zoom)
+            const zoomFactor = 100 / actualSize.width;
+            // Clean up the measuring element
+            document.body.removeChild(zoomMeasureEl);
+            
+            // Apply zoom correction to make position consistent at any zoom level
+            correctedTop = buttonRect.bottom * zoomFactor + window.scrollY;
+            correctedLeft = buttonRect.left * zoomFactor + window.scrollX;
+        }
         
         dialog.style.top = `${correctedTop}px`;
         dialog.style.left = `${correctedLeft}px`;

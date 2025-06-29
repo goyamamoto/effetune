@@ -1,5 +1,11 @@
 # Version History
 
+### Version 1.58 (Jun 29, 2025)
+- Added Power Amp Sag effect
+- Support for adding user presets by drag and drop
+- Added some system presets
+- Various minor improvements
+
 ### Version 1.57 (Jun 28, 2025)
 - Added Exciter, Hum Generator and Vinyl Artifacts effects
 - Various minor improvements
