@@ -232,6 +232,7 @@ No audiophile myths, Just pure science.
 | Dynamics  | Gate | Гейт шумоподавления с регулировкой порога, коэффициента и «колена» для уменьшения шума | [Подробнее](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Профессиональный 5-полосный динамический процессор с FM-радио стилизацией звука | [Подробнее](plugins/dynamics.md#multiband-compressor) |
 | Dynamics  | Multiband Transient | Продвинутый 3-полосный формирователь переходных процессов для частотно-специфичного контроля атаки и сустейна | [Подробнее](plugins/dynamics.md#multiband-transient) |
+| Dynamics  | Power Amp Sag | Имитирует провал напряжения усилителя мощности при высоких нагрузках | [Подробнее](plugins/dynamics.md#power-amp-sag) |
 | Dynamics  | Transient Shaper | Контролирует переходные и затухающие части сигнала | [Подробнее](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15-полосный графический эквалайзер | [Подробнее](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Профессиональный параметрический эквалайзер с 15 полностью настраиваемыми полосами | [Подробнее](plugins/eq.md#15band-peq) |

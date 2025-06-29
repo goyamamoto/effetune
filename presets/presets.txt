@@ -16,6 +16,7 @@ Others: Other presets
 # Presets are sorted by category, then alphabetically by path
 [presets]
 amp_sim/tube_amp: Tube Amplifier | Amp Sim. | Distortion per rated output of a tube amplifier and the effect of a low damping factor
+lofi/authentic_vinyl: Authentic Vinyl | Lo-Fi | Reproduces the sound of vinyl, including various noises
 lofi/dsd_noise: DSD Noise | Lo-Fi | Adds noise above 20kHz observed in SACD (DSD64)
 lofi/needle_drop: Needle Drop | Lo-Fi | Reproduces the sound of a vinyl record played without an amplifier or speakers
 lofi/old_r2r_dac: Old R2R DAC | Lo-Fi | Bit error and aliasing noise like old NOS R2R DACs

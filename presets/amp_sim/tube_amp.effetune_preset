@@ -8,6 +8,26 @@
       }
     },
     {
+      "name": "Saturation",
+      "enabled": true,
+      "parameters": {
+        "dr": 1.9,
+        "bs": -0.1,
+        "mx": 100,
+        "gn": 4
+      }
+    },
+    {
+      "name": "Power Amp Sag",
+      "enabled": true,
+      "parameters": {
+        "ss": 3,
+        "ps": 40,
+        "rs": 50,
+        "mb": true
+      }
+    },
+    {
       "name": "5Band PEQ",
       "enabled": true,
       "parameters": {
@@ -36,24 +56,6 @@
         "q4": 1,
         "t4": "pk",
         "e4": true
-      }
-    },
-    {
-      "name": "Saturation",
-      "enabled": true,
-      "parameters": {
-        "dr": 1.9,
-        "bs": -0.1,
-        "mx": 100,
-        "gn": 4
-      }
-    },
-    {
-      "name": "Hard Clipping",
-      "enabled": true,
-      "parameters": {
-        "th": 0,
-        "md": "both"
       }
     }
   ]

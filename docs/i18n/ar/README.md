@@ -240,6 +240,7 @@
 | Dynamics  | Gate | بوابة ضوضاء مع التحكم في العتبة والنسبة والمنحدر لتقليل الضوضاء | [تفاصيل](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | معالج ديناميكيات احترافي خماسي النطاق بتشكيل صوت يشبه راديو FM | [تفاصيل](plugins/dynamics.md#multiband-compressor) |
 | Dynamics  | Multiband Transient | مشكل عابر متقدم ثلاثي النطاق للتحكم المحدد بالتردد في الهجوم والاستدامة | [تفاصيل](plugins/dynamics.md#multiband-transient) |
+| Dynamics  | Power Amp Sag | يحاكي انخفاض الجهد في مكبر الصوت تحت ظروف الحمل العالي | [تفاصيل](plugins/dynamics.md#power-amp-sag) |
 | Dynamics  | Transient Shaper | التحكم في أجزاء العابر والاستدامة من الإشارة | [تفاصيل](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | معادل رسومي 15-نطاق | [تفاصيل](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | معادل بارامتري احترافي مع 15 نطاق قابل للتكوين بالكامل | [تفاصيل](plugins/eq.md#15band-peq) |

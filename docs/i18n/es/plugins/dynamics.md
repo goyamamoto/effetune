@@ -10,6 +10,7 @@ Una colección de plugins que ayudan a equilibrar las partes fuertes y suaves de
 - [Gate](#gate) - Reduce el ruido de fondo no deseado atenuando señales por debajo de un umbral
 - [Multiband Compressor](#multiband-compressor) - Procesador de dinámica profesional de 5 bandas con modelado de sonido estilo radio FM
 - [Multiband Transient](#multiband-transient) - Procesador avanzado de modelado de transientes de 3 bandas para control específico de ataques y sostenimientos por frecuencia
+- [Power Amp Sag](#power-amp-sag) - Simula la caída de voltaje del amplificador de potencia bajo condiciones de alta carga
 - [Transient Shaper](#transient-shaper) - Controla las partes de ataque y sostenimiento de la señal
 
 ## Auto Leveler
@@ -620,6 +621,84 @@ Cada banda de frecuencia tiene controles independientes de modelado de transient
 - Las bandas de alta frecuencia generalmente se benefician de tiempos de ataque más rápidos
 - Las bandas de baja frecuencia a menudo necesitan tiempos de release más largos para un sonido natural
 - Combina con otros procesadores de dinámica para control integral
+
+## Power Amp Sag
+
+Simula el comportamiento de caída de voltaje de amplificadores de potencia bajo condiciones de alta carga. Este efecto recrea la compresión natural y calidez que ocurren cuando la fuente de alimentación de un amplificador es estresada por pasajes musicales demandantes, agregando punch y carácter musical a tu audio.
+
+### Guía de Mejora de Escucha
+- Sistemas de Audio Vintage:
+  - Recrea el carácter clásico del amplificador con compresión natural
+  - Agrega calidez y riqueza de equipos hi-fi vintage
+  - Perfecto para lograr sonido analógico auténtico
+- Música Rock/Pop:
+  - Mejora el punch y presencia durante pasajes poderosos
+  - Agrega compresión natural sin aspereza
+  - Crea sensación satisfatoria de "drive" del amplificador
+- Música Clásica:
+  - Proporciona dinámica natural a los crescendos orquestales
+  - Agrega calidez del amplificador a las secciones de cuerdas y metales
+  - Mejora el realismo de interpretaciones amplificadas
+- Música Jazz:
+  - Recrea el comportamiento clásico de compresión del amplificador
+  - Agrega calidez y carácter a los instrumentos solistas
+  - Mantiene el flujo dinámico natural
+
+### Parámetros
+
+- **Sensitivity** (-18.0dB a +18.0dB)
+  - Controla qué tan sensible es el efecto de sag a los niveles de entrada
+  - Valores más altos: Más sag en volúmenes bajos
+  - Valores más bajos: Solo afecta señales fuertes
+  - Comienza con 0dB para respuesta natural
+
+- **Stability** (0% a 100%)
+  - Simula el tamaño de la capacitancia de la fuente de alimentación
+  - Valores más bajos: Capacitores más pequeños (sag más dramático)
+  - Valores más altos: Capacitores más grandes (voltaje más estable)
+  - Representa físicamente la capacidad de almacenamiento de energía de la fuente
+  - 50% proporciona carácter equilibrado
+
+- **Recovery Speed** (0% a 100%)
+  - Controla la capacidad de recarga de la fuente de alimentación
+  - Valores más bajos: Tasa de recarga más lenta (compresión sostenida)
+  - Valores más altos: Tasa de recarga más rápida (recuperación más rápida)
+  - Representa físicamente la capacidad de entrega de corriente del circuito de carga
+  - 40% proporciona comportamiento natural
+
+- **Monoblock** (Casilla de verificación)
+  - Habilita procesamiento independiente por canal
+  - Sin marcar: Fuente de alimentación compartida (amplificador estéreo)
+  - Marcado: Fuentes independientes (configuración monoblock)
+  - Usar para mejor separación de canales e imagen
+
+### Visualización
+
+- Gráficos duales en tiempo real mostrando envolvente de entrada y reducción de ganancia
+- Envolvente de entrada (verde): Energía de señal que impulsa el efecto
+- Reducción de ganancia (blanco): Cantidad de caída de voltaje aplicada
+- Visualización basada en tiempo con marcadores de referencia de 1 segundo
+- Valores actuales mostrados en tiempo real
+
+### Configuraciones Recomendadas
+
+#### Carácter Vintage
+- Sensitivity: +3.0dB
+- Stability: 30% (capacitores más pequeños)
+- Recovery Speed: 25% (recarga más lenta)
+- Monoblock: Sin marcar
+
+#### Mejora Hi-Fi Moderna
+- Sensitivity: 0.0dB
+- Stability: 70% (capacitores más grandes)
+- Recovery Speed: 60% (recarga más rápida)
+- Monoblock: Marcado
+
+#### Rock/Pop Dinámico
+- Sensitivity: +6.0dB
+- Stability: 40% (capacitores moderados)
+- Recovery Speed: 50% (recarga moderada)
+- Monoblock: Sin marcar
 
 ## Transient Shaper
 
