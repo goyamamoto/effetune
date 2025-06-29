@@ -197,14 +197,14 @@ class ExciterPlugin extends PluginBase {
         // Draw grid
         ctx.strokeStyle = "#444";
         ctx.lineWidth = 1;
-        const freqs = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+        const freqs = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
         freqs.forEach(freq => {
-            const x = width * (Math.log10(freq) - Math.log10(1)) / (Math.log10(40000) - Math.log10(1));
+            const x = width * (Math.log10(freq) - Math.log10(20)) / (Math.log10(20000) - Math.log10(20));
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, height);
             ctx.stroke();
-            if (freq >= 1 && freq <= 40000) {
+            if (freq >= 50 && freq <= 10000) {
                 ctx.fillStyle = "#666";
                 ctx.font = "20px Arial";
                 ctx.textAlign = "center";
@@ -248,8 +248,8 @@ class ExciterPlugin extends PluginBase {
         ctx.strokeStyle = "#00ff00";
         ctx.lineWidth = 2;
         for (let i = 0; i < width; i++) {
-            const freq = Math.pow(10, Math.log10(1) + (i / width) * (Math.log10(40000) - Math.log10(1)));
-            
+            const freq = Math.pow(10, Math.log10(20) + (i / width) * (Math.log10(20000) - Math.log10(20)));
+
             // Calculate high-pass filter response
             let hpfMag = 1;
             if (this.hs !== 0) {

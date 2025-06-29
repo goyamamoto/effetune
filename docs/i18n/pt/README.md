@@ -248,6 +248,7 @@ Se o problema continuar, reporte em [GitHub Issues](https://github.com/Frieve-A/
 | Dynamics  | Gate | Portão de ruído com controle de limiar, razão e knee para redução de ruído | [Detalhes](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | Processador de dinâmica profissional de 5 bandas com modelagem sonora estilo rádio FM | [Detalhes](plugins/dynamics.md#multiband-compressor) |
 | Dynamics  | Multiband Transient | Modelador de transientes avançado de 3 bandas para controle específico de ataque e sustain por frequência | [Detalhes](plugins/dynamics.md#multiband-transient) |
+| Dynamics  | Power Amp Sag | Simula a queda de tensão do amplificador de potência sob condições de alta carga | [Detalhes](plugins/dynamics.md#power-amp-sag) |
 | Dynamics  | Transient Shaper | Controla as partes transitórias e de sustain do sinal | [Detalhes](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | Equalizador gráfico de 15 bandas | [Detalhes](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | Equalizador paramétrico profissional com 15 bandas totalmente configuráveis | [Detalhes](plugins/eq.md#15band-peq) |

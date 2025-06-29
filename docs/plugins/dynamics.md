@@ -10,6 +10,7 @@ A collection of plugins that help balance the loud and quiet parts of your music
 - [Gate](#gate) - Reduces unwanted background noise by attenuating signals below a threshold
 - [Multiband Compressor](#multiband-compressor) - Professional 5-band dynamics processor with FM radio-style sound shaping
 - [Multiband Transient](#multiband-transient) - Advanced 3-band transient shaper for frequency-specific attack and sustain control
+- [Power Amp Sag](#power-amp-sag) - Simulates power amplifier voltage sag under high load conditions
 - [Transient Shaper](#transient-shaper) - Controls transient and sustain portions of the signal
 
 ## Auto Leveler
@@ -620,6 +621,84 @@ Each frequency band has independent transient shaping controls:
 - Higher frequency bands typically benefit from faster attack times
 - Lower frequency bands often need longer release times for natural sound
 - Combine with other dynamics processors for comprehensive control
+
+## Power Amp Sag
+
+Simulates the voltage sag behavior of power amplifiers under high load conditions. This effect recreates the natural compression and warmth that occurs when an amplifier's power supply is stressed by demanding musical passages, adding punch and musical character to your audio.
+
+### Listening Enhancement Guide
+- Vintage Audio Systems:
+  - Recreates classic amplifier character with natural compression
+  - Adds warmth and richness of vintage hi-fi equipment
+  - Perfect for achieving authentic analog sound
+- Rock/Pop Music:
+  - Enhances punch and presence during powerful passages
+  - Adds natural compression without harshness
+  - Creates satisfying amplifier "drive" feeling
+- Classical Music:
+  - Provides natural dynamics to orchestral crescendos
+  - Adds amplifier warmth to string and brass sections
+  - Enhances realism of amplified performances
+- Jazz Music:
+  - Recreates classic amplifier compression behavior
+  - Adds warmth and character to solo instruments
+  - Maintains natural dynamic flow
+
+### Parameters
+
+- **Sensitivity** (-18.0dB to +18.0dB)
+  - Controls how sensitive the sag effect is to input levels
+  - Higher values: More sag at lower volumes
+  - Lower values: Only affects loud signals
+  - Start with 0dB for natural response
+
+- **Stability** (0% to 100%)
+  - Simulates power supply capacitance size
+  - Lower values: Smaller capacitors (more dramatic sag)
+  - Higher values: Larger capacitors (more stable voltage)
+  - Physically represents the energy storage capacity of the power supply
+  - 50% provides balanced character
+
+- **Recovery Speed** (0% to 100%)
+  - Controls the power supply's recharge capability
+  - Lower values: Slower recharge rate (sustained compression)
+  - Higher values: Faster recharge rate (quicker recovery)
+  - Physically represents the charging circuit's current delivery capability
+  - 40% provides natural behavior
+
+- **Monoblock** (Checkbox)
+  - Enables independent processing per channel
+  - Unchecked: Shared power supply (stereo amplifier)
+  - Checked: Independent supplies (monoblock configuration)
+  - Use for better channel separation and imaging
+
+### Visual Display
+
+- Dual real-time graphs showing input envelope and gain reduction
+- Input envelope (green): Signal energy driving the effect
+- Gain reduction (white): Amount of voltage sag applied
+- Time-based display with 1-second reference markers
+- Current values displayed in real-time
+
+### Recommended Settings
+
+#### Vintage Character
+- Sensitivity: +3.0dB
+- Stability: 30% (smaller capacitors)
+- Recovery Speed: 25% (slower recharge)
+- Monoblock: Unchecked
+
+#### Modern Hi-Fi Enhancement
+- Sensitivity: 0.0dB
+- Stability: 70% (larger capacitors)
+- Recovery Speed: 60% (faster recharge)
+- Monoblock: Checked
+
+#### Dynamic Rock/Pop
+- Sensitivity: +6.0dB
+- Stability: 40% (moderate capacitors)
+- Recovery Speed: 50% (moderate recharge)
+- Monoblock: Unchecked
 
 ## Transient Shaper
 

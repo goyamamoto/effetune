@@ -10,6 +10,7 @@ Une collection de plugins qui aident à équilibrer les parties fortes et douces
 - [Gate](#gate) - Réduit les bruits de fond indésirables en atténuant les signaux sous un seuil
 - [Multiband Compressor](#multiband-compressor) - Processeur de dynamique professionnel à 5 bandes avec mise en forme du son style radio FM
 - [Multiband Transient](#multiband-transient) - Processeur avancé de mise en forme des transitoires 3 bandes pour un contrôle spécifique des attaques et sustains par fréquence
+- [Power Amp Sag](#power-amp-sag) - Simule l'affaissement de tension d'amplificateur de puissance sous conditions de charge élevée
 - [Transient Shaper](#transient-shaper) - Contrôle les parties d'attaque et de sustain du signal
 
 ## Auto Leveler
@@ -620,6 +621,84 @@ Chaque bande de fréquence a des contrôles indépendants de mise en forme des t
 - Les bandes de hautes fréquences bénéficient généralement de temps d'attaque plus rapides
 - Les bandes de basses fréquences nécessitent souvent des temps de release plus longs pour un son naturel
 - Combiner avec d'autres processeurs de dynamique pour un contrôle compréhensif
+
+## Power Amp Sag
+
+Simule le comportement d'affaissement de tension des amplificateurs de puissance sous des conditions de charge élevée. Cet effet recrée la compression naturelle et la chaleur qui se produisent lorsque l'alimentation d'un amplificateur est sollicitée par des passages musicaux exigeants, ajoutant du punch et du caractère musical à votre audio.
+
+### Guide d'Amélioration de l'Écoute
+- Systèmes Audio Vintage :
+  - Recrée le caractère d'amplificateur classique avec compression naturelle
+  - Ajoute la chaleur et la richesse des équipements hi-fi vintage
+  - Parfait pour obtenir un son analogique authentique
+- Musique Rock/Pop :
+  - Améliore le punch et la présence pendant les passages puissants
+  - Ajoute une compression naturelle sans dureté
+  - Crée une sensation satisfaisante de "drive" d'amplificateur
+- Musique Classique :
+  - Fournit une dynamique naturelle aux crescendos orchestraux
+  - Ajoute la chaleur d'amplificateur aux sections de cordes et de cuivres
+  - Améliore le réalisme des performances amplifiées
+- Musique Jazz :
+  - Recrée le comportement de compression d'amplificateur classique
+  - Ajoute chaleur et caractère aux instruments solo
+  - Maintient le flux dynamique naturel
+
+### Paramètres
+
+- **Sensitivity** (-18.0dB à +18.0dB)
+  - Contrôle la sensibilité de l'effet de sag aux niveaux d'entrée
+  - Valeurs plus élevées : Plus de sag à volumes faibles
+  - Valeurs plus basses : N'affecte que les signaux forts
+  - Commencer avec 0dB pour une réponse naturelle
+
+- **Stability** (0% à 100%)
+  - Simule la taille de capacité de l'alimentation
+  - Valeurs plus basses : Condensateurs plus petits (sag plus dramatique)
+  - Valeurs plus élevées : Condensateurs plus gros (tension plus stable)
+  - Représente physiquement la capacité de stockage d'énergie de l'alimentation
+  - 50% fournit un caractère équilibré
+
+- **Recovery Speed** (0% à 100%)
+  - Contrôle la capacité de recharge de l'alimentation
+  - Valeurs plus basses : Taux de recharge plus lent (compression soutenue)
+  - Valeurs plus élevées : Taux de recharge plus rapide (récupération plus rapide)
+  - Représente physiquement la capacité de livraison de courant du circuit de charge
+  - 40% fournit un comportement naturel
+
+- **Monoblock** (Case à cocher)
+  - Active le traitement indépendant par canal
+  - Décoché : Alimentation partagée (amplificateur stéréo)
+  - Coché : Alimentations indépendantes (configuration monoblock)
+  - Utiliser pour une meilleure séparation des canaux et imagerie
+
+### Affichage Visuel
+
+- Graphiques en temps réel doubles montrant l'enveloppe d'entrée et la réduction de gain
+- Enveloppe d'entrée (vert) : Énergie du signal pilotant l'effet
+- Réduction de gain (blanc) : Quantité de sag de tension appliqué
+- Affichage temporel avec marqueurs de référence d'une seconde
+- Valeurs actuelles affichées en temps réel
+
+### Réglages Recommandés
+
+#### Caractère Vintage
+- Sensitivity: +3.0dB
+- Stability: 30% (condensateurs plus petits)
+- Recovery Speed: 25% (recharge plus lente)
+- Monoblock: Décoché
+
+#### Amélioration Hi-Fi Moderne
+- Sensitivity: 0.0dB
+- Stability: 70% (condensateurs plus gros)
+- Recovery Speed: 60% (recharge plus rapide)
+- Monoblock: Coché
+
+#### Rock/Pop Dynamique
+- Sensitivity: +6.0dB
+- Stability: 40% (condensateurs modérés)
+- Recovery Speed: 50% (recharge modérée)
+- Monoblock: Décoché
 
 ## Transient Shaper
 

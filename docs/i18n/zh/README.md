@@ -232,6 +232,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Dynamics  | Gate | 带阈值、比率和斜率控制的噪声门，用于降噪 | [详情](plugins/dynamics.md#gate) |
 | Dynamics  | Multiband Compressor | 专业的5频段动态处理器，具有FM广播风格的音色塑造 | [详情](plugins/dynamics.md#multiband-compressor) |
 | Dynamics  | Multiband Transient | 高级3频段瞬态塑形器，提供频率特定的攻击和延音控制 | [详情](plugins/dynamics.md#multiband-transient) |
+| Dynamics  | Power Amp Sag | 模拟功率放大器在高负载条件下的电压跌落 | [详情](plugins/dynamics.md#power-amp-sag) |
 | Dynamics  | Transient Shaper | 控制信号的瞬态和延音部分 | [详情](plugins/dynamics.md#transient-shaper) |
 | EQ        | 15Band GEQ | 15频段图示均衡器 | [详情](plugins/eq.md#15band-geq) |
 | EQ        | 15Band PEQ | 具有15个完全可配置频段的专业参数均衡器 | [详情](plugins/eq.md#15band-peq) |

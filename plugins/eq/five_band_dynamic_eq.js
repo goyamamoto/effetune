@@ -799,10 +799,11 @@ class FiveBandDynamicEQ extends PluginBase {
         
         // Ratio parameter - logarithmic to linear conversion (left column)
         leftColumn.appendChild(createParameterRow(
-            'Ratio', -100, 200, 1, this._ratioToSlider(this.bs[bandIndex].r),
-            (val) => this.setBandRatio(bandIndex, this._sliderToRatio(val)),
-            null, null,
-            val => this._sliderToRatio(val).toPrecision(3) // Display linear ratio value
+            'Ratio', -100, 200, 1, this.bs[bandIndex].r,
+            (val) => this.setBandRatio(bandIndex, val),
+            (sliderVal) => this._sliderToRatio(sliderVal),
+            (ratio) => this._ratioToSlider(ratio),
+            (val) => val.toPrecision(3) // Display linear ratio value
         ));
         
         // Knee width parameter (right column)
@@ -1089,11 +1090,11 @@ class FiveBandDynamicEQ extends PluginBase {
                     band.th.toFixed(1)
                 );
                 
-                // Ratio parameter - one decimal place
+                // Ratio parameter - linear ratio value with precision formatting
                 updateNamedControl(
                     'Ratio', 
-                    this._ratioToSlider(band.r), 
-                    this._sliderToRatio(this._ratioToSlider(band.r)).toFixed(1)
+                    band.r, 
+                    band.r.toPrecision(3)
                 );
                 
                 // Attack parameter - one decimal place
