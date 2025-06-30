@@ -82,6 +82,7 @@
   "ui.title.moveUp": "上移效果",
   "ui.title.moveDown": "下移效果",
   "ui.title.pluginDocs": "打开效果文档",
+  "ui.title.askAI": "询问AI关于此效果器",
   "ui.title.deleteEffect": "删除效果",
   "ui.title.close": "关闭",
   "ui.title.expand": "点击展开",
@@ -103,6 +104,14 @@
   "ui.busRouting": "总线路由",
   "ui.inputBus": "输入总线:",
   "ui.outputBus": "输出总线:",
+  "ui.channel": "通道:",
+  
+  // AI对话框
+  "ui.askAITitle": "询问AI关于此效果器",
+  "ui.askAICaption": "关于{effectName}的问题:",
+  "ui.askAIPlaceholder": "输入您关于此效果的问题...",
+  "ui.askChatGPT": "询问ChatGPT",
+  "ui.askPerplexity": "询问Perplexity",
 
   // 主菜单
   "menu.file": "文件",

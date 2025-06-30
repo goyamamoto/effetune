@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Monter l'effet",
   "ui.title.moveDown": "Descendre l'effet",
   "ui.title.pluginDocs": "Ouvrir la documentation de l'effet",
+  "ui.title.askAI": "Demander à l'IA à propos de cet effecteur",
   "ui.title.deleteEffect": "Supprimer l'effet",
   "ui.title.close": "Fermer",
   "ui.title.expand": "Cliquer pour développer",
@@ -103,6 +104,14 @@
   "ui.busRouting": "Routage de Bus",
   "ui.inputBus": "Bus d'entrée :",
   "ui.outputBus": "Bus de sortie :",
+  "ui.channel": "Canal :",
+  
+  // Dialogue IA
+  "ui.askAITitle": "Demander à l'IA à propos de cet effecteur",
+  "ui.askAICaption": "Question sur {effectName} :",
+  "ui.askAIPlaceholder": "Tapez votre question sur cet effet...",
+  "ui.askChatGPT": "Demander à ChatGPT",
+  "ui.askPerplexity": "Demander à Perplexity",
 
   // Menu principal
   "menu.file": "Fichier",

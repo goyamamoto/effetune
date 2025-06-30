@@ -82,6 +82,7 @@
   "ui.title.moveUp": "تحريك المؤثر لأعلى",
   "ui.title.moveDown": "تحريك المؤثر لأسفل",
   "ui.title.pluginDocs": "فتح وثائق المؤثر",
+  "ui.title.askAI": "اسأل الذكاء الاصطناعي عن هذا المؤثر",
   "ui.title.deleteEffect": "حذف المؤثر",
   "ui.title.close": "إغلاق",
   "ui.title.expand": "اضغط للتوسيع",
@@ -103,6 +104,14 @@
   "ui.busRouting": "توجيه الناقل",
   "ui.inputBus": "ناقل الإدخال:",
   "ui.outputBus": "ناقل الإخراج:",
+  "ui.channel": "القناة:",
+  
+  // حوار الذكاء الاصطناعي
+  "ui.askAITitle": "اسأل الذكاء الاصطناعي عن هذا المؤثر",
+  "ui.askAICaption": "سؤال حول {effectName}:",
+  "ui.askAIPlaceholder": "اكتب سؤالك حول هذا المؤثر...",
+  "ui.askChatGPT": "اسأل ChatGPT",
+  "ui.askPerplexity": "اسأل Perplexity",
 
   // القائمة الرئيسية
   "menu.file": "ملف",

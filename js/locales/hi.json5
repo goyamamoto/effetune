@@ -82,6 +82,7 @@
   "ui.title.moveUp": "इफ़ेक्ट ऊपर ले जाएँ",
   "ui.title.moveDown": "इफ़ेक्ट नीचे ले जाएँ",
   "ui.title.pluginDocs": "इफ़ेक्ट दस्तावेज़ खोलें",
+  "ui.title.askAI": "इस इफेक्टर के बारे में AI से पूछें",
   "ui.title.deleteEffect": "इफ़ेक्ट हटाएँ",
   "ui.title.close": "बंद करें",
   "ui.title.expand": "विस्तार करने के लिए क्लिक करें",
@@ -103,6 +104,14 @@
   "ui.busRouting": "बस रूटिंग",
   "ui.inputBus": "इनपुट बस:",
   "ui.outputBus": "आउटपुट बस:",
+  "ui.channel": "चैनल:",
+  
+  // AI संवाद
+  "ui.askAITitle": "इस इफेक्टर के बारे में AI से पूछें",
+  "ui.askAICaption": "{effectName} के बारे में प्रश्न:",
+  "ui.askAIPlaceholder": "इस प्रभाव के बारे में अपना प्रश्न टाइप करें...",
+  "ui.askChatGPT": "ChatGPT से पूछें",
+  "ui.askPerplexity": "Perplexity से पूछें",
 
   // मुख्य मेनू
   "menu.file": "फ़ाइल",

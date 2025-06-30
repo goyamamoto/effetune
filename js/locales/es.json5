@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Mover efecto hacia arriba",
   "ui.title.moveDown": "Mover efecto hacia abajo",
   "ui.title.pluginDocs": "Abrir documentación del efecto",
+  "ui.title.askAI": "Preguntar a la IA sobre este efector",
   "ui.title.deleteEffect": "Eliminar efecto",
   "ui.title.close": "Cerrar",
   "ui.title.expand": "Haga clic para expandir",
@@ -103,6 +104,14 @@
   "ui.busRouting": "Enrutamiento de Bus",
   "ui.inputBus": "Bus de Entrada:",
   "ui.outputBus": "Bus de Salida:",
+  "ui.channel": "Canal:",
+  
+  // Diálogo IA
+  "ui.askAITitle": "Preguntar a la IA sobre este efector",
+  "ui.askAICaption": "Pregunta sobre {effectName}:",
+  "ui.askAIPlaceholder": "Escribe tu pregunta sobre este efecto...",
+  "ui.askChatGPT": "Preguntar a ChatGPT",
+  "ui.askPerplexity": "Preguntar a Perplexity",
 
   // Menú principal
   "menu.file": "Archivo",

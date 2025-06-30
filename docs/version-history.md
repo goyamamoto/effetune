@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.59 (Jul xx, 2025)
+- Added buttons to ask the AI ​​questions about each effector
+- Various minor improvements
+
 ### Version 1.58 (Jun 29, 2025)
 - Added Power Amp Sag effect
 - Support for adding user presets by drag and drop

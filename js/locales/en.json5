@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Move effect up",
   "ui.title.moveDown": "Move effect down",
   "ui.title.pluginDocs": "Open effect documentation",
+  "ui.title.askAI": "Ask AI about this effector",
   "ui.title.deleteEffect": "Delete effect",
   "ui.title.close": "Close",
   "ui.title.expand": "Click to expand",
@@ -104,6 +105,13 @@
   "ui.inputBus": "Input Bus:",
   "ui.outputBus": "Output Bus:",
   "ui.channel": "Channel:",
+  
+  // AI dialog
+  "ui.askAITitle": "Ask the AI about this effector",
+  "ui.askAICaption": "Question about {effectName}:",
+  "ui.askAIPlaceholder": "Type your question about this effect...",
+  "ui.askChatGPT": "Ask ChatGPT",
+  "ui.askPerplexity": "Ask Perplexity",
   
   // Main menu
   "menu.file": "File",

@@ -81,6 +81,7 @@
   "ui.title.moveUp": "エフェクトを上へ移動",
   "ui.title.moveDown": "エフェクトを下へ移動",
   "ui.title.pluginDocs": "エフェクトのドキュメントを開く",
+  "ui.title.askAI": "このエフェクタについてAIに質問",
   "ui.title.deleteEffect": "エフェクトを削除",
   "ui.title.close": "閉じる",
   "ui.title.expand": "クリックで展開",
@@ -102,6 +103,14 @@
   "ui.busRouting": "バスルーティング",
   "ui.inputBus": "入力バス:",
   "ui.outputBus": "出力バス:",
+  "ui.channel": "チャンネル:",
+  
+  // AIダイアログ
+  "ui.askAITitle": "このエフェクタについてAIに質問する",
+  "ui.askAICaption": "{effectName}についての質問:",
+  "ui.askAIPlaceholder": "このエフェクトについての質問を入力してください...",
+  "ui.askChatGPT": "ChatGPTに質問",
+  "ui.askPerplexity": "Perplexityに質問",
   
   // メインメニュー
   "menu.file": "ファイル",

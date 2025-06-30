@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Переместить эффект вверх",
   "ui.title.moveDown": "Переместить эффект вниз",
   "ui.title.pluginDocs": "Открыть документацию эффекта",
+  "ui.title.askAI": "Спросить ИИ об этом эффекторе",
   "ui.title.deleteEffect": "Удалить эффект",
   "ui.title.close": "Закрыть",
   "ui.title.expand": "Щёлкните, чтобы развернуть",
@@ -103,6 +104,14 @@
   "ui.busRouting": "Маршрутизация шины",
   "ui.inputBus": "Входная шина:",
   "ui.outputBus": "Выходная шина:",
+  "ui.channel": "Канал:",
+  
+  // Диалог ИИ
+  "ui.askAITitle": "Спросить ИИ об этом эффекторе",
+  "ui.askAICaption": "Вопрос о {effectName}:",
+  "ui.askAIPlaceholder": "Введите ваш вопрос об этом эффекте...",
+  "ui.askChatGPT": "Спросить ChatGPT",
+  "ui.askPerplexity": "Спросить Perplexity",
 
   // Главное меню
   "menu.file": "Файл",
