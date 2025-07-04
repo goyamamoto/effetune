@@ -1,3 +1,12 @@
-remote_theme: pages-themes/midnight@v0.2.0
+# remote_theme: "mmistakes/minimal-mistakes"
+remote_theme: mmistakes/minimal-mistakes@4.24.0
 plugins:
+  - jekyll-feed
+  - jekyll-gist
+  - jekyll-paginate
+  - jekyll-sitemap
   - jekyll-remote-theme
+  - jekyll-include-cache
+  
+minimal_mistakes_skin: "dark"
+math: true
