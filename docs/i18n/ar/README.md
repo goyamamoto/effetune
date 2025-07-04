@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 معالج تأثيرات صوتية فوري، مصمم لعشاق الصوت لتحسين تجربة الاستماع للموسيقى. يتيح لك EffeTune معالجة أي مصدر صوتي عبر تأثيرات عالية الجودة متنوعة، مما يمكنك من تخصيص وتحسين تجربة الاستماع في الوقت الحقيقي.
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## المفهوم
 
@@ -174,7 +174,7 @@
 3. سيتم الاحتفاظ بتكوين سلسلة التأثيرات الخاصة بك
 
 ### قياس الاستجابة الترددية
-1. لإصدار الويب، شغّل [أداة قياس استجابة التردد](https://frieve-a.github.io/effetune/features/measurement/measurement.html). لإصدار التطبيق، اختر «قياس استجابة التردد» من قائمة الإعدادات.
+1. لإصدار الويب، شغّل [أداة قياس استجابة التردد](https://effetune.frieve.com/features/measurement/measurement.html). لإصدار التطبيق، اختر «قياس استجابة التردد» من قائمة الإعدادات.
 2. قم بتوصيل معداتك الصوتية بمدخل ومخرج جهاز الكمبيوتر الخاص بك
 3. قم بتكوين معلمات القياس (مدة المسح، نطاق التردد)
 4. قم بتشغيل القياس لإنشاء رسم بياني للاستجابة الترددية

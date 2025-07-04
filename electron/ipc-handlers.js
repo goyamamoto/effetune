@@ -179,7 +179,7 @@ function registerIpcHandlers() {
         url = url + anchor;
         
         // Add base URL
-        url = 'https://frieve-a.github.io/effetune' + (url.startsWith('/') ? url : '/' + url);
+        url = 'https://effetune.frieve.com' + (url.startsWith('/') ? url : '/' + url);
       }
       await shell.openExternal(url);
       return { success: true };
@@ -521,9 +521,15 @@ function registerIpcHandlers() {
                 }
               }
             },
+            {
+              label: menuTemplate.help.submenu[1].label, // Discord
+              click: () => {
+                require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+              }
+            },
             { type: 'separator' },
             {
-              label: menuTemplate.help.submenu[2].label, // About
+              label: menuTemplate.help.submenu[3].label, // About
               click: () => {
                 const mainWin = constants.getMainWindow();
                 if (mainWin) {
@@ -663,7 +669,7 @@ function registerIpcHandlers() {
         // Add anchor back if it was present
         docPath = docPath + anchor;
         
-        url = `https://frieve-a.github.io/effetune${docPath}`;
+        url = `https://effetune.frieve.com${docPath}`;
         
       }
       await shell.openExternal(url);
@@ -936,6 +942,12 @@ function createMenu() {
                 console.error('Error executing Help menu action:', error);
               });
             }
+          }
+        },
+        {
+          label: 'Discord',
+          click: () => {
+            require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
           }
         },
         { type: 'separator' },

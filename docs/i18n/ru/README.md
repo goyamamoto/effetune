@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 Приложение для обработки аудио в реальном времени, созданное для аудиофилов, стремящихся улучшить процесс прослушивания музыки. EffeTune позволяет обрабатывать любой аудио источник с помощью различных высококачественных эффектов, давая возможность настроить и усовершенствовать ваш опыт прослушивания в реальном времени.
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## Концепция
 
@@ -165,7 +165,7 @@ No audiophile myths, Just pure science.
 
 ### Измерение частотной характеристики
 
-1. Для веб-версии запустите [инструмент измерения амплитудно-частотной характеристики](https://frieve-a.github.io/effetune/features/measurement/measurement.html). Для версии приложения выберите «Измерение АЧХ» в меню «Настройки».
+1. Для веб-версии запустите [инструмент измерения амплитудно-частотной характеристики](https://effetune.frieve.com/features/measurement/measurement.html). Для версии приложения выберите «Измерение АЧХ» в меню «Настройки».
 2. Подключите ваше аудио оборудование к входу и выходу компьютера
 3. Настройте параметры измерения (длительность развертки, диапазон частот)
 4. Запустите измерение для создания графика частотной характеристики

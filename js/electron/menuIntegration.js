@@ -70,6 +70,7 @@ export function updateApplicationMenu(isElectron) {
         label: t('menu.help'),
         submenu: [
           { label: t('menu.help.help') },
+          { label: 'Discord' },
           { type: 'separator' },
           { label: t('menu.help.about') }
         ]

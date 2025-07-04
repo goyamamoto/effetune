@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 一个实时音频效果处理器，旨在为音频爱好者提升音乐聆听体验。EffeTune 允许您通过各种高质量效果处理任何音频源，从而实时定制并完善您的聆听体验。
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## 概念
 
@@ -165,7 +165,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 
 ### 频率响应测量
 
-1. 对于网页版，请启动[频率响应测量工具](https://frieve-a.github.io/effetune/features/measurement/measurement.html)。对于应用版，请在"设置"菜单中选择"频率响应测量"
+1. 对于网页版，请启动[频率响应测量工具](https://effetune.frieve.com/features/measurement/measurement.html)。对于应用版，请在"设置"菜单中选择"频率响应测量"
 2. 将您的音频设备连接到计算机的输入和输出
 3. 配置测量参数（扫频时间、频率范围）
 4. 运行测量以生成频率响应图
