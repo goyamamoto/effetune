@@ -16,3 +16,4 @@ defaults:
       path: ""
     values:
       layout: "single"
+      show_title: false
