@@ -10,3 +10,9 @@ plugins:
   
 minimal_mistakes_skin: "dark"
 math: true
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "single"
