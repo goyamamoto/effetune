@@ -51,6 +51,7 @@ With Spotify playing, toggle the master **ON/OFF** in EffeTune and confirm the s
 ## 2. Troubleshooting
 
 ### 2.1. Audio playback quality issues
+
 | Symptom | Solution |
 | ------ | ------ |
 | Dropouts or glitches | Click the **Reset Audio** button in the top-left corner of the web app or choose **Reload** from the **View** menu in the desktop app. Reduce the number of active effects if necessary. |
@@ -64,6 +65,7 @@ Disable effects you're not using or remove them from the **Effect Pipeline**.
 Your input and output devices may be looping back. Ensure EffeTune's output does not return to its input.
 
 ### 2.4. Input, output, or effect problems
+
 | Symptom | Solution |
 | ------ | ------ |
 | No audio input | Make sure the player outputs to **CABLE Input**. Allow microphone permission in the browser and select **CABLE Output** as the input device. |

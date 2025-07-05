@@ -51,6 +51,7 @@ Con Spotify reproduciendo, alterne el **ON/OFF** principal en EffeTune y confirm
 ## 2. Solución de problemas
 
 ### 2.1. Problemas de calidad de reproducción de audio
+
 | Síntoma | Solución |
 | ------ | ------ |
 | Cortes o fallos | Haga clic en el botón **Reset Audio** en la esquina superior izquierda de la aplicación web o elija **Reload** del menú **View** en la aplicación de escritorio. Reduzca el número de efectos activos si es necesario. |
@@ -64,6 +65,7 @@ Desactive los efectos que no esté utilizando o elimínelos del **Effect Pipelin
 Es posible que sus dispositivos de entrada y salida estén en bucle. Asegúrese de que la salida de EffeTune no vuelve a su entrada.
 
 ### 2.4. Problemas de entrada, salida o efectos
+
 | Síntoma | Solución |
 | ------ | ------ |
 | No hay entrada de audio | Asegúrese de que el reproductor envía la salida a **CABLE Input**. Permita el permiso de micrófono en el navegador y seleccione **CABLE Output** como dispositivo de entrada. |

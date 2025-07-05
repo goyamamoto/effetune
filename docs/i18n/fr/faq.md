@@ -51,6 +51,7 @@ Avec Spotify en lecture, basculez le bouton principal **ON/OFF** dans EffeTune e
 ## 2. Dépannage
 
 ### 2.1. Problèmes de qualité de lecture audio
+
 | Symptôme | Solution |
 | ------ | ------ |
 | Coupures ou accrocs | Cliquez sur le bouton **Reset Audio** dans le coin supérieur gauche de l'application web ou choisissez **Reload** dans le menu **View** de l'application de bureau. Réduisez le nombre d'effets actifs si nécessaire. |
@@ -64,6 +65,7 @@ Désactivez les effets que vous n'utilisez pas ou retirez-les de l'**Effect Pipe
 Vos périphériques d'entrée et de sortie peuvent être en bouclage. Assurez-vous que la sortie d'EffeTune ne revient pas à son entrée.
 
 ### 2.4. Problèmes d'entrée, de sortie ou d'effets
+
 | Symptôme | Solution |
 | ------ | ------ |
 | Pas d'entrée audio | Assurez-vous que le lecteur envoie sa sortie vers **CABLE Input**. Autorisez la permission du microphone dans le navigateur et sélectionnez **CABLE Output** comme périphérique d'entrée. |
