@@ -140,6 +140,7 @@
   "menu.view.toggleFullscreen": "Plein écran",
 
   "menu.settings": "Paramètres",
+  "menu.settings.config": "Configuration...",
   "menu.settings.audioDevices": "Périphériques audio...",
   "menu.settings.performanceBenchmark": "Référence de performance",
   "menu.settings.frequencyResponseMeasurement": "Mesure de la réponse en fréquence",
@@ -163,5 +164,20 @@
   "dialog.audioConfig.cancel": "Annuler",
   "dialog.audioConfig.apply": "Appliquer",
   "dialog.audioConfig.updatedTitle": "Configuration audio mise à jour",
-  "dialog.audioConfig.updatedMessage": "Rechargement de l'application pour appliquer les modifications..."
+  "dialog.audioConfig.updatedMessage": "Rechargement...",
+
+  "dialog.config.title": "Configuration",
+  "dialog.config.autoLaunch": "Lancer au démarrage du système d'exploitation",
+  "dialog.config.startMinimized": "Démarrer en mode minimisé",
+  "dialog.config.minimizeToTray": "Minimiser dans la barre des tâches",
+  "dialog.config.pipeline": "Pipeline d'effets au démarrage :",
+  "dialog.config.pipeline.default": "Paramètres par défaut",
+  "dialog.config.pipeline.last": "Paramètres de la dernière fermeture",
+  "dialog.config.pipeline.preset": "Préréglage spécifique",
+  "dialog.config.close": "Fermer",
+
+  // Menu de la barre d'état système
+  "trayMenuOpen": "Ouvrir",
+  "trayMenuQuit": "Quitter",
+  "trayMenuPresets": "Préréglages"
 }

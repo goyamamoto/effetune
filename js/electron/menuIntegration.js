@@ -4,11 +4,56 @@
  */
 
 /**
+ * Update the tray menu with translated labels
+ * This method is called when translations are loaded
+ * @param {boolean} isElectron - Whether running in Electron environment
+ */
+export async function updateTrayMenu(isElectron) {
+  if (!isElectron || !window.uiManager) return;
+  
+  try {
+    // Get the t function from UIManager
+    const t = window.uiManager.t.bind(window.uiManager);
+    
+    // Get user presets for tray menu
+    let userPresets = [];
+    try {
+      const presetsResult = await window.electronAPI.getUserPresetsForTray();
+      if (presetsResult.success) {
+        userPresets = presetsResult.presets;
+      }
+    } catch (error) {
+      console.error('Error getting user presets for tray:', error);
+    }
+    
+    // Create a tray menu template with translated labels and presets
+    const trayMenuTemplate = {
+      presets: { label: t('trayMenuPresets'), items: userPresets },
+      open: { label: t('trayMenuOpen') },
+      quit: { label: t('trayMenuQuit') }
+    };
+    
+    // Send the tray menu template to the main process to update the tray menu
+    window.electronAPI.updateTrayMenu(trayMenuTemplate)
+      .then(result => {
+        if (!result.success) {
+          console.error('Failed to update tray menu:', result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error updating tray menu:', error);
+      });
+  } catch (error) {
+    console.error('Error creating tray menu template:', error);
+  }
+}
+
+/**
  * Update the application menu with translated labels
  * This method is called when translations are loaded
  * @param {boolean} isElectron - Whether running in Electron environment
  */
-export function updateApplicationMenu(isElectron) {
+export async function updateApplicationMenu(isElectron) {
   if (!isElectron || !window.uiManager) return;
   
   try {
@@ -61,6 +106,7 @@ export function updateApplicationMenu(isElectron) {
       settings: {
         label: t('menu.settings'),
         submenu: [
+          { label: t('menu.settings.config') },
           { label: t('menu.settings.audioDevices') },
           { label: t('menu.settings.performanceBenchmark') },
           { label: t('menu.settings.frequencyResponseMeasurement') }
@@ -87,6 +133,9 @@ export function updateApplicationMenu(isElectron) {
       .catch(error => {
         console.error('Error updating application menu:', error);
       });
+    
+    // Also update the tray menu when updating the application menu
+    await updateTrayMenu(isElectron);
   } catch (error) {
     console.error('Error creating menu template:', error);
   }

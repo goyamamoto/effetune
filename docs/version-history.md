@@ -1,6 +1,11 @@
 # Version History
 
-### Version 1.59 (Jul xx, 2025)
+### Version 1.59 (Jul 7, 2025)
+- The following features have been added to the desktop version:
+  - Added a Config menu to the Settings menu
+  - Added settings for automatic startup when the OS starts, startup minimized, and storing in the task tray when minimized
+  - You can now choose whether to load a preset when starting from no load, the previous time it was closed, or a user preset
+  - Added a function to load user presets from the task tray menu
 - Added buttons to ask the AI ​​questions about each effector
 - Various minor improvements
 

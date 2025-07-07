@@ -140,6 +140,7 @@
   "menu.view.toggleFullscreen": "पूर्ण स्क्रीन टॉगल करें",
 
   "menu.settings": "सेटिंग्स",
+  "menu.settings.config": "कॉन्फ़िगरेशन...",
   "menu.settings.audioDevices": "ऑडियो उपकरण...",
   "menu.settings.performanceBenchmark": "प्रदर्शन बेंचमार्क",
   "menu.settings.frequencyResponseMeasurement": "फ्रीक्वेंसी रिस्पॉन्स मापन",
@@ -163,5 +164,20 @@
   "dialog.audioConfig.cancel": "रद्द करें",
   "dialog.audioConfig.apply": "लागू करें",
   "dialog.audioConfig.updatedTitle": "ऑडियो विन्यास अपडेट हुआ",
-  "dialog.audioConfig.updatedMessage": "परिवर्तनों को लागू करने हेतु एप्लिकेशन पुनः लोड हो रहा है..."
+  "dialog.audioConfig.updatedMessage": "पुनः लोड हो रहा है...",
+
+  "dialog.config.title": "विन्यास",
+  "dialog.config.autoLaunch": "ओएस स्टार्टअप पर लॉन्च करें",
+  "dialog.config.startMinimized": "मिनिमाइज़्ड प्रारंभ करें",
+  "dialog.config.minimizeToTray": "ट्रे में मिनिमाइज़ करें",
+  "dialog.config.pipeline": "स्टार्टअप पर प्रभाव पाइपलाइन:",
+  "dialog.config.pipeline.default": "डिफ़ॉल्ट सेटिंग्स",
+  "dialog.config.pipeline.last": "अंतिम निकास से सेटिंग्स",
+  "dialog.config.pipeline.preset": "विशिष्ट प्रीसेट",
+  "dialog.config.close": "बंद करें",
+
+  // ट्रे मेनू
+  "trayMenuOpen": "खोलें",
+  "trayMenuQuit": "छोड़ें",
+  "trayMenuPresets": "प्रीसेट"
 }

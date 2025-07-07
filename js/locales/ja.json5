@@ -139,6 +139,7 @@
   "menu.view.toggleFullscreen": "全画面切替",
 
   "menu.settings": "設定",
+  "menu.settings.config": "環境設定...",
   "menu.settings.audioDevices": "オーディオデバイス...",
   "menu.settings.performanceBenchmark": "パフォーマンスベンチマーク",
   "menu.settings.frequencyResponseMeasurement": "周波数応答測定",
@@ -162,5 +163,20 @@
   "dialog.audioConfig.cancel": "キャンセル",
   "dialog.audioConfig.apply": "適用",
   "dialog.audioConfig.updatedTitle": "オーディオ設定が更新されました",
-  "dialog.audioConfig.updatedMessage": "変更を適用するためにアプリケーションをリロードしています..."
+  "dialog.audioConfig.updatedMessage": "変更を適用するためにアプリケーションをリロードしています...",
+
+  "dialog.config.title": "設定",
+  "dialog.config.autoLaunch": "OS起動時に自動起動",
+  "dialog.config.startMinimized": "最小化して起動",
+  "dialog.config.minimizeToTray": "最小化時にタスクトレイに常駐",
+  "dialog.config.pipeline": "起動時のエフェクトパイプライン:",
+  "dialog.config.pipeline.default": "デフォルト設定",
+  "dialog.config.pipeline.last": "終了時の設定",
+  "dialog.config.pipeline.preset": "特定のプリセット",
+  "dialog.config.close": "閉じる",
+
+  // トレイメニュー
+  "trayMenuOpen": "開く",
+  "trayMenuQuit": "終了",
+  "trayMenuPresets": "プリセット"
 }

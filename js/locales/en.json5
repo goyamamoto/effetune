@@ -140,6 +140,7 @@
   "menu.view.toggleFullscreen": "Toggle Fullscreen",
 
   "menu.settings": "Settings",
+  "menu.settings.config": "Config...",
   "menu.settings.audioDevices": "Audio Devices...",
   "menu.settings.performanceBenchmark": "Performance Benchmark",
   "menu.settings.frequencyResponseMeasurement": "Frequency Response Measurement",
@@ -163,5 +164,20 @@
   "dialog.audioConfig.cancel": "Cancel",
   "dialog.audioConfig.apply": "Apply",
   "dialog.audioConfig.updatedTitle": "Audio Configuration Updated",
-  "dialog.audioConfig.updatedMessage": "Reloading application to apply changes..."
+  "dialog.audioConfig.updatedMessage": "Reloading application to apply changes...",
+
+  "dialog.config.title": "Config",
+  "dialog.config.autoLaunch": "Launch on OS startup",
+  "dialog.config.startMinimized": "Start minimized",
+  "dialog.config.minimizeToTray": "Minimize to tray",
+  "dialog.config.pipeline": "Effect Pipeline at startup:",
+  "dialog.config.pipeline.default": "Default settings",
+  "dialog.config.pipeline.last": "Settings from last exit",
+  "dialog.config.pipeline.preset": "Specific preset",
+  "dialog.config.close": "Close",
+
+  // Tray menu
+  "trayMenuOpen": "Open",
+  "trayMenuQuit": "Quit",
+  "trayMenuPresets": "Presets"
 }
