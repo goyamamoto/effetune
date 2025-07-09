@@ -5,7 +5,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
       super('Digital Error Emulator', 'Simulates various digital audio transmission errors');
       // Parameter mappings
       this.be = -6;    // BER exponent (-12 to -2)
-      this.md = "10";   // Mode ("1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "7", "8", "9", "10")
+      this.md = "10A";   // Mode ("1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "7", "8", "9", "10", "10A")
       this.rf = 48;    // Reference Fs (kHz)
       this.wt = 100;   // Wet Mix (0-100%)
       
@@ -36,7 +36,8 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
         "6B": { name: 'Bluetooth LE — Digital Transmission',     unitSize: 480, bitsPerUnit: 0,    sampleFixed: true }, // Post-codec transmission errors with FEC
         "8":  { name: 'WiSA — FEC Block Mute',            unitSize: 32,  bitsPerUnit: 1024,   sampleFixed: true },
         "9":  { name: 'WMAS / DECT / Axient — RF Squelch',      unitSize: 48,  bitsPerUnit: 1536,   sampleFixed: true },
-        "10": { name: 'CD Audio — CIRC Error Correction',      unitSize: 588, bitsPerUnit: 0,    sampleFixed: true }  // 1 EFM frame = 588 ch-bits
+        "10": { name: 'CD Audio — CIRC Error Correction (Hold)',      unitSize: 588, bitsPerUnit: 0,    sampleFixed: true },  // 1 EFM frame = 588 ch-bits
+        "10A": { name: 'CD Audio — CIRC Error Correction (Interpolated)',      unitSize: 588, bitsPerUnit: 0,    sampleFixed: true }  // 1 EFM frame = 588 ch-bits with improved interpolation
       };
       this.registerProcessor(`
         if (!parameters.enabled) return data;
@@ -58,6 +59,10 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
           
           // Store the last good sample before an error, for interpolation
           context.lastGoodSamples = new Float32Array(parameters.channelCount).fill(0);
+          
+          // Delay buffer for next sample reference (1 sample delay) - only for 10A mode
+          context.delayBuffer = null;
+          context.delayBufferValid = false;
           
           // CD-specific state for CIRC error correction simulation
           context.cdState = {
@@ -105,7 +110,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
           unitSamples = 32;
         } else if (parameters.md === "9") { // RF Squelch: Base duration (will be randomized later)
           unitSamples = Math.max(1, Math.round(48 * fs / 48000)); // Scale 48 samples from 48kHz base
-        } else if (parameters.md === "10") { // CD Audio: EFM frame corresponds to audio samples
+        } else if (parameters.md === "10" || parameters.md === "10A") { // CD Audio: EFM frame corresponds to audio samples
           unitSamples = Math.max(1, Math.round(fs / 7350)); // 1 EFM frame = 1/7350 second (44.1kHz/6 samples per frame)
         }
         // Calculate bits per error unit for probability calculation
@@ -128,13 +133,13 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
           const isoHeader = 48; // ISO packet header (6 bytes)
           const le_audioHeader = 64; // LE Audio stack overhead (8 bytes)
           bitsPerUnit = audioBits + isoHeader + le_audioHeader; // FEC effect handled in probability calculation
-        } else if (parameters.md === "10") {
+        } else if (parameters.md === "10" || parameters.md === "10A") {
           // CD Audio: 588 ch-bits per EFM frame, accounting for CIRC processing
           bitsPerUnit = 588; // Channel bits per EFM frame
         }
         // --- Event Probability and Scheduling ---
         let pEventPerUnit = 0;
-        if (parameters.md === "10") {
+        if (parameters.md === "10" || parameters.md === "10A") {
           // CD Audio: Real CIRC simulation - process every EFM frame
           // Always process frames to simulate actual bit errors and Reed-Solomon correction
           pEventPerUnit = 1.0; // Process every EFM frame
@@ -174,6 +179,41 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
         }
         // --- Create Wet Signal Buffer ---
         const wetData = new Float32Array(data);
+        
+        // --- Setup 1-sample delay for next sample reference (only for 10A mode) ---
+        let delayedData = null;
+        if (parameters.md === "10A") {
+          // Initialize delay buffer if needed
+          if (!context.delayBuffer) {
+            context.delayBuffer = new Array(parameters.channelCount)
+              .fill(null).map(() => new Float32Array(1));
+          }
+          
+          // Create delayed signal for interpolation
+          delayedData = new Float32Array(data);
+          
+          // Apply 1 sample delay using delay buffer
+          for (let ch = 0; ch < channelCount; ch++) {
+            const offset = ch * blockSize;
+            if (context.delayBufferValid) {
+              // First sample comes from delay buffer
+              delayedData[offset] = context.delayBuffer[ch][0];
+              // Remaining samples shift by 1
+              for (let i = 1; i < blockSize; i++) {
+                delayedData[offset + i] = data[offset + i - 1];
+              }
+            } else {
+              // First run - copy as is
+              for (let i = 0; i < blockSize; i++) {
+                delayedData[offset + i] = data[offset + i];
+              }
+            }
+            // Store last sample for next block
+            context.delayBuffer[ch][0] = data[offset + blockSize - 1];
+          }
+          context.delayBufferValid = true;
+        }
+        
         // --- Main Processing Loop ---
         let i = 0;
         while (i < blockSize) {
@@ -189,7 +229,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
                   wetData[ch * blockSize + i + j] = 0;
                 }
               }
-            } else if (context.errorState.mode === '10') { // CD Audio: Continue concealment with real behavior
+            } else if (context.errorState.mode === '10' || context.errorState.mode === '10A') { // CD Audio: Continue concealment with real behavior
               const totalErrorDuration = context.errorState.totalDuration || unitSamples;
               const samplesProcessed = (totalErrorDuration - context.errorState.samplesRemaining);
               
@@ -199,42 +239,90 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
                   const sampleIndex = i + j;
                   const globalErrorProgress = samplesProcessed + j;
                   const lastGoodSample = context.lastGoodSamples[ch];
+                  // For interpolation, use delayed data to get next sample (only for 10A mode)
+                  let nextGoodSample;
+                  if (context.errorState.mode === '10A' && context.delayBuffer) {
+                    nextGoodSample = context.delayBuffer[ch][0];
+                  } else {
+                    // For mode 10 (standard CD), maintain original behavior
+                    nextGoodSample = lastGoodSample; // Will be used in interpolation parts
+                  }
                   
                   // Apply same concealment logic as in the main processing
-                  if (totalErrorDuration <= 2) {
-                    const alpha = (globalErrorProgress + 1) / (totalErrorDuration + 1);
-                    wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + lastGoodSample * alpha;
-                  } else if (totalErrorDuration <= 10) {
-                    const decay = Math.pow(0.996, globalErrorProgress);
-                    wetData[offset + sampleIndex] = lastGoodSample * decay;
-                  } else if (totalErrorDuration <= 32) {
-                    if (globalErrorProgress < totalErrorDuration * 0.3) {
-                      const decay = Math.pow(0.992, globalErrorProgress);
+                                      if (context.errorState.mode === '10A') {
+                      // Enhanced CD Audio with improved interpolation
+                      if (totalErrorDuration <= 10) {
+                        const alpha = (globalErrorProgress + 1) / (totalErrorDuration + 1);
+                        wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + nextGoodSample * alpha;
+                      } else if (totalErrorDuration <= 32) {
+                        if (globalErrorProgress < totalErrorDuration * 0.5) {
+                          const alpha = globalErrorProgress / (totalErrorDuration * 0.5);
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + midValue * alpha;
+                        } else {
+                          const alpha = (globalErrorProgress - totalErrorDuration * 0.5) / (totalErrorDuration * 0.5);
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = midValue * (1 - alpha) + nextGoodSample * alpha;
+                        }
+                      } else if (totalErrorDuration <= 128) {
+                        if (globalErrorProgress < 16) {
+                          const alpha = globalErrorProgress / 16;
+                          const targetValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + targetValue * alpha;
+                        } else if (globalErrorProgress > totalErrorDuration - 16) {
+                          const alpha = (globalErrorProgress - (totalErrorDuration - 16)) / 16;
+                          const targetValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = targetValue * (1 - alpha) + nextGoodSample * alpha;
+                        } else {
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          const fadeFactor = Math.pow(0.995, (globalErrorProgress - 16) * 20 / (totalErrorDuration - 32));
+                          wetData[offset + sampleIndex] = midValue * fadeFactor;
+                        }
+                      } else {
+                        if (globalErrorProgress < 16) {
+                          const emergency_fade = Math.pow(0.7, globalErrorProgress);
+                          wetData[offset + sampleIndex] = lastGoodSample * emergency_fade;
+                        } else {
+                          wetData[offset + sampleIndex] = 0;
+                        }
+                      }
+                    } else {
+                    // Standard CD Audio processing
+                                          if (totalErrorDuration <= 2) {
+                        const alpha = (globalErrorProgress + 1) / (totalErrorDuration + 1);
+                        wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + nextGoodSample * alpha;
+                    } else if (totalErrorDuration <= 10) {
+                      const decay = Math.pow(0.996, globalErrorProgress);
                       wetData[offset + sampleIndex] = lastGoodSample * decay;
-                    } else if (globalErrorProgress > totalErrorDuration * 0.7) {
-                      const interpStart = Math.floor(totalErrorDuration * 0.7);
-                      const interpProgress = (globalErrorProgress - interpStart) / (totalErrorDuration - interpStart);
-                      const heldValue = lastGoodSample * Math.pow(0.992, interpStart);
-                      wetData[offset + sampleIndex] = heldValue * (1 - interpProgress) + lastGoodSample * interpProgress;
+                    } else if (totalErrorDuration <= 32) {
+                      if (globalErrorProgress < totalErrorDuration * 0.3) {
+                        const decay = Math.pow(0.992, globalErrorProgress);
+                        wetData[offset + sampleIndex] = lastGoodSample * decay;
+                      } else if (globalErrorProgress > totalErrorDuration * 0.7) {
+                        const interpStart = Math.floor(totalErrorDuration * 0.7);
+                        const interpProgress = (globalErrorProgress - interpStart) / (totalErrorDuration - interpStart);
+                        const heldValue = lastGoodSample * Math.pow(0.992, interpStart);
+                        wetData[offset + sampleIndex] = heldValue * (1 - interpProgress) + nextGoodSample * interpProgress;
+                      } else {
+                        const baseDecay = Math.pow(0.992, globalErrorProgress);
+                        const jitter = (Math.random() - 0.5) * 0.02;
+                        wetData[offset + sampleIndex] = lastGoodSample * baseDecay * (1 + jitter);
+                      }
+                    } else if (totalErrorDuration <= 128) {
+                      if (globalErrorProgress < 8) {
+                        const fastDecay = Math.pow(0.85, globalErrorProgress);
+                        wetData[offset + sampleIndex] = lastGoodSample * fastDecay;
+                      } else {
+                        const residualNoise = (Math.random() - 0.5) * 0.001 * Math.pow(0.95, globalErrorProgress - 8);
+                        wetData[offset + sampleIndex] = residualNoise;
+                      }
                     } else {
-                      const baseDecay = Math.pow(0.992, globalErrorProgress);
-                      const jitter = (Math.random() - 0.5) * 0.02;
-                      wetData[offset + sampleIndex] = lastGoodSample * baseDecay * (1 + jitter);
-                    }
-                  } else if (totalErrorDuration <= 128) {
-                    if (globalErrorProgress < 8) {
-                      const fastDecay = Math.pow(0.85, globalErrorProgress);
-                      wetData[offset + sampleIndex] = lastGoodSample * fastDecay;
-                    } else {
-                      const residualNoise = (Math.random() - 0.5) * 0.001 * Math.pow(0.95, globalErrorProgress - 8);
-                      wetData[offset + sampleIndex] = residualNoise;
-                    }
-                  } else {
-                    if (globalErrorProgress < 16) {
-                      const emergency_fade = Math.pow(0.7, globalErrorProgress);
-                      wetData[offset + sampleIndex] = lastGoodSample * emergency_fade;
-                    } else {
-                      wetData[offset + sampleIndex] = 0;
+                      if (globalErrorProgress < 16) {
+                        const emergency_fade = Math.pow(0.7, globalErrorProgress);
+                        wetData[offset + sampleIndex] = lastGoodSample * emergency_fade;
+                      } else {
+                        wetData[offset + sampleIndex] = 0;
+                      }
                     }
                   }
                 }
@@ -259,7 +347,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
               const squelchMs = CONSTANTS.RF_SQUELCH_MIN_MS + Math.random() * (CONSTANTS.RF_SQUELCH_MAX_MS - CONSTANTS.RF_SQUELCH_MIN_MS);
               errorDurationSamples = Math.round(squelchMs * fs / 1000);
               
-            } else if (parameters.md === "10") { // CD Audio: Faithful CIRC simulation per EFM frame
+            } else if (parameters.md === "10" || parameters.md === "10A") { // CD Audio: Faithful CIRC simulation per EFM frame
               // Real CD CIRC parameters - based on actual hardware implementation
               const ber = Math.pow(10, parameters.be);
               const efmFrameBits = 588; // One EFM frame = 588 channel bits
@@ -485,7 +573,18 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
                 
                 const lastGoodSample = eventStart > 0 ? wetData[offset + eventStart - 1] : context.lastGoodSamples[ch];
                 const errorEndsInBlock = (eventStart + errorDurationSamples) < blockSize;
-                const nextGoodSample = errorEndsInBlock ? data[offset + eventStart + errorDurationSamples] : lastGoodSample;
+                let nextGoodSample;
+                if (parameters.md === "10A" && delayedData && context.delayBuffer) {
+                  // For 10A mode, use delayed data for interpolation
+                  nextGoodSample = errorEndsInBlock ? 
+                    delayedData[offset + eventStart + errorDurationSamples] : 
+                    context.delayBuffer[ch][0]; // Use delay buffer for next block's first sample
+                } else {
+                  // For other modes, use original data
+                  nextGoodSample = errorEndsInBlock ? 
+                    data[offset + eventStart + errorDurationSamples] : 
+                    lastGoodSample; // Fallback to last good sample
+                }
                 for (let j = 0; j < samplesInBlock; j++) {
                   const sampleIndex = eventStart + j;
                   const shared = sharedRandomValues[j];
@@ -607,6 +706,56 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
                         }
                       }
                       break;
+                    case "10A": // CD Audio: Enhanced concealment with improved interpolation
+                      // Enhanced CD players use linear interpolation for all short errors
+                      if (errorDurationSamples <= 10) {
+                        // 1-10 samples: Linear interpolation for improved quality
+                        const alpha = (j + 1) / (errorDurationSamples + 1);
+                        wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + nextGoodSample * alpha;
+                      } else if (errorDurationSamples <= 32) {
+                        // 11-32 samples: Mixed linear interpolation with reduced artifacts
+                        if (j < errorDurationSamples * 0.5) {
+                          // First half: Linear interpolation to midpoint
+                          const alpha = j / (errorDurationSamples * 0.5);
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + midValue * alpha;
+                        } else {
+                          // Second half: Linear interpolation from midpoint to next
+                          const alpha = (j - errorDurationSamples * 0.5) / (errorDurationSamples * 0.5);
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = midValue * (1 - alpha) + nextGoodSample * alpha;
+                        }
+                      } else if (errorDurationSamples <= 128) {
+                        // 33-128 samples: Interpolation with gradual fade
+                        if (j < 16) {
+                          // Initial interpolation phase
+                          const alpha = j / 16;
+                          const targetValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = lastGoodSample * (1 - alpha) + targetValue * alpha;
+                        } else if (j > errorDurationSamples - 16) {
+                          // Final interpolation phase
+                          const alpha = (j - (errorDurationSamples - 16)) / 16;
+                          const targetValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          wetData[offset + sampleIndex] = targetValue * (1 - alpha) + nextGoodSample * alpha;
+                        } else {
+                          // Middle phase: Hold interpolated value with gentle fade
+                          const midValue = (lastGoodSample + nextGoodSample) * 0.5;
+                          const fadeProgress = (j - 16) / (errorDurationSamples - 32);
+                          const fadeFactor = Math.pow(0.995, fadeProgress * 20);
+                          wetData[offset + sampleIndex] = midValue * fadeFactor;
+                        }
+                      } else {
+                        // 128+ samples: Long dropout with fade-out (similar to standard mode)
+                        if (j < 16) {
+                          // Very brief fade-out
+                          const emergency_fade = Math.pow(0.7, j);
+                          wetData[offset + sampleIndex] = lastGoodSample * emergency_fade;
+                        } else {
+                          // Complete mute (player internal muting circuit activates)
+                          wetData[offset + sampleIndex] = 0;
+                        }
+                      }
+                      break;
                   }
                   // Clamp sample values to prevent overload
                   wetData[offset + sampleIndex] = Math.max(-1.0, Math.min(1.0, wetData[offset + sampleIndex]));
@@ -633,6 +782,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
         
         // --- Post-processing and State Update ---
         context.sampleCount += blockSize;
+        
         // Store the last processed samples for the next block's PLC
         for (let ch = 0; ch < channelCount; ch++) {
           context.lastGoodSamples[ch] = wetData[ch * blockSize + blockSize - 1];
@@ -654,7 +804,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
         needsUpdate = true;
       }
       if (params.md !== undefined && this.md !== params.md) {
-        const validModes = ["1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "8", "9", "10"];
+        const validModes = ["1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "8", "9", "10", "10A"];
         if (validModes.includes(params.md)) {
           this.md = params.md;
           needsUpdate = true;
@@ -710,7 +860,7 @@ class DigitalErrorEmulatorPlugin extends PluginBase {
       modeSelect.autocomplete = "off";
       modeLabel.htmlFor = modeSelect.id;
       
-      const modeOrder = ["1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "8", "9", "10"];
+      const modeOrder = ["1", "2A", "2B", "3A", "3B", "4", "5A", "5B", "5C", "6A", "6B", "8", "9", "10", "10A"];
       modeOrder.forEach(modeId => {
         const option = document.createElement('option');
         option.value = modeId;

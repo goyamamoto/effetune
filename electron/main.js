@@ -485,6 +485,10 @@ function createWindow() {
       e.preventDefault();
       mainWindow.hide();
       createTray();
+      // Request tray menu update from renderer process
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send('request-tray-menu-update');
+      }
     }
   });
 
@@ -782,23 +786,32 @@ constants.setUpdateTrayMenuTemplate(updateTrayMenuTemplate);
 
 function createTray() {
   if (tray) return;
-  tray = new Tray(path.join(__dirname, '../images/favicon.ico'));
   
-  // Create initial menu template (will be updated when translations are loaded)
-  const menuTemplate = [
-    { label: trayMenuLabels.open, click: () => { const win = constants.getMainWindow(); if (win) { win.show(); } } },
-    { label: trayMenuLabels.quit, click: () => { app.quit(); } }
-  ];
+  // Use PNG file for macOS compatibility and proper path resolution
+  const iconPath = path.join(app.getAppPath(), 'images/icon_64x64.png');
   
-  const contextMenu = Menu.buildFromTemplate(menuTemplate);
-  tray.setToolTip('EffeTune');
-  tray.setContextMenu(contextMenu);
-  tray.on('double-click', () => {
-    const win = constants.getMainWindow();
-    if (win) {
-      win.show();
-    }
-  });
+  try {
+    tray = new Tray(iconPath);
+    
+    // Create initial menu template (will be updated when translations are loaded)
+    const menuTemplate = [
+      { label: trayMenuLabels.open, click: () => { const win = constants.getMainWindow(); if (win) { win.show(); } } },
+      { label: trayMenuLabels.quit, click: () => { app.quit(); } }
+    ];
+    
+    const contextMenu = Menu.buildFromTemplate(menuTemplate);
+    tray.setToolTip('EffeTune');
+    tray.setContextMenu(contextMenu);
+    tray.on('double-click', () => {
+      const win = constants.getMainWindow();
+      if (win) {
+        win.show();
+      }
+    });
+  } catch (error) {
+    console.error('Failed to create tray icon:', error);
+    // Don't throw the error, just log it and continue without tray
+  }
 }
 
 // Initialize the app

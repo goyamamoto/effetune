@@ -255,6 +255,12 @@ class ElectronIntegration {
       }
     });
     
+    // Listen for tray menu update request from main process
+    window.electronAPI.onIPC('request-tray-menu-update', () => {
+      // Update tray menu when requested (e.g., when manually minimizing to tray)
+      this.updateTrayMenu();
+    });
+    
     // Listen for show about dialog request from main process
     window.electronAPI.onShowAboutDialog((data) => {
       // About menu item clicked

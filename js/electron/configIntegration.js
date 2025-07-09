@@ -198,8 +198,19 @@ export async function showConfigDialog(isElectron, currentConfig) {
   if (select) {
     select.addEventListener('change', e => { config.startupPreset = e.target.value; save(); });
   }
-  document.getElementById('close-btn').addEventListener('click', () => {
+  function closeDialog() {
     document.body.removeChild(overlay);
     document.head.removeChild(style);
-  });
+    document.removeEventListener('keydown', handleKeydown);
+  }
+
+  function handleKeydown(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeDialog();
+    }
+  }
+
+  document.getElementById('close-btn').addEventListener('click', closeDialog);
+  document.addEventListener('keydown', handleKeydown);
 } 
