@@ -230,10 +230,32 @@ class App {
             this.uiManager.hideLoadingSpinner();
             
             // Wait for next frame to ensure UI is rendered
-            await new Promise(resolve => requestAnimationFrame(() => {
-                // Use a second requestAnimationFrame to ensure UI is fully rendered
-                requestAnimationFrame(resolve);
-            }));
+            // Use different strategies based on window visibility and startup settings
+            let useTimeoutInsteadOfRAF = document.hidden; // Default: use timeout if window is hidden
+            
+            // For Electron: also use timeout if started minimized (minimized startup doesn't set document.hidden)
+            if (window.electronIntegration && window.electronIntegration.isElectron && window.electronAPI?.loadConfig) {
+                try {
+                    const configResult = await window.electronAPI.loadConfig();
+                    if (configResult.success && configResult.config?.startMinimized) {
+                        useTimeoutInsteadOfRAF = true;
+                    }
+                } catch (error) {
+                    // Ignore config load errors, fallback to document.hidden check
+                }
+            }
+            
+            if (useTimeoutInsteadOfRAF) {
+                // If window is hidden or started minimized, use setTimeout instead of requestAnimationFrame
+                // requestAnimationFrame doesn't execute properly when the page is hidden or minimized
+                await new Promise(resolve => setTimeout(resolve, 50));
+            } else {
+                // Normal path: wait for animation frames when window is visible
+                await new Promise(resolve => requestAnimationFrame(() => {
+                    // Use a second requestAnimationFrame to ensure UI is fully rendered
+                    requestAnimationFrame(resolve);
+                }));
+            }
             
             // First initialize AudioWorklet (before creating plugins)
             await this.initializeAudioWorklet();
@@ -438,6 +460,63 @@ class App {
             }
         }
         
+        // Check config settings for startup preset if in Electron environment
+        if (isElectron && window.electronIntegration) {
+            try {
+                const { loadConfig } = await import('./electron/configIntegration.js');
+                const config = await loadConfig(true);
+                
+                // If config specifies a preset for startup, load it instead of previous state
+                if (config.pipelineStartup === 'preset' && config.startupPreset) {
+                    const presetManager = this.uiManager.pipelineManager.presetManager;
+                    const presets = await presetManager.getPresets();
+                    
+                    if (presets[config.startupPreset]) {
+                        try {
+                            // Set flags to prevent loading previous state
+                            window.pipelineStateLoaded = false;
+                            if (typeof window.ORIGINAL_PIPELINE_STATE_LOADED !== 'undefined') {
+                                window.ORIGINAL_PIPELINE_STATE_LOADED = false;
+                            }
+                            window.__FORCE_SKIP_PIPELINE_STATE_LOAD = true;
+                            
+                            // Load the specified preset
+                            await presetManager.loadPreset(config.startupPreset);
+                            
+                            // Force disconnect all existing connections first
+                            if (this.audioManager.workletNode) {
+                                try {
+                                    this.audioManager.workletNode.disconnect();
+                                } catch (e) {
+                                    // Ignore errors if already disconnected
+                                }
+                            }
+                            
+                            // Rebuild pipeline with force flag to ensure complete rebuild
+                            await this.audioManager.rebuildPipeline(true);
+                            
+                            return;
+                        } catch (error) {
+                            console.error('Error loading startup preset:', error);
+                        }
+                    } else {
+                        console.warn(`Startup preset '${config.startupPreset}' not found`);
+                    }
+                }
+                
+                // If config specifies default settings, skip loading previous state
+                if (config.pipelineStartup === 'default') {
+                    window.pipelineStateLoaded = false;
+                    if (typeof window.ORIGINAL_PIPELINE_STATE_LOADED !== 'undefined') {
+                        window.ORIGINAL_PIPELINE_STATE_LOADED = false;
+                    }
+                    window.__FORCE_SKIP_PIPELINE_STATE_LOAD = true;
+                }
+            } catch (error) {
+                console.error('Error loading config for startup preset:', error);
+            }
+        }
+        
         // Load pipeline state
         let savedState = null;
         const plugins = [];
@@ -545,6 +624,17 @@ class App {
             await new Promise(resolve => setTimeout(resolve, 100));
             await this.audioManager.rebuildPipeline(true);
             console.log('Audio pipeline rebuilt after error');
+        }
+
+        if (window.pendingPresetName && window.pipelineManager && window.pipelineManager.presetManager) {
+            await window.pipelineManager.presetManager.loadPreset(window.pendingPresetName);
+            window.pendingPresetName = null;
+        }
+
+        // Load pending tray preset if available
+        if (window.pendingTrayPresetName && window.pipelineManager && window.pipelineManager.presetManager) {
+            await window.pipelineManager.presetManager.loadPreset(window.pendingTrayPresetName);
+            window.pendingTrayPresetName = null;
         }
     }
 
@@ -804,6 +894,22 @@ window.addEventListener('beforeunload', async (event) => {
     // Write the latest pipeline state to file on app exit
     await writePipelineStateToFile();
 });
+
+// Set up event listeners for tray menu functionality
+if (window.electronAPI && window.electronIntegration && window.electronIntegration.isElectron) {
+  // Listen for preset load requests from tray menu
+  window.electronAPI.onIPC('load-preset-from-tray', (presetName) => {
+    // Wait for app to be initialized before loading preset
+    if (window.app && window.app.initialized && window.pipelineManager && window.pipelineManager.presetManager) {
+      window.pipelineManager.presetManager.loadPreset(presetName).catch(error => {
+        console.error('Error loading preset from tray:', error);
+      });
+    } else {
+      // If app is not initialized yet, store the preset name to load later
+      window.pendingTrayPresetName = presetName;
+    }
+  });
+}
 
 // Initialize application after first launch check is complete
 isFirstLaunchPromise.then(isFirstLaunch => {

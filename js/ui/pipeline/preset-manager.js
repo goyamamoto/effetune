@@ -174,6 +174,12 @@ export class PresetManager {
                 await window.uiManager.pluginListManager.refreshPresetsIfVisible();
             }
             
+            // Update tray menu with new preset list
+            if (window.electronIntegration && window.electronIntegration.isElectron) {
+                const { updateTrayMenu } = await import('../../electron/menuIntegration.js');
+                await updateTrayMenu(true);
+            }
+            
             if (window.uiManager) {
                 window.uiManager.setError('success.presetSaved', false, { name });
                 setTimeout(() => window.uiManager.clearError(), 3000);
@@ -371,6 +377,12 @@ export class PresetManager {
             // Update plugin list presets tab if it's visible
             if (window.uiManager && window.uiManager.pluginListManager) {
                 await window.uiManager.pluginListManager.refreshPresetsIfVisible();
+            }
+            
+            // Update tray menu with new preset list
+            if (window.electronIntegration && window.electronIntegration.isElectron) {
+                const { updateTrayMenu } = await import('../../electron/menuIntegration.js');
+                await updateTrayMenu(true);
             }
             
             if (window.uiManager) {

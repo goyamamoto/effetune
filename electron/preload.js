@@ -47,6 +47,9 @@ contextBridge.exposeInMainWorld(
     onOpenMusicFiles: (callback) => {
       ipcRenderer.on('open-music-files', (_, filePaths) => callback(filePaths));
     },
+    onLoadUserPreset: (callback) => {
+      ipcRenderer.on('load-user-preset', (_, name) => callback(name));
+    },
     onProcessAudioFiles: (callback) => {
       ipcRenderer.on('process-audio-files', () => callback());
     },
@@ -58,6 +61,9 @@ contextBridge.exposeInMainWorld(
     },
     onConfigAudio: (callback) => {
       ipcRenderer.on('config-audio', () => callback());
+    },
+    onConfigApp: (callback) => {
+      ipcRenderer.on('config-app', () => callback());
     },
     onShowAboutDialog: (callback) => {
       ipcRenderer.on('show-about-dialog', (_, data) => callback(data));
@@ -77,6 +83,20 @@ contextBridge.exposeInMainWorld(
     
     // Update application menu with translations
     updateApplicationMenu: (menuTemplate) => ipcRenderer.invoke('update-application-menu', menuTemplate),
+    
+      // Update tray menu with translations
+  updateTrayMenu: (trayMenuTemplate) => ipcRenderer.invoke('update-tray-menu', trayMenuTemplate),
+  
+  // Load preset from tray menu
+  loadPresetFromTray: (presetName) => ipcRenderer.invoke('load-preset-from-tray', presetName),
+  
+  // Get user presets for tray menu
+  getUserPresetsForTray: () => ipcRenderer.invoke('get-user-presets-for-tray'),
+  
+  // Listen for IPC events
+  onIPC: (channel, callback) => {
+    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
     
     // Hide application menu
     hideApplicationMenu: () => ipcRenderer.invoke('hide-application-menu'),
@@ -101,6 +121,10 @@ contextBridge.exposeInMainWorld(
     
     // Save pipeline state to file
     savePipelineStateToFile: (pipelineState) => ipcRenderer.invoke('save-pipeline-state-to-file', pipelineState),
+    
+    // Load and save config
+    loadConfig: () => ipcRenderer.invoke('load-config'),
+    saveConfig: (cfg) => ipcRenderer.invoke('save-config', cfg),
     
     // Expose ipcRenderer for event listeners
     ipcRenderer: ipcRenderer,

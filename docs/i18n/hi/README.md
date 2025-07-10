@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 एक रियल-टाइम ऑडियो इफेक्ट प्रोसेसर जो ऑडियो उत्साही लोगों के लिए उनके संगीत सुनने के अनुभव को बढ़ाने के लिए डिज़ाइन किया गया है। EffeTune आपको विभिन्न उच्च गुणवत्ता वाले इफेक्ट्स के माध्यम से किसी भी ऑडियो स्रोत को प्रोसेस करने की अनुमति देता है, जिससे आप रियल-टाइम में अपने सुनने के अनुभव को अनुकूलित और परिपूर्ण कर सकते हैं।
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## अवधारणा
 
@@ -158,7 +158,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 
 ### आवृत्ति प्रतिक्रिया मापन
 
-1. वेब संस्करण के लिए, [आवृत्ति प्रतिक्रिया मापन उपकरण](https://frieve-a.github.io/effetune/features/measurement/measurement.html) प्रारंभ करें। ऐप संस्करण के लिए, सेटिंग्स मेनू से "आवृत्ति प्रतिक्रिया मापन" चुनें।
+1. वेब संस्करण के लिए, [आवृत्ति प्रतिक्रिया मापन उपकरण](https://effetune.frieve.com/features/measurement/measurement.html) प्रारंभ करें। ऐप संस्करण के लिए, सेटिंग्स मेनू से "आवृत्ति प्रतिक्रिया मापन" चुनें।
 2. अपने ऑडियो उपकरण को अपने कंप्यूटर के इनपुट और आउटपुट से कनेक्ट करें
 3. मापन पैरामीटर कॉन्फ़िगर करें (स्वीप अवधि, आवृत्ति रेंज)
 4. आवृत्ति प्रतिक्रिया ग्राफ़ उत्पन्न करने के लिए मापन चलाएं

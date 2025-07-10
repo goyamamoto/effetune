@@ -6,6 +6,7 @@ Lo-Fi: Vintage and lo-fi sounds
 Processor: Simulation of effectors and typical signal processing pipelines
 Spatial : Listening environment simulation
 Spkr. Sim.: Simulation of speaker characteristics
+Utils : Utilities
 Visualize: Visualize music
 4ch: Presets for 4ch settings
 Others: Other presets
@@ -26,6 +27,7 @@ processor/bbe: BBE | Processor | Low-frequency delay and high-frequency emphasis
 processor/fm_radio: FM Radio | Processor | Online processor for multiband compression and stereo widening
 spatial/live: Live | Spatial | Reverberation at live venues and deterioration of sound quality due to air movement
 spkr_sim/vintage_full_range: Vintage Full Range | Spkr. Sim. | Narrowband, split-frequency and Doppler distortion in vintage full-range speakers
+utils/bgm: BGM | Utils | Reduce the volume by 24dB from 85dB SPL and compensate for the bass
 visualize/all_analyzers: All Analyzers | Visualize | Visualize every corner of your music with all the analyzers
 4ch/matrix: Matrix | 4ch | Rear speakers play back center-cancelled, band-limited and delayed signals
 4ch/rear_reverb: Rear Reverb | 4ch | Stereo sources are played directly from the front speakers, while the reverberation is output from the rear speakers

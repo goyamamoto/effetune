@@ -1,9 +1,10 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 // Import modules
 const constants = require('./constants');
+const configModule = require('./config');
 const windowState = require('./window-state');
 const ipcHandlers = require('./ipc-handlers');
 const fileHandlers = require('./file-handlers');
@@ -12,6 +13,8 @@ const fileHandlers = require('./file-handlers');
 const packageJson = require('../package.json');
 const appVersion = packageJson.version;
 constants.setAppVersion(appVersion);
+
+let tray = null;
 
 // Set up logging to file for debugging (disabled for release)
 function setupFileLogging() {
@@ -274,8 +277,17 @@ function createWindow() {
     if (constants.getWindowState().isMaximized) {
       mainWindow.maximize();
     }
-    // Show the window
-    mainWindow.show();
+    if (constants.getAppConfig().startMinimized) {
+      if (constants.getAppConfig().minimizeToTray) {
+        mainWindow.hide();
+        createTray();
+      } else {
+        // For minimize to taskbar: show and minimize immediately
+        mainWindow.minimize();
+      }
+    } else {
+      mainWindow.show();
+    }
   });
   
   // Load the app's HTML file
@@ -410,6 +422,11 @@ function createWindow() {
         if (constants.getIsSplashReload()) {
           constants.setIsSplashReload(false);
         }
+
+        if (constants.getStartupPreset()) {
+          mainWindow.webContents.send('load-user-preset', constants.getStartupPreset());
+          constants.setStartupPreset(null);
+        }
       }, 300);
     } else if (constants.getCommandLineMusicFiles().length > 0) {
       // If there's no preset file but there are music files, store them for later
@@ -462,6 +479,25 @@ function createWindow() {
   // Save window state when window is moved or resized
   mainWindow.on('resize', () => windowState.saveWindowState());
   mainWindow.on('move', () => windowState.saveWindowState());
+  
+  mainWindow.on('minimize', (e) => {
+    if (constants.getAppConfig().minimizeToTray) {
+      e.preventDefault();
+      mainWindow.hide();
+      createTray();
+      // Request tray menu update from renderer process
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send('request-tray-menu-update');
+      }
+    }
+  });
+
+  mainWindow.on('restore', () => {
+    if (tray) {
+      tray.destroy();
+      tray = null;
+    }
+  });
   
   // Handle window close event
   mainWindow.on('close', () => {
@@ -620,8 +656,15 @@ function createSplashScreen() {
   // Load the splash window
   splashWindow.loadFile(splashPath);
   
-  // Show splash window when ready
+  // Show splash window when ready (only if not starting minimized)
   splashWindow.once('ready-to-show', () => {
+    // Check if starting minimized - if so, don't show splash screen
+    const appConfig = constants.getAppConfig();
+    if (appConfig && appConfig.startMinimized) {
+      // Don't show splash window when starting minimized
+      return;
+    }
+    
     // Position splash window in the center of the main window
     const mainWindow = constants.getMainWindow();
     if (mainWindow) {
@@ -674,6 +717,103 @@ function createSplashScreen() {
   }, 3000);
 }
 
+// Store tray menu labels for translation
+let trayMenuLabels = {
+  open: 'Open',
+  quit: 'Quit',
+  presets: 'Presets'
+};
+
+// Update tray menu template with translated labels
+function updateTrayMenuTemplate(trayMenuTemplate) {
+  try {
+    // Update the stored labels
+    if (trayMenuTemplate.open && trayMenuTemplate.open.label) {
+      trayMenuLabels.open = trayMenuTemplate.open.label;
+    }
+    if (trayMenuTemplate.quit && trayMenuTemplate.quit.label) {
+      trayMenuLabels.quit = trayMenuTemplate.quit.label;
+    }
+    if (trayMenuTemplate.presets && trayMenuTemplate.presets.label) {
+      trayMenuLabels.presets = trayMenuTemplate.presets.label;
+    }
+    
+    // Update the tray menu if it exists
+    if (tray) {
+      const menuTemplate = [];
+      
+      // Add preset submenu if presets are available
+      if (trayMenuTemplate.presets && trayMenuTemplate.presets.items && trayMenuTemplate.presets.items.length > 0) {
+        const presetMenuItems = trayMenuTemplate.presets.items.map(presetName => ({
+          label: presetName,
+          click: async () => {
+            try {
+              const mainWin = constants.getMainWindow();
+              if (mainWin && mainWin.webContents) {
+                mainWin.webContents.send('load-preset-from-tray', presetName);
+              }
+            } catch (error) {
+              console.error('Error loading preset from tray:', error);
+            }
+          }
+        }));
+        
+        menuTemplate.push(
+          {
+            label: trayMenuLabels.presets,
+            submenu: presetMenuItems
+          },
+          { type: 'separator' }
+        );
+      }
+      
+      // Add standard menu items
+      menuTemplate.push(
+        { label: trayMenuLabels.open, click: () => { const win = constants.getMainWindow(); if (win) { win.show(); } } },
+        { label: trayMenuLabels.quit, click: () => { app.quit(); } }
+      );
+      
+      const contextMenu = Menu.buildFromTemplate(menuTemplate);
+      tray.setContextMenu(contextMenu);
+    }
+  } catch (error) {
+    console.error('Error updating tray menu template:', error);
+  }
+}
+
+// Store the updateTrayMenuTemplate function in constants so it can be accessed from ipc-handlers
+constants.setUpdateTrayMenuTemplate(updateTrayMenuTemplate);
+
+function createTray() {
+  if (tray) return;
+  
+  // Use PNG file for macOS compatibility and proper path resolution
+  const iconPath = path.join(app.getAppPath(), 'images/icon_64x64.png');
+  
+  try {
+    tray = new Tray(iconPath);
+    
+    // Create initial menu template (will be updated when translations are loaded)
+    const menuTemplate = [
+      { label: trayMenuLabels.open, click: () => { const win = constants.getMainWindow(); if (win) { win.show(); } } },
+      { label: trayMenuLabels.quit, click: () => { app.quit(); } }
+    ];
+    
+    const contextMenu = Menu.buildFromTemplate(menuTemplate);
+    tray.setToolTip('EffeTune');
+    tray.setContextMenu(contextMenu);
+    tray.on('double-click', () => {
+      const win = constants.getMainWindow();
+      if (win) {
+        win.show();
+      }
+    });
+  } catch (error) {
+    console.error('Failed to create tray icon:', error);
+    // Don't throw the error, just log it and continue without tray
+  }
+}
+
 // Initialize the app
 function initializeApp() {
   // Set up file logging first to capture all logs
@@ -706,6 +846,26 @@ function initializeApp() {
     }
   }
   
+  const cfgDefaults = {
+    autoLaunch: false,
+    startMinimized: false,
+    minimizeToTray: false,
+    pipelineStartup: 'last',
+    startupPreset: ''
+  };
+  const cfg = { ...cfgDefaults, ...configModule.loadConfig() };
+  configModule.saveConfig(cfg);
+  constants.setAppConfig(cfg);
+  app.setLoginItemSettings({ openAtLogin: !!cfg.autoLaunch });
+  if (cfg.pipelineStartup === 'default') {
+    constants.setShouldLoadPipelineState(false);
+  } else if (cfg.pipelineStartup === 'last') {
+    constants.setShouldLoadPipelineState(true);
+  } else if (cfg.pipelineStartup === 'preset') {
+    constants.setShouldLoadPipelineState(false);
+    constants.setStartupPreset(cfg.startupPreset);
+  }
+
   // Create the main window
   createWindow();
   

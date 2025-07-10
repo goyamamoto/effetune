@@ -441,12 +441,12 @@ class FiveBandDynamicEQ extends PluginBase {
         }
     }
 
-    // Note: Ratio is stored linearly, but UI uses a slider from -100 to 200
+    // Note: Ratio is stored as slider values (-100 to 200), not linear ratios
     setBandRatio(index, value) {
         const numValue = typeof value === 'number' ? value : parseFloat(value);
         if (index >= 0 && index < this.numBands && !isNaN(numValue)) {
-            // Assuming input 'value' is the linear ratio
-            this.bs[index].r = Math.max(-100, Math.min(200.0, numValue)); // Clamp linear ratio (adjust min as needed)
+            // Input 'value' is the slider value (-100 to 200)
+            this.bs[index].r = Math.max(-100, Math.min(200.0, numValue)); // Clamp slider value
             this.updateParameters();
             this._drawGraph();
         }

@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-🔗[**Webアプリを開く**](https://frieve-a.github.io/effetune/effetune.html)  🔗[**デスクトップアプリをダウンロード**](https://github.com/Frieve-A/effetune/releases/)
+🔗[**Webアプリを開く**](https://effetune.frieve.com/effetune.html)  🔗[**デスクトップアプリをダウンロード**](https://github.com/Frieve-A/effetune/releases/)
 
 オーディオ愛好家のために設計されたリアルタイムオーディオエフェクトプロセッサです。EffeTuneを使用すると、あらゆるオーディオソースを高品質なエフェクトで処理し、リアルタイムでリスニング体験を自由にカスタマイズして完璧に調整することができます。
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## コンセプト
 
@@ -182,7 +182,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 ### 周波数特性測定と補正
 
 オーディオシステムの周波数特性を測定し、フラットな補正EQを作成するには:
-1. Web版では[周波数応答測定ツール](https://frieve-a.github.io/effetune/features/measurement/measurement.html)を起動。アプリ版では設定メニューから「周波数応答測定」を選択
+1. Web版では[周波数応答測定ツール](https://effetune.frieve.com/features/measurement/measurement.html)を起動。アプリ版では設定メニューから「周波数応答測定」を選択
 2. ガイドに従って測定用マイクと出力デバイスを設定する
 3. 一つまたは複数のリスニングポジションでシステムの周波数特性を測定する
 4. EffeTuneに直接インポート可能なパラメトリックEQ補正を生成する

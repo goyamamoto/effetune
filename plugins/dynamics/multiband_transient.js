@@ -409,7 +409,24 @@ class MultibandTransientPlugin extends PluginBase {
     setParameters(params) {
         if (params.f1 !== undefined) this.f1 = Math.min(2000, Math.max(20, params.f1));
         if (params.f2 !== undefined) this.f2 = Math.min(20000, Math.max(200, params.f2));
-        if (params.band !== undefined && params.band >= 0 && params.band < this.bands.length) {
+        
+        // Handle bands array for preset loading and copy/paste
+        if (params.bands && Array.isArray(params.bands)) {
+            params.bands.forEach((bandParams, i) => {
+                if (i < this.bands.length && bandParams) {
+                    const band = this.bands[i];
+                    if (bandParams.fa !== undefined) band.fa = Math.min(10.0, Math.max(0.1, bandParams.fa));
+                    if (bandParams.fr !== undefined) band.fr = Math.min(200, Math.max(1, bandParams.fr));
+                    if (bandParams.sa !== undefined) band.sa = Math.min(100, Math.max(1, bandParams.sa));
+                    if (bandParams.sr !== undefined) band.sr = Math.min(1000, Math.max(50, bandParams.sr));
+                    if (bandParams.gt !== undefined) band.gt = Math.min(24, Math.max(-24, bandParams.gt));
+                    if (bandParams.gs !== undefined) band.gs = Math.min(24, Math.max(-24, bandParams.gs));
+                    if (bandParams.sm !== undefined) band.sm = Math.min(20.0, Math.max(0.1, bandParams.sm));
+                }
+            });
+        }
+        // Handle individual band parameter updates
+        else if (params.band !== undefined && params.band >= 0 && params.band < this.bands.length) {
             const band = this.bands[params.band];
             if (params.fa !== undefined) band.fa = Math.min(10.0, Math.max(0.1, params.fa));
             if (params.fr !== undefined) band.fr = Math.min(200, Math.max(1, params.fr));
@@ -419,6 +436,7 @@ class MultibandTransientPlugin extends PluginBase {
             if (params.gs !== undefined) band.gs = Math.min(24, Math.max(-24, params.gs));
             if (params.sm !== undefined) band.sm = Math.min(20.0, Math.max(0.1, params.sm));
         }
+        
         if (params.enabled !== undefined) this.enabled = params.enabled;
         this.updateParameters();
     }

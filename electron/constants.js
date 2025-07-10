@@ -10,6 +10,9 @@ let commandLineMusicFiles = [];
 let savedCommandLineMusicFiles = [];
 let pendingCommandLineMusicFiles = [];
 let appVersion = null;
+let appConfig = {};
+let startupPreset = null;
+let updateTrayMenuTemplate = null;
 
 module.exports = {
   getMainWindow: () => mainWindow,
@@ -53,4 +56,13 @@ module.exports = {
 
   getAppVersion: () => appVersion,
   setAppVersion: (version) => { appVersion = version },
+
+  getAppConfig: () => appConfig,
+  setAppConfig: (config) => { appConfig = config },
+
+  getStartupPreset: () => startupPreset,
+  setStartupPreset: (preset) => { startupPreset = preset },
+
+  getUpdateTrayMenuTemplate: () => updateTrayMenuTemplate,
+  setUpdateTrayMenuTemplate: (func) => { updateTrayMenuTemplate = func },
 };

@@ -2,11 +2,11 @@
 
 [[中文 (简体)](docs/i18n/zh/README.md)] [[Español](docs/i18n/es/README.md)] [[हिन्दी](docs/i18n/hi/README.md)] [[العربية](docs/i18n/ar/README.md)] [[Português](docs/i18n/pt/README.md)] [[Русский](docs/i18n/ru/README.md)] [[日本語](docs/i18n/ja/README.md)] [[한국어](docs/i18n/ko/README.md)] [[Français](docs/i18n/fr/README.md)]
 
-🔗[**Open Web App**](https://frieve-a.github.io/effetune/effetune.html)  🔗[**Download Desktop App**](https://github.com/Frieve-A/effetune/releases/)
+🔗[**Open Web App**](https://effetune.frieve.com/effetune.html)  🔗[**Download Desktop App**](https://github.com/Frieve-A/effetune/releases/)
 
 A real-time audio effect processor designed for audio enthusiasts to enhance their music listening experience. EffeTune allows you to process any audio source through various high-quality effects, enabling you to customize and perfect your listening experience in real-time.
 
-[![Screenshot](images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## Introduction video
 
@@ -188,7 +188,7 @@ If you experience audio issues (dropouts, glitches):
 ### Frequency Response Measurement and Correction
 
 To measure your audio system's frequency response and create a flat correction EQ:
-1. For the web version, launch the [Frequency Response Measurement tool](https://frieve-a.github.io/effetune/features/measurement/measurement.html). For the app version, select Frequency Response Measurement from the Settings menu.
+1. For the web version, launch the [Frequency Response Measurement tool](https://effetune.frieve.com/features/measurement/measurement.html). For the app version, select Frequency Response Measurement from the Settings menu.
 2. Follow the guided setup to configure your measurement microphone and output device
 3. Measure your system's frequency response at one or more listening positions
 4. Generate a parametric EQ correction that can be directly imported into EffeTune

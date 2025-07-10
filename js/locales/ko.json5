@@ -82,6 +82,7 @@
   "ui.title.moveUp": "이펙트 위로 이동",
   "ui.title.moveDown": "이펙트 아래로 이동",
   "ui.title.pluginDocs": "이펙트 문서 열기",
+  "ui.title.askAI": "이 이펙터에 대해 AI에게 물어보기",
   "ui.title.deleteEffect": "이펙트 삭제",
   "ui.title.close": "닫기",
   "ui.title.expand": "클릭하여 확장",
@@ -103,6 +104,14 @@
   "ui.busRouting": "버스 라우팅",
   "ui.inputBus": "입력 버스:",
   "ui.outputBus": "출력 버스:",
+  "ui.channel": "채널:",
+  
+  // AI 대화상자
+  "ui.askAITitle": "이 이펙터에 대해 AI에게 물어보기",
+  "ui.askAICaption": "{effectName}에 대한 질문:",
+  "ui.askAIPlaceholder": "이 효과에 대한 질문을 입력하세요...",
+  "ui.askChatGPT": "ChatGPT에게 묻기",
+  "ui.askPerplexity": "Perplexity에게 묻기",
 
   // 메인 메뉴
   "menu.file": "파일",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "전체 화면 전환",
 
   "menu.settings": "설정",
+  "menu.settings.config": "구성...",
   "menu.settings.audioDevices": "오디오 장치...",
   "menu.settings.performanceBenchmark": "성능 벤치마크",
   "menu.settings.frequencyResponseMeasurement": "주파수 응답 측정",
@@ -154,5 +164,20 @@
   "dialog.audioConfig.cancel": "취소",
   "dialog.audioConfig.apply": "적용",
   "dialog.audioConfig.updatedTitle": "오디오 설정 업데이트됨",
-  "dialog.audioConfig.updatedMessage": "변경 사항 적용을 위해 앱을 다시 로드합니다..."
+  "dialog.audioConfig.updatedMessage": "다시 로드 중...",
+
+  "dialog.config.title": "설정",
+  "dialog.config.autoLaunch": "OS 시작 시 자동 실행",
+  "dialog.config.startMinimized": "최소화된 상태로 시작",
+  "dialog.config.minimizeToTray": "트레이로 최소화",
+  "dialog.config.pipeline": "시작 시 효과 파이프라인:",
+  "dialog.config.pipeline.default": "기본 설정",
+  "dialog.config.pipeline.last": "마지막 종료 시 설정",
+  "dialog.config.pipeline.preset": "특정 프리셋",
+  "dialog.config.close": "닫기",
+
+  // 트레이 메뉴
+  "trayMenuOpen": "열기",
+  "trayMenuQuit": "종료",
+  "trayMenuPresets": "프리셋"
 }

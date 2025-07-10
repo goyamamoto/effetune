@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 Um processador de efeitos de áudio em tempo real, projetado para entusiastas do áudio aprimorarem sua experiência de escuta. EffeTune permite que você processe qualquer fonte de áudio através de vários efeitos de alta qualidade, possibilitando personalizar e aperfeiçoar sua experiência de escuta em tempo real.
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## Conceito
 
@@ -165,7 +165,7 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
 
 ### Medição de Resposta de Frequência
 
-1. Para a versão web, abra a [ferramenta de Medição da Resposta em Frequência](https://frieve-a.github.io/effetune/features/measurement/measurement.html). Para a versão do aplicativo, selecione "Medição da Resposta em Frequência" no menu Configurações
+1. Para a versão web, abra a [ferramenta de Medição da Resposta em Frequência](https://effetune.frieve.com/features/measurement/measurement.html). Para a versão do aplicativo, selecione "Medição da Resposta em Frequência" no menu Configurações
 2. Conecte seu equipamento de áudio à entrada e saída do seu computador
 3. Configure os parâmetros de medição (duração da varredura, faixa de frequência)
 4. Execute a medição para gerar um gráfico de resposta de frequência

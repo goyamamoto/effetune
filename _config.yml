@@ -1,3 +1,24 @@
-remote_theme: pages-themes/midnight@v0.2.0
+title: "Frieve EffeTune"
+description: "A real-time audio effect processor designed for audio enthusiasts to enhance their music listening experience."
+url: "https://effetune.frieve.com"
+
+remote_theme: just-the-docs/just-the-docs
+
+color_scheme: dark
+
+search_enabled: true
+nav_enabled: false
+
 plugins:
+  - jekyll-feed
+  - jekyll-gist
+  - jekyll-paginate
+  - jekyll-sitemap
   - jekyll-remote-theme
+  - jekyll-seo-tag
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"

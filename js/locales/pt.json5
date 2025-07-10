@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Mover efeito para cima",
   "ui.title.moveDown": "Mover efeito para baixo",
   "ui.title.pluginDocs": "Abrir documentação do efeito",
+  "ui.title.askAI": "Perguntar à IA sobre este efetor",
   "ui.title.deleteEffect": "Excluir efeito",
   "ui.title.close": "Fechar",
   "ui.title.expand": "Clique para expandir",
@@ -103,6 +104,14 @@
   "ui.busRouting": "Roteamento de Bus",
   "ui.inputBus": "Bus de Entrada:",
   "ui.outputBus": "Bus de Saída:",
+  "ui.channel": "Canal:",
+  
+  // Diálogo IA
+  "ui.askAITitle": "Perguntar à IA sobre este efetor",
+  "ui.askAICaption": "Pergunta sobre {effectName}:",
+  "ui.askAIPlaceholder": "Digite sua pergunta sobre este efeito...",
+  "ui.askChatGPT": "Perguntar ao ChatGPT",
+  "ui.askPerplexity": "Perguntar ao Perplexity",
 
   // Menu principal
   "menu.file": "Arquivo",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "Alternar Tela Cheia",
 
   "menu.settings": "Configurações",
+  "menu.settings.config": "Configuração...",
   "menu.settings.audioDevices": "Dispositivos de Áudio...",
   "menu.settings.performanceBenchmark": "Teste de desempenho",
   "menu.settings.frequencyResponseMeasurement": "Medição da resposta em frequência",
@@ -154,5 +164,20 @@
   "dialog.audioConfig.cancel": "Cancelar",
   "dialog.audioConfig.apply": "Aplicar",
   "dialog.audioConfig.updatedTitle": "Configuração de Áudio Atualizada",
-  "dialog.audioConfig.updatedMessage": "Recarregando o aplicativo para aplicar as alterações..."
+  "dialog.audioConfig.updatedMessage": "Recarregando...",
+
+  "dialog.config.title": "Configuração",
+  "dialog.config.autoLaunch": "Iniciar na inicialização do SO",
+  "dialog.config.startMinimized": "Iniciar minimizado",
+  "dialog.config.minimizeToTray": "Minimizar para a bandeja",
+  "dialog.config.pipeline": "Pipeline de efeitos na inicialização:",
+  "dialog.config.pipeline.default": "Configurações padrão",
+  "dialog.config.pipeline.last": "Configurações da última saída",
+  "dialog.config.pipeline.preset": "Predefinição específica",
+  "dialog.config.close": "Fechar",
+
+  // Menu da bandeja
+  "trayMenuOpen": "Abrir",
+  "trayMenuQuit": "Sair",
+  "trayMenuPresets": "Predefinições"
 }

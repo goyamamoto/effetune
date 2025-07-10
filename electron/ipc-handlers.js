@@ -2,6 +2,7 @@ const { ipcMain, shell, systemPreferences, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const constants = require('./constants');
+const config = require('./config');
 
 // Import file handlers
 const fileHandlers = require('./file-handlers');
@@ -159,6 +160,31 @@ function registerIpcHandlers() {
     }
   });
 
+  // Save configuration
+  ipcMain.handle('save-config', async (event, cfg) => {
+    try {
+      const current = { ...config.loadConfig(), ...cfg };
+      config.saveConfig(current);
+      constants.setAppConfig(current);
+      require('electron').app.setLoginItemSettings({ openAtLogin: !!current.autoLaunch });
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving config:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Load configuration
+  ipcMain.handle('load-config', async () => {
+    try {
+      const cfg = config.loadConfig();
+      return { success: true, config: cfg };
+    } catch (error) {
+      console.error('Error loading config:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // Handle opening external URLs in default browser
   ipcMain.handle('open-external-url', async (event, url) => {
     try {
@@ -179,7 +205,7 @@ function registerIpcHandlers() {
         url = url + anchor;
         
         // Add base URL
-        url = 'https://frieve-a.github.io/effetune' + (url.startsWith('/') ? url : '/' + url);
+        url = 'https://effetune.frieve.com' + (url.startsWith('/') ? url : '/' + url);
       }
       await shell.openExternal(url);
       return { success: true };
@@ -471,7 +497,16 @@ function registerIpcHandlers() {
           label: menuTemplate.settings.label,
           submenu: [
             {
-              label: menuTemplate.settings.submenu[0].label, // Audio Devices...
+              label: menuTemplate.settings.submenu[0].label, // Config...
+              click: () => {
+                const mainWin = constants.getMainWindow();
+                if (mainWin) {
+                  mainWin.webContents.send('config-app');
+                }
+              }
+            },
+            {
+              label: menuTemplate.settings.submenu[1].label, // Audio Devices...
               click: () => {
                 const mainWin = constants.getMainWindow();
                 if (mainWin) {
@@ -480,7 +515,7 @@ function registerIpcHandlers() {
               }
             },
             {
-              label: menuTemplate.settings.submenu[1].label, // Performance Benchmark
+              label: menuTemplate.settings.submenu[2].label, // Performance Benchmark
               click: () => {
                 const mainWin = constants.getMainWindow();
                 if (mainWin) {
@@ -489,7 +524,7 @@ function registerIpcHandlers() {
               }
             },
             {
-              label: menuTemplate.settings.submenu[2].label, // Frequency Response Measurement
+              label: menuTemplate.settings.submenu[3].label, // Frequency Response Measurement
               click: () => {
                 const mainWin = constants.getMainWindow();
                 if (mainWin) {
@@ -521,9 +556,15 @@ function registerIpcHandlers() {
                 }
               }
             },
+            {
+              label: menuTemplate.help.submenu[1].label, // Discord
+              click: () => {
+                require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+              }
+            },
             { type: 'separator' },
             {
-              label: menuTemplate.help.submenu[2].label, // About
+              label: menuTemplate.help.submenu[3].label, // About
               click: () => {
                 const mainWin = constants.getMainWindow();
                 if (mainWin) {
@@ -546,6 +587,65 @@ function registerIpcHandlers() {
     } catch (error) {
       console.error('Error updating application menu:', error);
       return { success: false, error: error.message };
+    }
+  });
+
+  // Handle tray menu update request
+  ipcMain.handle('update-tray-menu', (event, trayMenuTemplate) => {
+    try {
+      // Get the updateTrayMenuTemplate function from constants
+      const updateTrayMenuTemplate = constants.getUpdateTrayMenuTemplate();
+      if (updateTrayMenuTemplate) {
+        updateTrayMenuTemplate(trayMenuTemplate);
+        return { success: true };
+      } else {
+        return { success: false, error: 'updateTrayMenuTemplate function not available' };
+      }
+    } catch (error) {
+      console.error('Error updating tray menu:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Handle tray preset load request
+  ipcMain.handle('load-preset-from-tray', async (event, presetName) => {
+    try {
+      const mainWin = constants.getMainWindow();
+      if (mainWin && mainWin.webContents) {
+        // Send preset load command to renderer process
+        mainWin.webContents.send('load-preset-from-tray', presetName);
+        return { success: true };
+      } else {
+        return { success: false, error: 'Main window not available' };
+      }
+    } catch (error) {
+      console.error('Error loading preset from tray:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Handle get user presets request for tray menu
+  ipcMain.handle('get-user-presets-for-tray', async () => {
+    try {
+      const fileHandlers = require('./file-handlers.js');
+      const userDataPath = fileHandlers.getUserDataPath();
+      const presetsFilePath = path.join(userDataPath, 'effetune_presets.json');
+      
+      // Check if presets file exists
+      if (!fs.existsSync(presetsFilePath)) {
+        return { success: true, presets: [] };
+      }
+      
+      // Read presets file
+      const presetsContent = fs.readFileSync(presetsFilePath, 'utf8');
+      const presets = JSON.parse(presetsContent);
+      
+      // Return sorted preset names
+      const presetNames = Object.keys(presets).sort();
+      return { success: true, presets: presetNames };
+    } catch (error) {
+      console.error('Error getting user presets for tray:', error);
+      return { success: false, error: error.message, presets: [] };
     }
   });
 
@@ -663,7 +763,7 @@ function registerIpcHandlers() {
         // Add anchor back if it was present
         docPath = docPath + anchor;
         
-        url = `https://frieve-a.github.io/effetune${docPath}`;
+        url = `https://effetune.frieve.com${docPath}`;
         
       }
       await shell.openExternal(url);
@@ -888,6 +988,15 @@ function createMenu() {
       label: 'Settings',
       submenu: [
         {
+          label: 'Config...',
+          click: () => {
+            const mainWin = constants.getMainWindow();
+            if (mainWin) {
+              mainWin.webContents.send('config-app');
+            }
+          }
+        },
+        {
           label: 'Audio Devices...',
           click: () => {
             const mainWin = constants.getMainWindow();
@@ -936,6 +1045,12 @@ function createMenu() {
                 console.error('Error executing Help menu action:', error);
               });
             }
+          }
+        },
+        {
+          label: 'Discord',
+          click: () => {
+            require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
           }
         },
         { type: 'separator' },
