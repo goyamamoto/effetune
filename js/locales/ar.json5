@@ -82,6 +82,7 @@
   "ui.title.moveUp": "تحريك المؤثر لأعلى",
   "ui.title.moveDown": "تحريك المؤثر لأسفل",
   "ui.title.pluginDocs": "فتح وثائق المؤثر",
+  "ui.title.askAI": "اسأل الذكاء الاصطناعي عن هذا المؤثر",
   "ui.title.deleteEffect": "حذف المؤثر",
   "ui.title.close": "إغلاق",
   "ui.title.expand": "اضغط للتوسيع",
@@ -103,6 +104,14 @@
   "ui.busRouting": "توجيه الناقل",
   "ui.inputBus": "ناقل الإدخال:",
   "ui.outputBus": "ناقل الإخراج:",
+  "ui.channel": "القناة:",
+  
+  // حوار الذكاء الاصطناعي
+  "ui.askAITitle": "اسأل الذكاء الاصطناعي عن هذا المؤثر",
+  "ui.askAICaption": "سؤال حول {effectName}:",
+  "ui.askAIPlaceholder": "اكتب سؤالك حول هذا المؤثر...",
+  "ui.askChatGPT": "اسأل ChatGPT",
+  "ui.askPerplexity": "اسأل Perplexity",
 
   // القائمة الرئيسية
   "menu.file": "ملف",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "تبديل وضع الشاشة الكاملة",
 
   "menu.settings": "الإعدادات",
+  "menu.settings.config": "إعدادات...",
   "menu.settings.audioDevices": "أجهزة الصوت...",
   "menu.settings.performanceBenchmark": "معيار الأداء",
   "menu.settings.frequencyResponseMeasurement": "قياس الاستجابة الترددية",
@@ -154,6 +164,21 @@
   "dialog.audioConfig.cancel": "إلغاء",
   "dialog.audioConfig.apply": "تطبيق",
   "dialog.audioConfig.updatedTitle": "تم تحديث إعدادات الصوت",
-  "dialog.audioConfig.updatedMessage": "جاري إعادة تحميل التطبيق لتطبيق التغييرات..."
+  "dialog.audioConfig.updatedMessage": "إعادة التحميل...",
+
+  "dialog.config.title": "إعدادات",
+  "dialog.config.autoLaunch": "بدء التشغيل عند بدء تشغيل نظام التشغيل",
+  "dialog.config.startMinimized": "بدء التشغيل في وضع التصغير",
+  "dialog.config.minimizeToTray": "التصغير إلى علبة النظام",
+  "dialog.config.pipeline": "خط أنابيب التأثيرات عند بدء التشغيل:",
+  "dialog.config.pipeline.default": "الإعدادات الافتراضية",
+  "dialog.config.pipeline.last": "الإعدادات من آخر خروج",
+  "dialog.config.pipeline.preset": "إعداد مسبق معين",
+  "dialog.config.close": "إغلاق",
+
+  // قائمة علبة النظام
+  "trayMenuOpen": "فتح",
+  "trayMenuQuit": "خروج",
+  "trayMenuPresets": "الإعدادات المسبقة"
 }
 

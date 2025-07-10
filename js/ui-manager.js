@@ -640,7 +640,7 @@ export class UIManager {
 
     getLocalizedDocPath(basePath) {
         // Always use GitHub Pages paths for both web and Electron
-        const baseUrl = 'https://frieve-a.github.io/effetune';
+        const baseUrl = 'https://effetune.frieve.com';
 
         // Ensure we're working with a clean path
         let cleanPath = basePath;
@@ -737,7 +737,7 @@ export class UIManager {
         if (this.shareButton) { // Added check
             this.shareButton.addEventListener('click', () => {
                 const state = this.getPipelineState();
-                const newURL = new URL('https://frieve-a.github.io/effetune/effetune.html');
+                const newURL = new URL('https://effetune.frieve.com/effetune.html');
                 newURL.searchParams.set('p', state);
                 navigator.clipboard.writeText(newURL.toString())
                     .then(() => {

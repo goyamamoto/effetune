@@ -9,6 +9,7 @@ import {
 import { PipelineItemBuilder } from './pipeline-item-builder.js';
 import { PipelineSelectionManager } from './pipeline-selection-manager.js';
 import { PipelineRoutingDialog } from './pipeline-routing-dialog.js';
+import { PipelineAIDialog } from './pipeline-ai-dialog.js';
 import { PipelineColumnManager } from './pipeline-column-manager.js';
 import { PipelineSectionHandler } from './pipeline-section-handler.js';
 import { PipelineWorkletSync } from './pipeline-worklet-sync.js';
@@ -33,6 +34,7 @@ export class PipelineCore {
         this.itemBuilder = new PipelineItemBuilder(this);
         this.selectionManager = new PipelineSelectionManager(this);
         this.routingDialog = new PipelineRoutingDialog(this);
+        this.aiDialog = new PipelineAIDialog(this);
         this.columnManager = new PipelineColumnManager(this);
         this.sectionHandler = new PipelineSectionHandler(this);
         this.workletSync = new PipelineWorkletSync(this);
@@ -243,6 +245,15 @@ export class PipelineCore {
      */
     showRoutingDialog(plugin, button) {
         this.routingDialog.showRoutingDialog(plugin, button);
+    }
+    
+    /**
+     * Show the AI dialog for a plugin
+     * @param {Object} plugin - The plugin to ask AI about
+     * @param {HTMLElement} button - The button that was clicked
+     */
+    showAIDialog(plugin, button) {
+        this.aiDialog.showAIDialog(plugin, button);
     }
     
     /**

@@ -127,6 +127,10 @@ export class PipelineItemBuilder {
         const helpBtn = this.createHelpButton(plugin);
         header.appendChild(helpBtn);
 
+        // AI button
+        const aiBtn = this.createAIButton(plugin);
+        header.appendChild(aiBtn);
+
         // Delete button
         const deleteBtn = this.createDeleteButton(plugin);
         header.appendChild(deleteBtn);
@@ -388,6 +392,36 @@ export class PipelineItemBuilder {
             }
         };
         return moveDownBtn;
+    }
+
+    /**
+     * Create AI button
+     * @param {Object} plugin - The plugin
+     * @returns {HTMLElement} The AI button
+     */
+    createAIButton(plugin) {
+        const aiBtn = document.createElement('button');
+        aiBtn.className = 'ai-button';
+        aiBtn.title = window.uiManager
+            ? window.uiManager.t('ui.title.askAI')
+            : 'Ask AI about this effector';
+        
+        // Use the AI button image
+        const aiImg = document.createElement('img');
+        aiImg.src = 'images/ai_button.png';
+        aiImg.alt = 'AI';
+        aiBtn.appendChild(aiImg);
+        
+        aiBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            
+            // Use the common selection function
+            this.pipelineCore.handlePluginSelection(plugin, e);
+            
+            // Show AI dialog
+            this.pipelineCore.showAIDialog(plugin, aiBtn);
+        };
+        return aiBtn;
     }
 
     /**

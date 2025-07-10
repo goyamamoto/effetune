@@ -82,6 +82,7 @@
   "ui.title.moveUp": "Переместить эффект вверх",
   "ui.title.moveDown": "Переместить эффект вниз",
   "ui.title.pluginDocs": "Открыть документацию эффекта",
+  "ui.title.askAI": "Спросить ИИ об этом эффекторе",
   "ui.title.deleteEffect": "Удалить эффект",
   "ui.title.close": "Закрыть",
   "ui.title.expand": "Щёлкните, чтобы развернуть",
@@ -103,6 +104,14 @@
   "ui.busRouting": "Маршрутизация шины",
   "ui.inputBus": "Входная шина:",
   "ui.outputBus": "Выходная шина:",
+  "ui.channel": "Канал:",
+  
+  // Диалог ИИ
+  "ui.askAITitle": "Спросить ИИ об этом эффекторе",
+  "ui.askAICaption": "Вопрос о {effectName}:",
+  "ui.askAIPlaceholder": "Введите ваш вопрос об этом эффекте...",
+  "ui.askChatGPT": "Спросить ChatGPT",
+  "ui.askPerplexity": "Спросить Perplexity",
 
   // Главное меню
   "menu.file": "Файл",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "Переключить полноэкранный режим",
 
   "menu.settings": "Настройки",
+  "menu.settings.config": "Конфигурация...",
   "menu.settings.audioDevices": "Аудиоустройства...",
   "menu.settings.performanceBenchmark": "Тест производительности",
   "menu.settings.frequencyResponseMeasurement": "Измерение частотной характеристики",
@@ -154,5 +164,20 @@
   "dialog.audioConfig.cancel": "Отмена",
   "dialog.audioConfig.apply": "Применить",
   "dialog.audioConfig.updatedTitle": "Аудиоконфигурация обновлена",
-  "dialog.audioConfig.updatedMessage": "Перезагрузка приложения для применения изменений..."
+  "dialog.audioConfig.updatedMessage": "Перезагрузка...",
+
+  "dialog.config.title": "Настройка",
+  "dialog.config.autoLaunch": "Запускать при старте ОС",
+  "dialog.config.startMinimized": "Запускать свернутым",
+  "dialog.config.minimizeToTray": "Сворачивать в трей",
+  "dialog.config.pipeline": "Конвейер эффектов при запуске:",
+  "dialog.config.pipeline.default": "Настройки по умолчанию",
+  "dialog.config.pipeline.last": "Настройки с последнего выхода",
+  "dialog.config.pipeline.preset": "Определенный пресет",
+  "dialog.config.close": "Закрыть",
+
+  // Меню трея
+  "trayMenuOpen": "Открыть",
+  "trayMenuQuit": "Выйти",
+  "trayMenuPresets": "Пресеты"
 }

@@ -82,6 +82,7 @@
   "ui.title.moveUp": "इफ़ेक्ट ऊपर ले जाएँ",
   "ui.title.moveDown": "इफ़ेक्ट नीचे ले जाएँ",
   "ui.title.pluginDocs": "इफ़ेक्ट दस्तावेज़ खोलें",
+  "ui.title.askAI": "इस इफेक्टर के बारे में AI से पूछें",
   "ui.title.deleteEffect": "इफ़ेक्ट हटाएँ",
   "ui.title.close": "बंद करें",
   "ui.title.expand": "विस्तार करने के लिए क्लिक करें",
@@ -103,6 +104,14 @@
   "ui.busRouting": "बस रूटिंग",
   "ui.inputBus": "इनपुट बस:",
   "ui.outputBus": "आउटपुट बस:",
+  "ui.channel": "चैनल:",
+  
+  // AI संवाद
+  "ui.askAITitle": "इस इफेक्टर के बारे में AI से पूछें",
+  "ui.askAICaption": "{effectName} के बारे में प्रश्न:",
+  "ui.askAIPlaceholder": "इस प्रभाव के बारे में अपना प्रश्न टाइप करें...",
+  "ui.askChatGPT": "ChatGPT से पूछें",
+  "ui.askPerplexity": "Perplexity से पूछें",
 
   // मुख्य मेनू
   "menu.file": "फ़ाइल",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "पूर्ण स्क्रीन टॉगल करें",
 
   "menu.settings": "सेटिंग्स",
+  "menu.settings.config": "कॉन्फ़िगरेशन...",
   "menu.settings.audioDevices": "ऑडियो उपकरण...",
   "menu.settings.performanceBenchmark": "प्रदर्शन बेंचमार्क",
   "menu.settings.frequencyResponseMeasurement": "फ्रीक्वेंसी रिस्पॉन्स मापन",
@@ -154,5 +164,20 @@
   "dialog.audioConfig.cancel": "रद्द करें",
   "dialog.audioConfig.apply": "लागू करें",
   "dialog.audioConfig.updatedTitle": "ऑडियो विन्यास अपडेट हुआ",
-  "dialog.audioConfig.updatedMessage": "परिवर्तनों को लागू करने हेतु एप्लिकेशन पुनः लोड हो रहा है..."
+  "dialog.audioConfig.updatedMessage": "पुनः लोड हो रहा है...",
+
+  "dialog.config.title": "विन्यास",
+  "dialog.config.autoLaunch": "ओएस स्टार्टअप पर लॉन्च करें",
+  "dialog.config.startMinimized": "मिनिमाइज़्ड प्रारंभ करें",
+  "dialog.config.minimizeToTray": "ट्रे में मिनिमाइज़ करें",
+  "dialog.config.pipeline": "स्टार्टअप पर प्रभाव पाइपलाइन:",
+  "dialog.config.pipeline.default": "डिफ़ॉल्ट सेटिंग्स",
+  "dialog.config.pipeline.last": "अंतिम निकास से सेटिंग्स",
+  "dialog.config.pipeline.preset": "विशिष्ट प्रीसेट",
+  "dialog.config.close": "बंद करें",
+
+  // ट्रे मेनू
+  "trayMenuOpen": "खोलें",
+  "trayMenuQuit": "छोड़ें",
+  "trayMenuPresets": "प्रीसेट"
 }

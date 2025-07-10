@@ -302,15 +302,26 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
     const inputSelect = document.getElementById('input-device');
     const outputSelect = document.getElementById('output-device');
     
-    // Cancel button
-    cancelButton.addEventListener('click', () => {
+    function closeDialog() {
       document.body.removeChild(dialogElement);
       document.head.removeChild(styleElement);
+      document.removeEventListener('keydown', handleKeydown);
       // Clear the "Configuring audio devices..." message
       if (window.uiManager) {
         window.uiManager.clearError();
       }
-    });
+    }
+
+    function handleKeydown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDialog();
+      }
+    }
+
+    // Cancel button
+    cancelButton.addEventListener('click', closeDialog);
+    document.addEventListener('keydown', handleKeydown);
     
     // Apply button
     applyButton.addEventListener('click', async () => {
@@ -364,6 +375,7 @@ export async function showAudioConfigDialog(isElectron, audioPreferences, callba
       // Remove dialog
       document.body.removeChild(dialogElement);
       document.head.removeChild(styleElement);
+      document.removeEventListener('keydown', handleKeydown);
       
       // Call callback if provided
       if (callback) {

@@ -1,11 +1,11 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 음악 애호가들을 위해 설계된 실시간 오디오 이펙트 프로세서입니다.
 EffeTune은 다양한 고품질 이펙트를 통해 모든 오디오 소스를 처리할 수 있으며, 이를 통해 실시간으로 자신만의 청취 환경을 맞춤 설정하고 완벽하게 조정할 수 있습니다.
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## 컨셉
 
@@ -155,7 +155,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 
 ### 주파수 응답 측정
 
-1. 웹 버전에서는 [주파수 응답 측정 도구](https://frieve-a.github.io/effetune/features/measurement/measurement.html)를 실행하십시오. 앱 버전에서는 설정 메뉴에서 "주파수 응답 측정"을 선택하십시오
+1. 웹 버전에서는 [주파수 응답 측정 도구](https://effetune.frieve.com/features/measurement/measurement.html)를 실행하십시오. 앱 버전에서는 설정 메뉴에서 "주파수 응답 측정"을 선택하십시오
 2. 오디오 장비를 컴퓨터의 입력 및 출력에 연결합니다
 3. 측정 매개변수를 구성합니다(스윕 지속 시간, 주파수 범위)
 4. 측정을 실행하여 주파수 응답 그래프를 생성합니다

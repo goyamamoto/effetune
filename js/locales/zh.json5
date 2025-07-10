@@ -82,6 +82,7 @@
   "ui.title.moveUp": "上移效果",
   "ui.title.moveDown": "下移效果",
   "ui.title.pluginDocs": "打开效果文档",
+  "ui.title.askAI": "询问AI关于此效果器",
   "ui.title.deleteEffect": "删除效果",
   "ui.title.close": "关闭",
   "ui.title.expand": "点击展开",
@@ -103,6 +104,14 @@
   "ui.busRouting": "总线路由",
   "ui.inputBus": "输入总线:",
   "ui.outputBus": "输出总线:",
+  "ui.channel": "通道:",
+  
+  // AI对话框
+  "ui.askAITitle": "询问AI关于此效果器",
+  "ui.askAICaption": "关于{effectName}的问题:",
+  "ui.askAIPlaceholder": "输入您关于此效果的问题...",
+  "ui.askChatGPT": "询问ChatGPT",
+  "ui.askPerplexity": "询问Perplexity",
 
   // 主菜单
   "menu.file": "文件",
@@ -131,6 +140,7 @@
   "menu.view.toggleFullscreen": "切换全屏",
 
   "menu.settings": "设置",
+  "menu.settings.config": "配置...",
   "menu.settings.audioDevices": "音频设备…",
   "menu.settings.performanceBenchmark": "性能基准测试",
   "menu.settings.frequencyResponseMeasurement": "频率响应测量",
@@ -154,5 +164,20 @@
   "dialog.audioConfig.cancel": "取消",
   "dialog.audioConfig.apply": "应用",
   "dialog.audioConfig.updatedTitle": "音频设置已更新",
-  "dialog.audioConfig.updatedMessage": "正在重新加载应用以应用更改……"
+  "dialog.audioConfig.updatedMessage": "重新加载...",
+
+  "dialog.config.title": "设置",
+  "dialog.config.autoLaunch": "在操作系统启动时启动",
+  "dialog.config.startMinimized": "最小化启动",
+  "dialog.config.minimizeToTray": "最小化到系统托盘",
+  "dialog.config.pipeline": "启动时的效果流程:",
+  "dialog.config.pipeline.default": "默认设置",
+  "dialog.config.pipeline.last": "上次退出时的设置",
+  "dialog.config.pipeline.preset": "特定预设",
+  "dialog.config.close": "关闭",
+
+  // 托盘菜单
+  "trayMenuOpen": "打开",
+  "trayMenuQuit": "退出",
+  "trayMenuPresets": "预设"
 }

@@ -4,7 +4,7 @@
  */
 
 // Import modules
-import { updateApplicationMenu } from './electron/menuIntegration.js';
+import { updateApplicationMenu, updateTrayMenu } from './electron/menuIntegration.js';
 import { 
   loadAudioPreferences, 
   saveAudioPreferences, 
@@ -19,6 +19,11 @@ import {
   processAudioFiles, 
   getAudioMimeType 
 } from './electron/presetIntegration.js';
+import {
+  loadConfig,
+  saveConfig,
+  showConfigDialog
+} from './electron/configIntegration.js';
 
 class ElectronIntegration {
   constructor() {
@@ -27,12 +32,14 @@ class ElectronIntegration {
     const isElectronUA = userAgent.indexOf(' electron/') > -1;
     this.isElectron = window.electronAPI !== undefined || isElectronUA;
     this.audioPreferences = null;
+    this.config = null;
     
     // Initialize event listeners if running in Electron
     if (this.isElectron) {
       // Initialize event listeners
       this.initEventListeners();
       this.loadAudioPreferences();
+      this.loadConfig();
       this.patchDocumentationLinks();
     }
   }
@@ -51,6 +58,13 @@ class ElectronIntegration {
    */
   updateApplicationMenu() {
     return updateApplicationMenu(this.isElectron);
+  }
+
+  /**
+   * Update the tray menu with translated labels
+   */
+  updateTrayMenu() {
+    return updateTrayMenu(this.isElectron);
   }
 
   /**
@@ -225,6 +239,26 @@ class ElectronIntegration {
     window.electronAPI.onConfigAudio(() => {
       // Config audio menu item clicked
       this.showAudioConfigDialog();
+    });
+    
+    window.electronAPI.onConfigApp(() => {
+      this.showConfigDialog();
+    });
+
+    window.electronAPI.onLoadUserPreset((name) => {
+      if (window.pipelineManager && window.pipelineManager.presetManager) {
+        if (window.app && window.app.audioManager && window.app.audioManager.workletNode) {
+          window.pipelineManager.presetManager.loadPreset(name);
+        } else {
+          window.pendingPresetName = name;
+        }
+      }
+    });
+    
+    // Listen for tray menu update request from main process
+    window.electronAPI.onIPC('request-tray-menu-update', () => {
+      // Update tray menu when requested (e.g., when manually minimizing to tray)
+      this.updateTrayMenu();
     });
     
     // Listen for show about dialog request from main process
@@ -479,6 +513,22 @@ class ElectronIntegration {
     // Update isElectron property
     
     return this.isElectron;
+  }
+
+  async loadConfig() {
+    const cfg = await loadConfig(this.isElectron);
+    this.config = cfg;
+    window.appConfig = cfg;
+    return cfg;
+  }
+
+  async saveConfig(cfg) {
+    this.config = { ...this.config, ...cfg };
+    await saveConfig(this.isElectron, this.config);
+  }
+
+  async showConfigDialog() {
+    return showConfigDialog(this.isElectron, this.config);
   }
 }
 

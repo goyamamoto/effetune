@@ -1,10 +1,10 @@
 # Frieve EffeTune <img src="../../../images/icon_64x64.png" alt="EffeTune Icon" width="30" height="30" align="bottom">
 
-[Open Web App](https://frieve-a.github.io/effetune/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
+[Open Web App](https://effetune.frieve.com/effetune.html)  [Download Desktop App](https://github.com/Frieve-A/effetune/releases/)
 
 Un processeur d'effets audio en temps réel, conçu pour les passionnés de musique afin d'améliorer leur expérience d'écoute. EffeTune vous permet de traiter n'importe quelle source audio via divers effets de haute qualité, vous offrant la possibilité de personnaliser et de perfectionner votre expérience d'écoute en temps réel.
 
-[![Screenshot](../../../images/screenshot.png)](https://frieve-a.github.io/effetune/effetune.html)
+[![Screenshot](../../../images/screenshot.png)](https://effetune.frieve.com/effetune.html)
 
 ## Concept
 
@@ -163,7 +163,7 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
 
 ### Mesure de réponse en fréquence
 
-1. Pour la version web, lancez l'[outil de mesure de la réponse en fréquence](https://frieve-a.github.io/effetune/features/measurement/measurement.html). Pour la version application, sélectionnez « Mesure de la réponse en fréquence » dans le menu Paramètres
+1. Pour la version web, lancez l'[outil de mesure de la réponse en fréquence](https://effetune.frieve.com/features/measurement/measurement.html). Pour la version application, sélectionnez « Mesure de la réponse en fréquence » dans le menu Paramètres
 2. Connectez votre équipement audio à l'entrée et à la sortie de votre ordinateur
 3. Configurez les paramètres de mesure (durée du balayage, plage de fréquences)
 4. Lancez la mesure pour générer un graphique de réponse en fréquence
