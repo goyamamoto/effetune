@@ -282,27 +282,36 @@ class UIManager {
     }
 
     /**
-     * Start a new measurement
+     * Start a new measurement workflow
      */
-    startNewMeasurement() {
-        // Check for unsaved changes
+    async startNewMeasurement() {
+        // Check for unsaved changes first
         if (this.hasUnsavedChanges) {
             this.dialogController.showConfirmation(
                 i18n.t('confirm:discardChanges') || 'You have unsaved changes. Discard changes and continue?',
                 false
             );
+            // Set up a pending action to continue after user confirmation
             this.pendingAction = () => {
                 this.hasUnsavedChanges = false;
-                this.startNewMeasurement();
+                this.startNewMeasurement(); // Re-call the function after confirmation
             };
             return;
         }
-        
-        // Clean up audio before starting new measurement
-        this.cleanupAudioBeforeNavigation();
-        
-        // Show configuration screen
-        this.prepareConfigScreen();
+
+        try {
+            // Initialize audio context on first user gesture.
+            await window.app.initializeAudio();
+
+            // Clean up any existing audio resources before starting
+            this.cleanupAudioBeforeNavigation();
+            
+            // Proceed with measurement setup by preparing the config screen
+            this.prepareConfigScreen();
+        } catch (error) {
+            console.error('Could not start new measurement due to audio initialization failure:', error);
+            this.showNotification(i18n.t('error:audioInitFailed', { message: error.message }), 'error');
+        }
     }
 
     /**
