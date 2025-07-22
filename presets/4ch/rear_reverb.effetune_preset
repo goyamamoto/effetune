@@ -20,7 +20,7 @@
       "name": "RS Reverb",
       "enabled": true,
       "parameters": {
-        "pd": 10,
+        "pd": 0,
         "rs": 10,
         "rt": 1.5,
         "ds": 8,

@@ -9,6 +9,14 @@
       "channel": "A"
     },
     {
+      "name": "Volume",
+      "enabled": true,
+      "parameters": {
+        "vl": -6
+      },
+      "channel": "34"
+    },
+    {
       "name": "Time Alignment",
       "enabled": true,
       "parameters": {
