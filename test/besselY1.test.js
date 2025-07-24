@@ -6,8 +6,8 @@ function hBesselJ1(x) {
     const ax = Math.abs(x);
     const a1 = [72362614232.0, -7895059235.0, 242396853.1, -2972611.439, 15704.48260, -30.16036606];
     const a2 = [144725228442.0, 2300535178.0, 18583304.74, 99447.43394, 376.9991397, 1.0];
-    const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
-    const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+    const b1 = [1.0, 0.00183105, -3.516396496e-5, 2.457520174e-6, -2.40337019e-7];
+    const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-7, 1.05787412e-7];
     let y = x * x;
     if (ax < 8.0) {
         return x * hHorner(a1.slice().reverse(), y) / hHorner(a2.slice().reverse(), y);
@@ -39,4 +39,7 @@ function almostEqual(a, b, tol = 1e-6) { return Math.abs(a - b) < tol; }
 assert.ok(almostEqual(hBesselY1(1), -0.7812128213));
 assert.ok(almostEqual(hBesselY1(3), 0.3246744248));
 assert.ok(almostEqual(hBesselY1(10), 0.2490154242));
+assert.ok(almostEqual(hBesselJ1(1), 0.4400505857));
+assert.ok(almostEqual(hBesselJ1(3), 0.3390589585));
+assert.ok(almostEqual(hBesselJ1(10), 0.0434727462));
 console.log('All tests passed');
