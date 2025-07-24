@@ -43,8 +43,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const ax = Math.abs(x);
                 const a1 = [72362614232.0, -7895059235.0, 242396853.1, -2972611.439, 15704.48260, -30.16036606];
                 const a2 = [144725228442.0, 2300535178.0, 18583304.74, 99447.43394, 376.9991397, 1.0];
-                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
-                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                const b1 = [1.0, 0.00183105, -3.516396496e-5, 2.457520174e-6, -2.40337019e-7];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-7, 1.05787412e-7];
                 let y = x * x;
                 if (ax < 8.0) {
                     return x * hHorner(a1.slice().reverse(), y) / hHorner(a2.slice().reverse(), y);
@@ -58,7 +58,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const W = 0.636619772;
                 if (x < 8.0) {
                     const y = x * x;
-                    const a1 = [-4.900604943e12, 1.27527439e13, -5.153438139e11, 7.349264551e9, -4.237922726e7, 8.511937935e4];
+                    const a1 = [-0.4900604943e13, 0.1275274390e13,
+                                 -0.5153438139e11, 0.7349264551e9,
+                                 -0.4237922726e7, 0.8511937935e4];
                     const a2 = [2.49958057e13, 4.244419664e11, 3.733650367e9, 2.245904002e7, 1.02042605e5, 3.549632885e2, 1.0];
                     const term1 = x * hHorner(a1.slice().reverse(), y);
                     const term2 = hHorner(a2.slice().reverse(), y);
@@ -66,8 +68,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 }
                 const y = 64.0 / (x * x);
                 const xx = x - 2.356194491;
-                const b1 = [1.0, 0.00183105, -3.516396496e-6, 2.457520174e-8, -2.40337019e-10];
-                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-8, 1.05787412e-8];
+                const b1 = [1.0, 0.00183105, -3.516396496e-5, 2.457520174e-6, -2.40337019e-7];
+                const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-7, 1.05787412e-7];
                 return Math.sqrt(W / x) * (Math.sin(xx) * hHorner(b1.slice().reverse(), y) + Math.cos(xx) * hHorner(b2.slice().reverse(), y) * 8 / x);
             }
             function solveReflectionPole(target, w) {
