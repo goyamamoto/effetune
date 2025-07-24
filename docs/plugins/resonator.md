@@ -52,6 +52,7 @@ Horn Resonator Plus is an advanced implementation based on the [Horn Resonator](
 
 - **2nd-order mouth reflection filter**: More accurate modeling of frequency-dependent reflection at the mouth opening for smoother resonance characteristics
 - **Frequency-dependent throat reflection**: Throat reflection characteristics that adapt to frequency for more natural acoustic behavior
+- **Updated Bessel Y1 coefficients**: Radiation impedance uses higher-precision constants for more accurate resonance modeling
 
 ### Acoustic Characteristics
 
