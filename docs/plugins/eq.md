@@ -9,6 +9,7 @@ A collection of plugins that let you adjust different aspects of your music's so
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Dynamics-based equalizer that responds to your music
 - [5Band PEQ](#5band-peq) - Professional parametric equalizer with flexible controls
 - [Band Pass Filter](#band-pass-filter) - Focus on specific frequencies
+- [Comb Filter](#comb-filter) - Digital comb filter for harmonic coloration and resonance simulation
 - [Hi Pass Filter](#hi-pass-filter) - Remove unwanted low frequencies with precision
 - [Lo Pass Filter](#lo-pass-filter) - Remove unwanted high frequencies with precision
 - [Loudness Equalizer](#loudness-equalizer) - Frequency balance correction for low volume listening
@@ -257,6 +258,59 @@ A precision band-pass filter that combines high-pass and low-pass filters to all
 - Clear visualization of both filter slopes and cutoff points
 - Interactive controls for precise adjustment
 - Frequency grid with markers at key reference points
+
+## Comb Filter
+
+A digital comb filter that creates harmonic coloration and resonance effects through precise time delays. This plugin simulates acoustic phenomena like early reflections from walls and surfaces, making it perfect for audio enthusiasts who want to understand and recreate the complex interactions between sound and space.
+
+### Listening Enhancement Guide
+- Simulate Room Acoustics:
+  - Use fundamental frequencies between 100-500Hz to simulate wall reflections
+  - Adjust feedback gain to control reflection intensity
+  - Perfect for understanding how room dimensions affect sound
+- Create Harmonic Coloration:
+  - Use feedforward mode for subtle harmonic enhancement
+  - Use feedback mode for more pronounced resonance effects
+  - Experiment with different fundamental frequencies for unique tonal character
+- Early Reflection Simulation:
+  - Set fundamental frequency based on room dimensions (e.g., 343Hz for 1-meter distance)
+  - Use moderate feedback gain (0.3-0.7) for realistic reflection simulation
+  - Helps recreate the acoustic characteristics of different listening spaces
+- Resonance and Echo Effects:
+  - Higher feedback gain values create more pronounced resonance
+  - Lower fundamental frequencies create longer delay times
+  - Combine with other effects for complex spatial processing
+
+### Parameters
+- **Fundamental Frequency (Hz)** - Controls the delay time and harmonic spacing (20Hz to 20000Hz)
+  - Lower values: Longer delays, more spaced harmonics
+  - Higher values: Shorter delays, closer harmonics
+  - Based on room acoustics: Frequency = Speed of Sound / Distance
+- **Feedback Gain** - Controls the intensity of the comb filter effect (-1.0 to 1.0)
+  - Negative values: Creates inverse harmonic patterns
+  - Positive values: Creates reinforcing harmonic patterns
+  - Zero: No effect (dry signal only)
+  - Higher absolute values: More pronounced effect
+- **Comb Type** - Controls the filter structure
+  - Feedforward: Creates harmonic enhancement without feedback
+  - Feedback: Creates resonance and echo-like effects
+- **Dry-Wet Mix** - Controls the balance between processed and original signal (0% to 100%)
+  - 0%: Original signal only
+  - 50%: Equal mix of original and processed
+  - 100%: Processed signal only
+
+### Technical Details
+- **Delay Calculation**: Delay time = 1 / Fundamental Frequency
+- **Harmonic Response**: Creates peaks and dips at integer multiples of the fundamental frequency
+- **Spatial Simulation**: Can simulate early reflections from walls and surfaces
+- **Real-time Visualization**: Shows frequency response with fundamental frequency marker
+
+### Visual Display
+- Real-time frequency response graph with logarithmic frequency scale
+- Clear visualization of comb filter peaks and dips
+- Fundamental frequency marker showing delay time
+- Interactive controls for precise adjustment
+- Delay distance calculation in millimeters
 
 ## Hi Pass Filter
 

@@ -10,6 +10,8 @@ import measurementController from './measurementController.js';
 import i18n from './i18n.js'; // Import the i18n module
 import './peqCalculator.js'; // Import the new PEQ calculator
 
+let isAudioInitialized = false;
+
 /**
  * Initialize all application components
  */
@@ -21,11 +23,8 @@ async function initializeApp() {
         // Initialize data storage first
         await dataStorage.initialize();
         
-        // Check browser audio capabilities
+        // Check browser audio support and limitations
         checkBrowserAudioSupport();
-        
-        // Initialize measurement controller (which initializes audio)
-        await measurementController.initialize();
         
         // Initialize PEQ Calculator and override the existing method
         initializePEQCalculator();
@@ -38,6 +37,23 @@ async function initializeApp() {
     } catch (error) {
         console.error('Error initializing application:', error);
         alert(`Initialization Error: ${error.message}`);
+    }
+}
+
+/**
+ * Initialize audio components on user gesture
+ */
+async function initializeAudio() {
+    if (isAudioInitialized) {
+        return;
+    }
+    try {
+        await measurementController.initialize();
+        isAudioInitialized = true;
+    } catch (error) {
+        console.error('Error initializing audio:', error);
+        alert(`Audio Initialization Error: ${error.message}`);
+        throw error;
     }
 }
 
@@ -548,6 +564,23 @@ function selectSavedAudioDevices() {
     }
 }
 
+// Expose necessary functions to the global scope to be called from other modules
+window.app = {
+    audioUtils,
+    dataStorage,
+    uiManager,
+    measurementController,
+    initializeApp,
+    initializeAudio,
+    populateAudioDevices,
+    copyPEQToClipboard,
+    loadUserSettings,
+    saveUserSettings,
+    loadPEQSettings,
+    savePEQSettings,
+    selectSavedAudioDevices
+};
+
 // Initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -609,14 +642,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('error', (e) => {
     console.error('Global error:', e.error);
 });
-
-// Export for debug access from console
-window.app = {
-    audioUtils,
-    dataStorage,
-    uiManager,
-    measurementController
-}; 
 
 // Add compatibility wrapper functions for legacy code
 window.app.uiManager.logSliderToValue = function(sliderValue, minValue, maxValue) {

@@ -259,6 +259,8 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | EQ        | 15Band PEQ | 15の完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | しきい値に基づく周波数調整が可能な5バンドダイナミックイコライザー | [詳細](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5つの完全設定可能なバンドを備えたプロフェッショナルなパラメトリックイコライザー | [詳細](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | 特定の周波数に焦点を当てる | [詳細](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | ハーモニックカラーリングとレゾナンスシミュレーション用のデジタルコームフィルター | [詳細](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | 不要な低域を精密に除去 | [詳細](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | 不要な高域を精密に除去 | [詳細](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | 低音量リスニング向けの周波数バランス補正 | [詳細](plugins/eq.md#loudness-equalizer) |

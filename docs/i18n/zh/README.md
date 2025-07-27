@@ -238,6 +238,8 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | EQ        | 15Band PEQ | 具有15个完全可配置频段的专业参数均衡器 | [详情](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 基于阈值的频率调整的5频段动态均衡器 | [详情](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 具有5个完全可配置频段的专业参数均衡器 | [详情](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | 专注于特定频率 | [详情](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | 用于谐波着色和共振模拟的数字梳状滤波器 | [详情](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | 精确去除不需要的低频 | [详情](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | 精确去除不需要的高频 | [详情](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | 针对低音量聆听的频率平衡校正 | [详情](plugins/eq.md#loudness-equalizer) |
