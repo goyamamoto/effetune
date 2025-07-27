@@ -252,6 +252,8 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | EQ        | 15Band PEQ | Égaliseur paramétrique professionnel avec 15 bandes entièrement configurables | [Détails](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | Égaliseur dynamique 5 bandes avec ajustement des fréquences basé sur un seuil | [Détails](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Égaliseur paramétrique professionnel avec 5 bandes entièrement configurables | [Détails](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | Concentrez-vous sur des fréquences spécifiques | [Détails](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | Filtre en peigne numérique pour la coloration harmonique et la simulation de résonance | [Détails](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | Élimine avec précision les basses indésirables | [Détails](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Élimine avec précision les hautes fréquences indésirables | [Détails](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Correction de l'équilibre fréquentiel pour l'écoute à faible volume | [Détails](plugins/eq.md#loudness-equalizer) |

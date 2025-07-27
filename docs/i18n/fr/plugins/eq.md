@@ -8,6 +8,7 @@ Une collection de plugins qui vous permet d'ajuster différents aspects du son d
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Égaliseur dynamique qui réagit à votre musique
 - [5Band PEQ](#5band-peq) - Égaliseur paramétrique professionnel avec des contrôles flexibles
 - [Band Pass Filter](#band-pass-filter) - Concentrez-vous sur des fréquences spécifiques
+- [Comb Filter](#comb-filter) - Filtre en peigne numérique pour coloration harmonique et simulation de résonance
 - [Hi Pass Filter](#hi-pass-filter) - Éliminez avec précision les basses fréquences indésirables
 - [Lo Pass Filter](#lo-pass-filter) - Éliminez avec précision les hautes fréquences indésirables
 - [Loudness Equalizer](#loudness-equalizer) - Correction de l'équilibre des fréquences pour une écoute à faible volume
@@ -254,6 +255,59 @@ Un filtre passe-bande de précision qui combine les filtres passe-haut et passe-
 - Visualisation claire des deux pentes de filtre et des points de coupure
 - Contrôles interactifs pour un ajustement précis
 - Grille de fréquences avec marqueurs aux points de référence clés
+
+## Comb Filter
+
+Un filtre en peigne numérique qui crée des effets de coloration harmonique et de résonance à travers des délais temporels précis. Ce plugin simule des phénomènes acoustiques comme les réflexions précoces des murs et des surfaces, parfait pour les passionnés d'audio qui veulent comprendre et recréer les interactions complexes entre le son et l'espace.
+
+### Guide d'Amélioration de l'Écoute
+- Simulez l'Acoustique de la Pièce:
+  - Utilisez des fréquences fondamentales entre 100-500Hz pour simuler les réflexions des murs
+  - Ajustez le gain de rétroaction pour contrôler l'intensité de la réflexion
+  - Parfait pour comprendre comment les dimensions de la pièce affectent le son
+- Créez une Coloration Harmonique:
+  - Utilisez le mode d'alimentation directe pour un renforcement harmonique subtil
+  - Utilisez le mode de rétroaction pour des effets de résonance plus prononcés
+  - Expérimentez avec différentes fréquences fondamentales pour un caractère tonal unique
+- Simulation des Réflexions Précoces:
+  - Définissez la fréquence fondamentale basée sur les dimensions de la pièce (ex., 343Hz pour 1 mètre de distance)
+  - Utilisez un gain de rétroaction modéré (0.3-0.7) pour une simulation réaliste des réflexions
+  - Aide à recréer les caractéristiques acoustiques de différents espaces d'écoute
+- Effets de Résonance et d'Écho:
+  - Des valeurs plus élevées de gain de rétroaction créent une résonance plus prononcée
+  - Des fréquences fondamentales plus basses créent des délais plus longs
+  - Combinez avec d'autres effets pour un traitement spatial complexe
+
+### Paramètres
+- **Fréquence Fondamentale (Hz)** - Contrôle le délai temporel et l'espacement harmonique (20Hz à 20000Hz)
+  - Valeurs plus basses: Délais plus longs, harmoniques plus espacés
+  - Valeurs plus élevées: Délais plus courts, harmoniques plus rapprochés
+  - Basé sur l'acoustique de la pièce: Fréquence = Vitesse du Son / Distance
+- **Gain de Rétroaction** - Contrôle l'intensité de l'effet du filtre en peigne (-1.0 à 1.0)
+  - Valeurs négatives: Crée des motifs harmoniques inverses
+  - Valeurs positives: Crée des motifs harmoniques de renforcement
+  - Zéro: Aucun effet (signal sec uniquement)
+  - Valeurs absolues plus élevées: Effet plus prononcé
+- **Type de Peigne** - Contrôle la structure du filtre
+  - Alimentation Directe: Crée un renforcement harmonique sans rétroaction
+  - Rétroaction: Crée des effets de résonance et d'écho
+- **Mélange Sec/Humide** - Contrôle l'équilibre entre le signal traité et l'original (0% à 100%)
+  - 0%: Signal original uniquement
+  - 50%: Mélange égal de signal original et traité
+  - 100%: Signal traité uniquement
+
+### Détails Techniques
+- **Calcul du Délai**: Temps de délai = 1 / Fréquence Fondamentale
+- **Réponse Harmonique**: Crée des pics et des creux aux multiples entiers de la fréquence fondamentale
+- **Simulation Spatiale**: Peut simuler les réflexions précoces des murs et des surfaces
+- **Visualisation en Temps Réel**: Affiche la réponse en fréquence avec marqueur de fréquence fondamentale
+
+### Affichage Visuel
+- Graphique de réponse en fréquence en temps réel avec échelle de fréquence logarithmique
+- Visualisation claire des pics et creux du filtre en peigne
+- Marqueur de fréquence fondamentale montrant le délai temporel
+- Contrôles interactifs pour un ajustement précis
+- Calcul de la distance de délai en millimètres
 
 ## Hi Pass Filter
 Un filtre passe-haut de précision qui élimine les basses fréquences indésirables tout en préservant la clarté des fréquences élevées. Basé sur le design de filtre Linkwitz-Riley pour une réponse en phase optimale et une qualité sonore transparente.

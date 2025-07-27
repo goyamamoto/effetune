@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.60 (Jul 27, 2025)
+- Added Comb Filter effect
+- Various minor improvements
+
 ### Version 1.59 (Jul 7, 2025)
 - The following features have been added to the desktop version:
   - Added a Config menu to the Settings menu
