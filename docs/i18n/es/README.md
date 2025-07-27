@@ -254,6 +254,8 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | EQ        | 15Band PEQ | Ecualizador paramétrico profesional con 15 bandas totalmente configurables | [Detalles](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | Ecualizador dinámico de 5 bandas con ajuste de frecuencia basado en umbral | [Detalles](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Ecualizador paramétrico profesional con 5 bandas totalmente configurables | [Detalles](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | Enfócate en frecuencias específicas | [Detalles](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | Filtro peine digital para coloración armónica y simulación de resonancia | [Detalles](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | Elimina con precisión las frecuencias bajas no deseadas | [Detalles](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Elimina con precisión las frecuencias altas no deseadas | [Detalles](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Corrección del equilibrio de frecuencias para escucha a bajo volumen | [Detalles](plugins/eq.md#loudness-equalizer) |

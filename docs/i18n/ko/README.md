@@ -250,6 +250,8 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | EQ        | 15Band PEQ | 15개의 완전 구성 가능 밴드를 갖춘 전문 파라메트릭 이퀄라이저 | [세부 정보](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 임계값 기반 주파수 조정이 가능한 5밴드 다이내믹 이퀄라이저 | [세부 정보](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5개의 완전 구성 가능 밴드를 갖춘 전문 파라메트릭 이퀄라이저 | [세부 정보](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | 특정 주파수에 집중 | [세부 정보](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | 하모닉 컬러링 및 공명 시뮬레이션을 위한 디지털 빗살 필터 | [세부 정보](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | 원치 않는 저주파를 정밀하게 제거 | [세부 정보](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | 원치 않는 고주파를 정밀하게 제거 | [세부 정보](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | 저음량 청취를 위한 주파수 밸런스 보정 | [세부 정보](plugins/eq.md#loudness-equalizer) |

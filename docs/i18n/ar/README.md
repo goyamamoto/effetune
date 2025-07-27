@@ -246,6 +246,8 @@
 | EQ        | 15Band PEQ | معادل بارامتري احترافي مع 15 نطاق قابل للتكوين بالكامل | [تفاصيل](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | معادل ديناميكي خماسي النطاق مع تعديل تردد بناءً على العتبة | [تفاصيل](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | معادل بارامتري احترافي بخمسة نطاقات قابلة للتكوين بالكامل | [تفاصيل](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | ركز على ترددات محددة | [تفاصيل](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | مرشح مشط رقمي للتلوين التوافقي ومحاكاة الرنين | [تفاصيل](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | إزالة الترددات المنخفضة غير المرغوب فيها بدقة | [تفاصيل](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | إزالة الترددات العالية غير المرغوب فيها بدقة | [تفاصيل](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | تصحيح توازن التردد للاستماع بمستويات منخفضة | [تفاصيل](plugins/eq.md#loudness-equalizer) |

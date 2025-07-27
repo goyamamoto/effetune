@@ -9,6 +9,7 @@ Una colección de plugins que te permiten ajustar diferentes aspectos del sonido
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Ecualizador dinámico que responde a tu música
 - [5Band PEQ](#5band-peq) - Ecualizador paramétrico profesional con controles flexibles
 - [Band Pass Filter](#band-pass-filter) - Enfoca frecuencias específicas
+- [Comb Filter](#comb-filter) - Filtro peine digital para coloración armónica y simulación de resonancia
 - [Hi Pass Filter](#hi-pass-filter) - Elimina frecuencias bajas no deseadas con precisión
 - [Lo Pass Filter](#lo-pass-filter) - Elimina frecuencias altas no deseadas con precisión
 - [Loudness Equalizer](#loudness-equalizer) - Corrección del balance de frecuencias para escuchar a bajo volumen
@@ -257,6 +258,59 @@ Un filtro pasa-banda de precisión que combina filtros de paso alto y paso bajo 
 - Visualización clara de ambas pendientes de filtro y puntos de corte
 - Controles interactivos para un ajuste preciso
 - Cuadrícula de frecuencia con marcadores en puntos de referencia clave
+
+## Comb Filter
+
+Un filtro peine digital que crea efectos de coloración armónica y resonancia a través de retardos de tiempo precisos. Este plugin simula fenómenos acústicos como las reflexiones tempranas de paredes y superficies, siendo perfecto para entusiastas del audio que quieren entender y recrear las complejas interacciones entre el sonido y el espacio.
+
+### Guía de Mejora Auditiva
+- Simula la Acústica de la Habitación:
+  - Usa frecuencias fundamentales entre 100-500Hz para simular reflexiones de paredes
+  - Ajusta la ganancia de retroalimentación para controlar la intensidad de la reflexión
+  - Perfecto para entender cómo las dimensiones de la habitación afectan el sonido
+- Crea Coloración Armónica:
+  - Usa el modo de alimentación directa para realce armónico sutil
+  - Usa el modo de retroalimentación para efectos de resonancia más pronunciados
+  - Experimenta con diferentes frecuencias fundamentales para un carácter tonal único
+- Simulación de Reflexiones Tempranas:
+  - Establece la frecuencia fundamental basada en las dimensiones de la habitación (ej., 343Hz para 1 metro de distancia)
+  - Usa ganancia de retroalimentación moderada (0.3-0.7) para simulación realista de reflexiones
+  - Ayuda a recrear las características acústicas de diferentes espacios de escucha
+- Efectos de Resonancia y Eco:
+  - Valores más altos de ganancia de retroalimentación crean resonancia más pronunciada
+  - Frecuencias fundamentales más bajas crean tiempos de retardo más largos
+  - Combina con otros efectos para procesamiento espacial complejo
+
+### Parámetros
+- **Frecuencia Fundamental (Hz)** - Controla el tiempo de retardo y el espaciado armónico (20Hz a 20000Hz)
+  - Valores más bajos: Retardos más largos, armónicos más espaciados
+  - Valores más altos: Retardos más cortos, armónicos más cercanos
+  - Basado en acústica de habitación: Frecuencia = Velocidad del Sonido / Distancia
+- **Ganancia de Retroalimentación** - Controla la intensidad del efecto del filtro peine (-1.0 a 1.0)
+  - Valores negativos: Crea patrones armónicos inversos
+  - Valores positivos: Crea patrones armónicos de refuerzo
+  - Cero: Sin efecto (solo señal seca)
+  - Valores absolutos más altos: Efecto más pronunciado
+- **Tipo de Peine** - Controla la estructura del filtro
+  - Alimentación Directa: Crea realce armónico sin retroalimentación
+  - Retroalimentación: Crea efectos de resonancia y eco
+- **Mezcla Seco/Húmedo** - Controla el balance entre la señal procesada y la original (0% a 100%)
+  - 0%: Solo señal original
+  - 50%: Mezcla igual de señal original y procesada
+  - 100%: Solo señal procesada
+
+### Detalles Técnicos
+- **Cálculo de Retardo**: Tiempo de retardo = 1 / Frecuencia Fundamental
+- **Respuesta Armónica**: Crea picos y valles en múltiplos enteros de la frecuencia fundamental
+- **Simulación Espacial**: Puede simular reflexiones tempranas de paredes y superficies
+- **Visualización en Tiempo Real**: Muestra la respuesta de frecuencia con marcador de frecuencia fundamental
+
+### Visualización
+- Gráfico de respuesta de frecuencia en tiempo real con escala logarítmica de frecuencia
+- Visualización clara de picos y valles del filtro peine
+- Marcador de frecuencia fundamental que muestra el tiempo de retardo
+- Controles interactivos para ajuste preciso
+- Cálculo de distancia de retardo en milímetros
 
 ## Hi Pass Filter
 

@@ -238,6 +238,8 @@ No audiophile myths, Just pure science.
 | EQ        | 15Band PEQ | Профессиональный параметрический эквалайзер с 15 полностью настраиваемыми полосами | [Подробнее](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 5-полосный динамический эквалайзер с регулировкой частот на основе порога | [Подробнее](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Профессиональный параметрический эквалайзер с 5 полностью настраиваемыми полосами | [Подробнее](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | Фокусировка на конкретных частотах | [Подробнее](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | Цифровой гребенчатый фильтр для гармонической окраски и симуляции резонанса | [Подробнее](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | Удаление нежелательных низких частот с точностью | [Подробнее](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Удаление нежелательных высоких частот с точностью | [Подробнее](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Коррекция баланса частот для низкого уровня громкости | [Подробнее](plugins/eq.md#loudness-equalizer) |

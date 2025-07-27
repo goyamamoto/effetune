@@ -260,6 +260,8 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | EQ        | 15Band PEQ | 15 पूर्णतः कॉन्फ़िगर करने योग्य बैंड्स के साथ प्रोफेशनल पैरामीट्रिक इक्वलाइज़र | [विवरण](plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | थ्रेशोल्ड-आधारित फ़्रीक्वेंसी समायोजन के साथ 5-बैंड डायनेमिक इक्वलाइज़र | [विवरण](plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | 5 पूर्णतः कॉन्फ़िगर करने योग्य बैंड्स के साथ प्रोफेशनल पैरामीट्रिक इक्वलाइज़र | [विवरण](plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | विशिष्ट आवृत्तियों पर ध्यान केंद्रित करें | [विवरण](plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | हार्मोनिक कलरेशन और रेज़ोनेंस सिमुलेशन के लिए डिजिटल कंघी फ़िल्टर | [विवरण](plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | सटीकता के साथ अवांछित निम्न आवृत्तियों को हटाता है | [विवरण](plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | सटीकता के साथ अवांछित उच्च आवृत्तियों को हटाता है | [विवरण](plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | कम वॉल्यूम सुनने के लिए आवृत्ति संतुलन सुधार | [विवरण](plugins/eq.md#loudness-equalizer) |

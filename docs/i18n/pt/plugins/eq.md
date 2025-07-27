@@ -9,6 +9,7 @@ Uma coleção de plugins que permite ajustar diferentes aspectos do som da sua m
 - [5Band Dynamic EQ](#5band-dynamic-eq) - Equalizador baseado em dinâmica que reage à sua música
 - [5Band PEQ](#5band-peq) - Equalizador paramétrico profissional com cinco bandas e controle flexível
 - [Band Pass Filter](#band-pass-filter) - Foco em frequências específicas
+- [Comb Filter](#comb-filter) - Filtro pente digital para coloração harmônica e simulação de ressonância
 - [Hi Pass Filter](#hi-pass-filter) - Remove frequências baixas indesejadas com precisão
 - [Lo Pass Filter](#lo-pass-filter) - Remove frequências altas indesejadas com precisão
 - [Loudness Equalizer](#loudness-equalizer) - Correção do balanço de frequência para audição em volumes baixos
@@ -257,6 +258,59 @@ Um filtro passa-banda de precisão que combina filtros passa-alta e passa-baixa 
 - Visualização clara de ambas inclinações do filtro e pontos de corte
 - Controles interativos para ajuste preciso
 - Grade de frequência com marcadores em pontos de referência chave
+
+## Comb Filter
+
+Um filtro pente digital que cria efeitos de coloração harmônica e ressonância através de atrasos de tempo precisos. Este plugin simula fenômenos acústicos como reflexões iniciais de paredes e superfícies, sendo perfeito para entusiastas de áudio que querem entender e recriar as complexas interações entre som e espaço.
+
+### Guia de Aperfeiçoamento da Audição
+- Simule a Acústica da Sala:
+  - Use frequências fundamentais entre 100-500Hz para simular reflexões de paredes
+  - Ajuste o ganho de realimentação para controlar a intensidade da reflexão
+  - Perfeito para entender como as dimensões da sala afetam o som
+- Crie Coloração Harmônica:
+  - Use o modo de alimentação direta para realce harmônico sutil
+  - Use o modo de realimentação para efeitos de ressonância mais pronunciados
+  - Experimente diferentes frequências fundamentais para um caráter tonal único
+- Simulação de Reflexões Iniciais:
+  - Defina a frequência fundamental baseada nas dimensões da sala (ex., 343Hz para 1 metro de distância)
+  - Use ganho de realimentação moderado (0.3-0.7) para simulação realista de reflexões
+  - Ajuda a recriar as características acústicas de diferentes espaços de audição
+- Efeitos de Ressonância e Eco:
+  - Valores mais altos de ganho de realimentação criam ressonância mais pronunciada
+  - Frequências fundamentais mais baixas criam tempos de atraso mais longos
+  - Combine com outros efeitos para processamento espacial complexo
+
+### Parâmetros
+- **Frequência Fundamental (Hz)** - Controla o tempo de atraso e o espaçamento harmônico (20Hz a 20000Hz)
+  - Valores mais baixos: Atrasos mais longos, harmônicos mais espaçados
+  - Valores mais altos: Atrasos mais curtos, harmônicos mais próximos
+  - Baseado na acústica da sala: Frequência = Velocidade do Som / Distância
+- **Ganho de Realimentação** - Controla a intensidade do efeito do filtro pente (-1.0 a 1.0)
+  - Valores negativos: Cria padrões harmônicos inversos
+  - Valores positivos: Cria padrões harmônicos de reforço
+  - Zero: Sem efeito (apenas sinal seco)
+  - Valores absolutos mais altos: Efeito mais pronunciado
+- **Tipo de Pente** - Controla a estrutura do filtro
+  - Alimentação Direta: Cria realce harmônico sem realimentação
+  - Realimentação: Cria efeitos de ressonância e eco
+- **Mistura Seco/Úmido** - Controla o equilíbrio entre o sinal processado e o original (0% a 100%)
+  - 0%: Apenas sinal original
+  - 50%: Mistura igual de sinal original e processado
+  - 100%: Apenas sinal processado
+
+### Detalhes Técnicos
+- **Cálculo do Atraso**: Tempo de atraso = 1 / Frequência Fundamental
+- **Resposta Harmônica**: Cria picos e vales em múltiplos inteiros da frequência fundamental
+- **Simulação Espacial**: Pode simular reflexões iniciais de paredes e superfícies
+- **Visualização em Tempo Real**: Mostra a resposta de frequência com marcador de frequência fundamental
+
+### Exibição Visual
+- Gráfico de resposta de frequência em tempo real com escala logarítmica de frequência
+- Visualização clara de picos e vales do filtro pente
+- Marcador de frequência fundamental mostrando o tempo de atraso
+- Controles interativos para ajuste preciso
+- Cálculo da distância de atraso em milímetros
 
 ## Hi Pass Filter
 

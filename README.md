@@ -260,6 +260,8 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | EQ        | 15Band PEQ | Professional parametric equalizer with 15 fully configurable bands | [Details](docs/plugins/eq.md#15band-peq) |
 | EQ        | 5Band Dynamic EQ | 5-band dynamic equalizer with threshold-based frequency adjustment | [Details](docs/plugins/eq.md#5band-dynamic-eq) |
 | EQ        | 5Band PEQ | Professional parametric equalizer with 5 fully configurable bands | [Details](docs/plugins/eq.md#5band-peq) |
+| EQ        | Band Pass Filter | Focus on specific frequencies | [Details](docs/plugins/eq.md#band-pass-filter) |
+| EQ        | Comb Filter | Digital comb filter for harmonic coloration and resonance simulation | [Details](docs/plugins/eq.md#comb-filter) |
 | EQ        | Hi Pass Filter | Remove unwanted low frequencies with precision | [Details](docs/plugins/eq.md#hi-pass-filter) |
 | EQ        | Lo Pass Filter | Remove unwanted high frequencies with precision | [Details](docs/plugins/eq.md#lo-pass-filter) |
 | EQ        | Loudness Equalizer | Frequency balance correction for low-volume listening | [Details](docs/plugins/eq.md#loudness-equalizer) |

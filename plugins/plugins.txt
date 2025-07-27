@@ -42,11 +42,12 @@ dynamics/multiband_compressor: Multiband Compressor | Dynamics | MultibandCompre
 dynamics/multiband_transient: Multiband Transient | Dynamics | MultibandTransientPlugin | css
 dynamics/power_amp_sag: Power Amp Sag | Dynamics | PowerAmpSagPlugin | css
 dynamics/transient_shaper: Transient Shaper | Dynamics | TransientShaperPlugin | css
-eq/band_pass_filter: Band Pass Filter | EQ | BandPassFilterPlugin | css
 eq/fifteen_band_geq: 15Band GEQ | EQ | FifteenBandGEQPlugin | css
 eq/fifteen_band_peq: 15Band PEQ | EQ | FifteenBandPEQPlugin | css
 eq/five_band_dynamic_eq: 5Band Dynamic EQ | EQ | FiveBandDynamicEQ | css
 eq/five_band_peq: 5Band PEQ | EQ | FiveBandPEQPlugin | css
+eq/band_pass_filter: Band Pass Filter | EQ | BandPassFilterPlugin | css
+eq/comb_filter: Comb Filter | EQ | CombFilterPlugin | css
 eq/hi_pass_filter: Hi Pass Filter | EQ | HiPassFilterPlugin | css
 eq/lo_pass_filter: Lo Pass Filter | EQ | LoPassFilterPlugin | css
 eq/loudness_equalizer: Loudness Equalizer | EQ | LoudnessEqualizerPlugin | css
