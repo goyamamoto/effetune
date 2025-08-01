@@ -4,9 +4,88 @@ Uma coleção de plugins que aprimoram como a música soa em seus fones de ouvid
 
 ## Lista de Plugins
 
+- [Crossfeed Filter](#crossfeed-filter) - Filtro de crossfeed para fones de ouvido para imagem estéreo natural
 - [MS Matrix](#ms-matrix) - Ajusta a imagem estéreo controlando separadamente os níveis de Mid e Side, com troca opcional dos canais esquerdo/direito  
 - [Multiband Balance](#multiband-balance) - Controle de balanço estéreo dependente de frequência de 5 bandas
 - [Stereo Blend](#stereo-blend) - Controla a largura estéreo de mono a estéreo aprimorado
+
+## Crossfeed Filter
+
+Um filtro de crossfeed para fones de ouvido que simula a diafonia acústica natural que ocorre ao ouvir através de alto-falantes. Este efeito ajuda a reduzir a separação estéreo exagerada frequentemente experimentada com fones de ouvido, criando uma experiência de audição mais natural e confortável que imita a forma como o som chega aos nossos ouvidos em um ambiente acústico real.
+
+### Características principais
+- Simula a diafonia acústica natural para audição com fones de ouvido
+- Nível de crossfeed e temporização ajustáveis
+- Filtragem passa-baixa para imitar a diafonia dependente de frequência
+- Processamento apenas estéreo (automaticamente contornado para sinais mono)
+
+### Parâmetros
+- **Level** (-60 dB a 0 dB): Controla a quantidade de sinal de crossfeed
+  - Valores mais baixos (-20 dB a -6 dB): Crossfeed sutil e natural
+  - Valores mais altos (-6 dB a 0 dB): Efeito mais pronunciado
+- **Delay** (0 ms a 1 ms): Simula a diferença de tempo da diafonia acústica
+  - Valores mais baixos (0.1-0.3 ms): Imagem mais apertada e focada
+  - Valores mais altos (0.3-1.0 ms): Apresentação mais espaçosa, similar a alto-falantes
+- **LPF Freq** (100 Hz a 20000 Hz): Controla a resposta de frequência do crossfeed
+  - Valores mais baixos (500-1000 Hz): Diafonia mais natural dependente de frequência
+  - Valores mais altos (1000-20000 Hz): Resposta de frequência mais ampla
+
+### Configurações recomendadas
+
+1. Audição Natural com Fones de Ouvido
+   - Level: -12 dB
+   - Delay: 0.3 ms
+   - LPF Freq: 700 Hz
+   - Efeito: Crossfeed sutil para audição confortável a longo prazo
+
+2. Simulação de Alto-falantes
+   - Level: -6 dB
+   - Delay: 0.5 ms
+   - LPF Freq: 1000 Hz
+   - Efeito: Apresentação mais pronunciada similar a alto-falantes
+
+3. Aprimoramento Sutil
+   - Level: -20 dB
+   - Delay: 0.2 ms
+   - LPF Freq: 500 Hz
+   - Efeito: Crossfeed muito suave para ouvintes sensíveis
+
+### Guia de aplicação
+
+1. Otimização de Fones de Ouvido
+   - Comece com configurações conservadoras (-15 dB level, 0.3 ms delay)
+   - Ajuste o nível para conforto e naturalidade
+   - Afine o atraso para percepção espacial
+   - Use LPF para controlar a resposta de frequência
+
+2. Considerações de Estilo Musical
+   - Clássica/Jazz: Níveis mais baixos (-15 a -10 dB) para apresentação natural
+   - Rock/Pop: Níveis moderados (-10 a -6 dB) para energia
+   - Eletrônica: Níveis mais altos (-6 a 0 dB) para espacialidade
+
+3. Ambiente de Audição
+   - Ambientes silenciosos: Níveis mais baixos para efeito sutil
+   - Ambientes barulhentos: Níveis mais altos para melhor foco
+   - Sessões de audição longas: Configurações conservadoras para reduzir fadiga
+
+### Guia de início rápido
+
+1. Configuração inicial
+   - Configure Level para -12 dB
+   - Configure Delay para 0.3 ms
+   - Configure LPF Freq para 700 Hz
+
+2. Ajuste fino
+   - Ajuste Level para a quantidade desejada de crossfeed
+   - Modifique Delay para percepção espacial
+   - Afine LPF Freq para resposta de frequência
+
+3. Otimização
+   - Ouça para apresentação natural e confortável
+   - Evite configurações excessivas que soem artificiais
+   - Teste com vários estilos musicais
+
+Lembre-se: O Crossfeed Filter é projetado para tornar a audição com fones de ouvido mais natural e confortável. Comece com configurações conservadoras e ajuste gradualmente para encontrar o equilíbrio ideal para suas preferências de audição e material musical.
 
 ## MS Matrix
 

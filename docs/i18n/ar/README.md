@@ -276,6 +276,7 @@
 | Saturation| Multiband Saturation | تأثير تشبع ثلاثي النطاقات لدفء دقيق حسب التردد | [تفاصيل](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | تأثير التشبع | [تفاصيل](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | مزج إشارات تحت-توافقي لتعزيز الجهير | [تفاصيل](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | مرشح التغذية المتقاطعة للسماعات للتصوير الستيريو الطبيعي | [تفاصيل](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | ترميز وفك ترميز منتصف-جانبي للتلاعب الستيريو | [تفاصيل](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | التحكم في توازن الستيريو حسب التردد بخمسة نطاقات | [تفاصيل](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | تأثير التحكم في عرض الستيريو | [تفاصيل](plugins/spatial.md#stereo-blend) |

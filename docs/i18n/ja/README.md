@@ -289,6 +289,7 @@ CDプレーヤー、ネットワークプレーヤー、またはその他の物
 | Saturation| Multiband Saturation | 周波数別のウォーム感を精密に制御する3バンドサチュレーション効果 | [詳細](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | サチュレーション効果 | [詳細](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | ベース強化のためにサブハーモニック信号をミックス | [詳細](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | 自然なステレオイメージングのためのヘッドフォンクロスフィードフィルター | [詳細](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | ステレオ操作のためのミッド・サイドエンコーディングとデコーディング | [詳細](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 5バンド周波数依存のステレオバランス制御 | [詳細](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | ステレオ幅制御エフェクト | [詳細](plugins/spatial.md#stereo-blend) |

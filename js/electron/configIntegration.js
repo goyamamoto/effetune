@@ -21,7 +21,9 @@ export async function saveConfig(isElectron, cfg) {
 export async function showConfigDialog(isElectron, currentConfig) {
   if (!isElectron) return;
 
-  const config = { ...currentConfig };
+  // Load the latest config from file to ensure we have the most recent settings
+  const config = await loadConfig(isElectron);
+  
   const presets = (window.pipelineManager && window.pipelineManager.presetManager)
     ? await window.pipelineManager.presetManager.getPresets()
     : {};
@@ -47,6 +49,12 @@ export async function showConfigDialog(isElectron, currentConfig) {
         <div class="checkbox-container">
           <input type="checkbox" id="tray" ${config.minimizeToTray ? 'checked' : ''}>
           <label for="tray">${t('dialog.config.minimizeToTray')}</label>
+        </div>
+      </div>
+      <div class="device-section">
+        <div class="checkbox-container">
+          <input type="checkbox" id="check-updates" ${config.checkForUpdatesOnStartup !== false ? 'checked' : ''}>
+          <label for="check-updates">${t('dialog.config.checkForUpdatesOnStartup')}</label>
         </div>
       </div>
       <div class="device-section">
@@ -175,6 +183,13 @@ export async function showConfigDialog(isElectron, currentConfig) {
 
   function save() {
     saveConfig(isElectron, config);
+    // Update global config objects to keep them in sync
+    if (window.electronIntegration) {
+      window.electronIntegration.config = config;
+    }
+    if (window.appConfig) {
+      window.appConfig = config;
+    }
   }
 
   document.getElementById('auto-launch').addEventListener('change', e => {
@@ -185,6 +200,9 @@ export async function showConfigDialog(isElectron, currentConfig) {
   });
   document.getElementById('tray').addEventListener('change', e => {
     config.minimizeToTray = e.target.checked; save();
+  });
+  document.getElementById('check-updates').addEventListener('change', e => {
+    config.checkForUpdatesOnStartup = e.target.checked; save();
   });
   Array.from(overlay.querySelectorAll('input[name="pipeline"]')).forEach(el => {
     el.addEventListener('change', () => {

@@ -284,6 +284,7 @@ Se o problema continuar, reporte em [GitHub Issues](https://github.com/Frieve-A/
 | Saturation| Multiband Saturation | Efeito de saturação de 3 bandas para aquecimento preciso baseado em frequência | [Detalhes](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Efeito de saturação | [Detalhes](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Mistura sinais sub-harmônicos para realce de graves | [Detalhes](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Filtro de crossfeed para fones de ouvido para imagem estéreo natural | [Detalhes](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Codificação e decodificação mid-side para manipulação estéreo | [Detalhes](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | Controle de balanço estéreo dependente de frequência de 5 bandas | [Detalhes](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Efeito de controle de largura estéreo | [Detalhes](plugins/spatial.md#stereo-blend) |

@@ -284,6 +284,7 @@ Si el problema persiste, repórtalo a través de [GitHub Issues](https://github.
 | Saturation| Multiband Saturation | Efecto de saturación de 3 bandas para un calentamiento preciso según frecuencia | [Detalles](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Efecto de saturación | [Detalles](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Mezcla señales subarmónicas para realce de graves | [Detalles](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Filtro de alimentación cruzada para auriculares para imagen estéreo natural | [Detalles](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Codificación y decodificación mid-side para manipulación estéreo | [Detalles](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | Control de balance estéreo dependiente de frecuencia de 5 bandas | [Detalles](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Efecto de control de anchura estéreo | [Detalles](plugins/spatial.md#stereo-blend) |

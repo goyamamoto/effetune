@@ -142,6 +142,15 @@ input[type="checkbox"] {
     margin-left: auto;
 }
 
+.update-notification {
+    color: #4a9eff;
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
 .message-display {
     display: inline-block;
     margin-left: 10px;

@@ -205,7 +205,7 @@ class App {
             // Initialize UI components (non-blocking)
             this.uiManager.initPluginList();
             this.uiManager.initDragAndDrop();
-
+            
             // Initialize audio context and input/output (without AudioWorklet)
             // This allows the audio context to be created early, but defers
             // the heavy AudioWorklet initialization until after GUI is rendered
@@ -278,6 +278,13 @@ class App {
             if (window.electronAPI && window.electronAPI.signalReadyForMusicFiles) {
                 // Debug logs removed for release
                 window.electronAPI.signalReadyForMusicFiles();
+            }
+            
+            // Signal to the main process that we're ready to receive update notifications
+            if (window.electronAPI && window.electronAPI.signalReadyForUpdates) {
+                window.electronAPI.signalReadyForUpdates().catch(error => {
+                    console.error('Error signaling ready for updates:', error);
+                });
             }
             
             // Process command line arguments after all initialization is complete
@@ -653,6 +660,13 @@ class App {
             }
         });
 
+        // Listen for update notifications from Electron
+        if (window.electronAPI) {
+            window.electronAPI.onIPC('update-available', (updateInfo) => {
+                this.showUpdateNotification(updateInfo);
+            });
+        }
+
         // Auto-resume audio context when page gains focus
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.audioManager.audioContext &&
@@ -666,6 +680,40 @@ class App {
             navigator.mediaDevices.addEventListener('devicechange', () => {
                 this.handleOutputDeviceChange();
             });
+        }
+    }
+
+    /**
+     * Show update notification
+     */
+    showUpdateNotification(updateInfo) {
+        const whatsThisLink = document.querySelector('.whats-this');
+        
+        if (whatsThisLink) {
+            // Check if update notification already exists
+            const existingNotification = document.querySelector('.update-notification');
+            if (existingNotification) {
+                return; // Already showing update notification
+            }
+            
+            // Create update notification element
+            const updateElement = document.createElement('span');
+            updateElement.className = 'update-notification';
+            updateElement.textContent = window.uiManager && window.uiManager.t ? 
+                window.uiManager.t('ui.newVersionAvailable', { version: updateInfo.version }) : 
+                `New ${updateInfo.version} available.`;
+            
+            // Add click handler to open releases page
+            updateElement.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.openExternal) {
+                    window.electronAPI.openExternal(updateInfo.url);
+                } else {
+                    window.open(updateInfo.url, '_blank');
+                }
+            });
+            
+            // Insert after the whats-this link
+            whatsThisLink.parentNode.insertBefore(updateElement, whatsThisLink.nextSibling);
         }
     }
 

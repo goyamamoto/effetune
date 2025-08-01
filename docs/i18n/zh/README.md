@@ -268,6 +268,7 @@ EffeTune 专为希望提升音乐聆听体验的音频爱好者而设计。无�
 | Saturation| Multiband Saturation | 用于精确频率基暖音的三频段饱和效果 | [详情](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | 饱和效果 | [详情](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | 混入次谐波信号以增强低音 | [详情](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | 用于自然立体声成像的耳机交叉馈送滤波器 | [详情](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | 用于立体声处理的中侧编码和解码 | [详情](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 具有5频段频率依赖立体声平衡控制 | [详情](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | 立体声宽度控制效果 | [详情](plugins/spatial.md#stereo-blend) |

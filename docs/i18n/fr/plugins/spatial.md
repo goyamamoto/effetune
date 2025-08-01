@@ -4,9 +4,88 @@ Une collection de plugins qui améliorent le rendu de votre musique dans vos cas
 
 ## Liste des Plugins
 
+- [Crossfeed Filter](#crossfeed-filter) - Filtre de crossfeed pour casques pour une image stéréo naturelle
 - [MS Matrix](#ms-matrix) - Ajuste l'image stéréo en contrôlant séparément les niveaux Mid et Side, avec option de permutation Left/Right  
 - [Multiband Balance](#multiband-balance) - Contrôle de balance stéréo dépendant de la fréquence à 5 bandes
 - [Stereo Blend](#stereo-blend) - Contrôle la largeur stéréo de mono à stéréo améliorée
+
+## Crossfeed Filter
+
+Un filtre de crossfeed pour casques qui simule la diaphonie acoustique naturelle qui se produit lors de l'écoute via des haut-parleurs. Cet effet aide à réduire la séparation stéréo exagérée souvent ressentie avec des casques, créant une expérience d'écoute plus naturelle et confortable qui imite la façon dont le son atteint nos oreilles dans un environnement acoustique réel.
+
+### Fonctionnalités clés
+- Simule la diaphonie acoustique naturelle pour l'écoute au casque
+- Niveau de crossfeed et timing ajustables
+- Filtrage passe-bas pour imiter la diaphonie dépendante de la fréquence
+- Traitement stéréo uniquement (automatiquement contourné pour les signaux mono)
+
+### Paramètres
+- **Level** (-60 dB à 0 dB) : Contrôle la quantité de signal de crossfeed
+  - Valeurs plus basses (-20 dB à -6 dB) : Crossfeed subtil et naturel
+  - Valeurs plus élevées (-6 dB à 0 dB) : Effet plus prononcé
+- **Delay** (0 ms à 1 ms) : Simule la différence de temps de la diaphonie acoustique
+  - Valeurs plus basses (0.1-0.3 ms) : Image plus serrée et focalisée
+  - Valeurs plus élevées (0.3-1.0 ms) : Présentation plus spacieuse, similaire aux haut-parleurs
+- **LPF Freq** (100 Hz à 20000 Hz) : Contrôle la réponse en fréquence du crossfeed
+  - Valeurs plus basses (500-1000 Hz) : Diaphonie plus naturelle dépendante de la fréquence
+  - Valeurs plus élevées (1000-20000 Hz) : Réponse en fréquence plus large
+
+### Réglages recommandés
+
+1. Écoute Naturelle au Casque
+   - Level : -12 dB
+   - Delay : 0.3 ms
+   - LPF Freq : 700 Hz
+   - Effet : Crossfeed subtil pour une écoute confortable à long terme
+
+2. Simulation de Haut-parleurs
+   - Level : -6 dB
+   - Delay : 0.5 ms
+   - LPF Freq : 1000 Hz
+   - Effet : Présentation plus prononcée similaire aux haut-parleurs
+
+3. Amélioration Subtile
+   - Level : -20 dB
+   - Delay : 0.2 ms
+   - LPF Freq : 500 Hz
+   - Effet : Crossfeed très doux pour les auditeurs sensibles
+
+### Guide d'application
+
+1. Optimisation du Casque
+   - Commencez par des réglages conservateurs (-15 dB level, 0.3 ms delay)
+   - Ajustez le niveau pour le confort et la naturalité
+   - Affinez le délai pour la perception spatiale
+   - Utilisez LPF pour contrôler la réponse en fréquence
+
+2. Considérations de Style Musical
+   - Classique/Jazz : Niveaux plus bas (-15 à -10 dB) pour une présentation naturelle
+   - Rock/Pop : Niveaux modérés (-10 à -6 dB) pour l'énergie
+   - Électronique : Niveaux plus élevés (-6 à 0 dB) pour la spatialité
+
+3. Environnement d'Écoute
+   - Environnements calmes : Niveaux plus bas pour un effet subtil
+   - Environnements bruyants : Niveaux plus élevés pour une meilleure focalisation
+   - Sessions d'écoute longues : Réglages conservateurs pour réduire la fatigue
+
+### Guide de démarrage rapide
+
+1. Configuration initiale
+   - Réglez Level à -12 dB
+   - Réglez Delay à 0.3 ms
+   - Réglez LPF Freq à 700 Hz
+
+2. Ajustement fin
+   - Ajustez Level pour la quantité de crossfeed souhaitée
+   - Modifiez Delay pour la perception spatiale
+   - Affinez LPF Freq pour la réponse en fréquence
+
+3. Optimisation
+   - Écoutez pour une présentation naturelle et confortable
+   - Évitez les réglages excessifs qui sonnent artificiels
+   - Testez avec différents styles musicaux
+
+Rappel : Le Crossfeed Filter est conçu pour rendre l'écoute au casque plus naturelle et confortable. Commencez par des réglages conservateurs et ajustez progressivement pour trouver l'équilibre optimal pour vos préférences d'écoute et votre matériel musical.
 
 ## MS Matrix
 

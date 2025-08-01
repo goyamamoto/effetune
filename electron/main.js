@@ -1,6 +1,7 @@
 const { app, BrowserWindow, screen, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 // Import modules
 const constants = require('./constants');
@@ -546,6 +547,87 @@ function initGlobalVariables() {
   // Store app version - already set in the imports section
 }
 
+// Store update info for later sending
+let pendingUpdateInfo = null;
+
+// Function to get pending update info (for IPC handlers)
+function getPendingUpdateInfo() {
+  return pendingUpdateInfo;
+}
+
+// Check for updates from GitHub
+async function checkForUpdates() {
+  try {
+    const response = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'api.github.com',
+        path: '/repos/frieve-a/effetune/releases/latest',
+        method: 'GET',
+        headers: {
+          'User-Agent': 'EffeTune-Update-Checker/1.0',
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      };
+      
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            resolve(JSON.parse(data));
+          } else {
+            reject(new Error(`HTTP ${res.statusCode}`));
+          }
+        });
+      });
+      
+      req.on('error', (err) => {
+        reject(err);
+      });
+      
+      req.setTimeout(10000, () => {
+        req.destroy();
+        reject(new Error('Request timeout'));
+      });
+      
+      req.end();
+    });
+    
+    // Extract version from the "name" field (e.g., "Version 1.60.0")
+    const latestVersionName = response.name;
+    const currentVersion = constants.getAppVersion();
+    
+    // Compare versions
+    if (latestVersionName && latestVersionName !== `Version ${currentVersion}`) {
+      // Store update info for later sending
+      pendingUpdateInfo = {
+        version: latestVersionName,
+        url: 'https://github.com/Frieve-A/effetune/releases/'
+      };
+      
+      // Try to send immediately if window is ready
+      const mainWindow = constants.getMainWindow();
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send('update-available', pendingUpdateInfo);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to check for updates:', error);
+  }
+}
+
+// Send pending update info when renderer is ready
+function sendPendingUpdateInfo() {
+  if (pendingUpdateInfo) {
+    const mainWindow = constants.getMainWindow();
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('update-available', pendingUpdateInfo);
+    }
+  }
+}
+
 // Create splash screen
 function createSplashScreen() {
   // Create splash window with About dialog content
@@ -707,6 +789,14 @@ function createSplashScreen() {
       // Reload the main window
       mainWindow.reload();
       
+      // Check for updates after reload if enabled in config
+      setTimeout(() => {
+        const cfg = constants.getAppConfig();
+        if (cfg && cfg.checkForUpdatesOnStartup !== false) {
+          checkForUpdates();
+        }
+      }, 1000);
+      
       // Clean up temporary splash file
       try {
         fs.unlinkSync(splashPath);
@@ -851,7 +941,8 @@ function initializeApp() {
     startMinimized: false,
     minimizeToTray: false,
     pipelineStartup: 'last',
-    startupPreset: ''
+    startupPreset: '',
+    checkForUpdatesOnStartup: true
   };
   const cfg = { ...cfgDefaults, ...configModule.loadConfig() };
   configModule.saveConfig(cfg);
@@ -1018,3 +1109,10 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+// Export functions for use in other modules
+module.exports = {
+  sendPendingUpdateInfo,
+  getPendingUpdateInfo,
+  checkForUpdates
+};

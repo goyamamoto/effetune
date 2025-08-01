@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "ابحث عن التأثيرات...",
   "ui.sleepMode": "وضع السكون",
   "ui.whatsThisApp": "ما هذا التطبيق؟",
+  "ui.newVersionAvailable": "الجديد {version} متاح.",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "فتح ملفات الموسيقى",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "بدء التشغيل عند بدء تشغيل نظام التشغيل",
   "dialog.config.startMinimized": "بدء التشغيل في وضع التصغير",
   "dialog.config.minimizeToTray": "التصغير إلى علبة النظام",
+  "dialog.config.checkForUpdatesOnStartup": "التحقق من التحديثات عند بدء التشغيل",
   "dialog.config.pipeline": "خط أنابيب التأثيرات عند بدء التشغيل:",
   "dialog.config.pipeline.default": "الإعدادات الافتراضية",
   "dialog.config.pipeline.last": "الإعدادات من آخر خروج",

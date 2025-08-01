@@ -4,9 +4,88 @@ A collection of plugins that enhance how your music sounds in your headphones or
 
 ## Plugin List
 
+- [Crossfeed Filter](#crossfeed-filter) - Headphone crossfeed filter for natural stereo imaging
 - [MS Matrix](#ms-matrix) - Adjust stereo image by separately controlling Mid and Side levels, with optional Left/Right swap  
 - [Multiband Balance](#multiband-balance) - 5-band frequency-dependent stereo balance control  
 - [Stereo Blend](#stereo-blend) - Controls stereo width from mono to enhanced stereo
+
+## Crossfeed Filter
+
+A headphone crossfeed filter that simulates the natural acoustic crosstalk that occurs when listening through speakers. This effect helps reduce the exaggerated stereo separation often experienced with headphones, creating a more natural and comfortable listening experience that mimics the way sound reaches our ears in a real acoustic environment.
+
+### Key Features
+- Simulates natural acoustic crosstalk for headphone listening
+- Adjustable crossfeed level and timing
+- Low-pass filtering to mimic frequency-dependent crosstalk
+- Stereo-only processing (automatically bypassed for mono signals)
+
+### Parameters
+- **Level** (-60 dB to 0 dB): Controls the amount of crossfeed signal
+  - Lower values (-20 dB to -6 dB): Subtle, natural crossfeed
+  - Higher values (-6 dB to 0 dB): More pronounced effect
+- **Delay** (0 ms to 1 ms): Simulates the time difference of acoustic crosstalk
+  - Lower values (0.1-0.3 ms): Tighter, more focused image
+  - Higher values (0.3-1.0 ms): More spacious, speaker-like presentation
+- **LPF Freq** (100 Hz to 20000 Hz): Controls the frequency response of crossfeed
+  - Lower values (500-1000 Hz): More natural, frequency-dependent crosstalk
+  - Higher values (1000-20000 Hz): Broader frequency response
+
+### Recommended Settings
+
+1. Natural Headphone Listening
+   - Level: -12 dB
+   - Delay: 0.3 ms
+   - LPF Freq: 700 Hz
+   - Effect: Subtle crossfeed for comfortable long-term listening
+
+2. Speaker Simulation
+   - Level: -6 dB
+   - Delay: 0.5 ms
+   - LPF Freq: 1000 Hz
+   - Effect: More pronounced speaker-like presentation
+
+3. Subtle Enhancement
+   - Level: -20 dB
+   - Delay: 0.2 ms
+   - LPF Freq: 500 Hz
+   - Effect: Very gentle crossfeed for sensitive listeners
+
+### Application Guide
+
+1. Headphone Optimization
+   - Start with conservative settings (-15 dB level, 0.3 ms delay)
+   - Adjust level for comfort and naturalness
+   - Fine-tune delay for spatial perception
+   - Use LPF to control frequency response
+
+2. Music Style Considerations
+   - Classical/Jazz: Lower levels (-15 to -10 dB) for natural presentation
+   - Rock/Pop: Moderate levels (-10 to -6 dB) for energy
+   - Electronic: Higher levels (-6 to 0 dB) for spaciousness
+
+3. Listening Environment
+   - Quiet environments: Lower levels for subtle effect
+   - Noisy environments: Higher levels for better focus
+   - Long listening sessions: Conservative settings to reduce fatigue
+
+### Quick Start Guide
+
+1. Initial Setup
+   - Set Level to -12 dB
+   - Set Delay to 0.3 ms
+   - Set LPF Freq to 700 Hz
+
+2. Fine-tuning
+   - Adjust Level for desired crossfeed amount
+   - Modify Delay for spatial perception
+   - Tune LPF Freq for frequency response
+
+3. Optimization
+   - Listen for natural, comfortable presentation
+   - Avoid excessive settings that sound artificial
+   - Test with various music styles
+
+Remember: The Crossfeed Filter is designed to make headphone listening more natural and comfortable. Start with conservative settings and adjust gradually to find the optimal balance for your listening preferences and music material.
 
 ## MS Matrix
 

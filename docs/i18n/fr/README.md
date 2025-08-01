@@ -282,6 +282,7 @@ Si le souci persiste, signalez-le sur [GitHub Issues](https://github.com/Frieve-
 | Saturation| Multiband Saturation | Effet de saturation 3 bandes pour une chaleur précise selon la fréquence | [Détails](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Effet de saturation | [Détails](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Mixe des signaux sous-harmoniques pour renforcer les basses | [Détails](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Filtre de crossfeed pour casques pour imagerie stéréo naturelle | [Détails](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Encodage et décodage mid-side pour manipulation stéréo | [Détails](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | Contrôle de l'équilibre stéréo dépendant de la fréquence sur 5 bandes | [Détails](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Effet de contrôle de la largeur stéréo | [Détails](plugins/spatial.md#stereo-blend) |

@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "Pesquisar efeitos...",
   "ui.sleepMode": "Modo de Suspensão",
   "ui.whatsThisApp": "O que é este aplicativo?",
+  "ui.newVersionAvailable": "Nova {version} disponível.",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "Abrir arquivos de música",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "Iniciar na inicialização do SO",
   "dialog.config.startMinimized": "Iniciar minimizado",
   "dialog.config.minimizeToTray": "Minimizar para a bandeja",
+  "dialog.config.checkForUpdatesOnStartup": "Verificar atualizações na inicialização",
   "dialog.config.pipeline": "Pipeline de efeitos na inicialização:",
   "dialog.config.pipeline.default": "Configurações padrão",
   "dialog.config.pipeline.last": "Configurações da última saída",

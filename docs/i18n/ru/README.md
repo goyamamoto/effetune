@@ -268,6 +268,7 @@ No audiophile myths, Just pure science.
 | Saturation| Multiband Saturation | 3-полосный эффект насыщения для точного придания теплоты на основе частот | [Подробнее](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Эффект насыщения | [Подробнее](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Смешивает субгармонические сигналы для усиления басов | [Подробнее](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Фильтр кроссфида для наушников для естественного стерео изображения | [Подробнее](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Кодирование и декодирование «середина-бок» для управления стерео | [Подробнее](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 5-полосное управление стереобалансом в зависимости от частоты | [Подробнее](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Эффект контроля ширины стерео | [Подробнее](plugins/spatial.md#stereo-blend) |

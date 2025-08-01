@@ -280,6 +280,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Saturation| Multiband Saturation | 주파수 기반 따뜻함을 위한 3밴드 새츄레이션 이펙트 | [세부 정보](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | 새츄레이션 이펙트 | [세부 정보](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | 베이스 보강을 위해 서브하모닉 신호를 혼합 | [세부 정보](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | 자연스러운 스테레오 이미징을 위한 헤드폰 크로스피드 필터 | [세부 정보](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | 스테레오 제어를 위한 미드-사이드 인코딩 및 디코딩 | [세부 정보](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 주파수 의존 5밴드 스테레오 밸런스 제어 | [세부 정보](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | 스테레오 폭 제어 이펙트 | [세부 정보](plugins/spatial.md#stereo-blend) |

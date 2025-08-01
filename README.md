@@ -290,6 +290,7 @@ If the problem persists, report it through [GitHub Issues](https://github.com/Fr
 | Saturation| Multiband Saturation | 3-band saturation effect for precise frequency-based warmth | [Details](docs/plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Saturation effect | [Details](docs/plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Mixes in subharmonic signals for bass enhancement | [Details](docs/plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Headphone crossfeed filter for natural stereo imaging | [Details](docs/plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Mid-side encoding and decoding for stereo manipulation | [Details](docs/plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 5-band frequency-dependent stereo balance control | [Details](docs/plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Stereo width control effect | [Details](docs/plugins/spatial.md#stereo-blend) |

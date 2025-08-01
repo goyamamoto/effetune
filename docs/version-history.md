@@ -1,5 +1,10 @@
 # Version History
 
+### Version 1.61 (Jul xx, 2025)
+- Added Crossfeed Filter effect
+- Added new version update check function
+- Various minor improvements
+
 ### Version 1.60 (Jul 27, 2025)
 - Added Comb Filter effect
 - Various minor improvements

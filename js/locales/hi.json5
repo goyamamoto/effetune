@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "प्रभाव खोजें...",
   "ui.sleepMode": "स्लीप मोड",
   "ui.whatsThisApp": "यह एप्लिकेशन क्या है?",
+  "ui.newVersionAvailable": "नया {version} उपलब्ध है।",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "संगीत फ़ाइलें खोलें",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "ओएस स्टार्टअप पर लॉन्च करें",
   "dialog.config.startMinimized": "मिनिमाइज़्ड प्रारंभ करें",
   "dialog.config.minimizeToTray": "ट्रे में मिनिमाइज़ करें",
+  "dialog.config.checkForUpdatesOnStartup": "स्टार्टअप पर अपडेट की जांच करें",
   "dialog.config.pipeline": "स्टार्टअप पर प्रभाव पाइपलाइन:",
   "dialog.config.pipeline.default": "डिफ़ॉल्ट सेटिंग्स",
   "dialog.config.pipeline.last": "अंतिम निकास से सेटिंग्स",

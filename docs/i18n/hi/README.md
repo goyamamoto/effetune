@@ -290,6 +290,7 @@ CD प्लेयर्स, नेटवर्क प्लेयर्स, य
 | Saturation | Multiband Saturation | सटीक आवृत्ति-आधारित वार्मथ के लिए 3-बैंड सैचुरेशन प्रभाव | [विवरण](plugins/saturation.md#multiband-saturation) |
 | Saturation | Saturation | सैचुरेशन प्रभाव | [विवरण](plugins/saturation.md#saturation) |
 | Saturation | Sub Synth | बास वृद्धि के लिए सबहार्मोनिक सिग्नल मिलाता है | [विवरण](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | प्राकृतिक स्टीरियो इमेजिंग के लिए हेडफोन क्रॉसफीड फ़िल्टर | [विवरण](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | मिड-साइड एन्कोडिंग और डिकोडिंग के साथ स्टीरियो हेरफेर | [विवरण](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 5-बैंड आवृत्ति-निर्भर स्टीरियो संतुलन नियंत्रण | [विवरण](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | स्टीरियो चौड़ाई नियंत्रण प्रभाव | [विवरण](plugins/spatial.md#stereo-blend) |
