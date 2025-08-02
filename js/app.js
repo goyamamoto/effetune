@@ -163,6 +163,7 @@ if (window.electronAPI && window.electronAPI.isFirstLaunch) {
         isFirstLaunchPromise = Promise.resolve(false);
     }
 } else {
+    // For web version, always resolve to false immediately
     isFirstLaunchPromise = Promise.resolve(false);
 }
 
@@ -181,6 +182,7 @@ isFirstLaunchPromise.then(isFirstLaunch => {
     
     // Store the first launch status for other components
     window.isFirstLaunchConfirmed = isFirstLaunch;
+    window.isFirstLaunch = isFirstLaunch;
 }).catch(error => {
     console.error('Error checking launch status:', error);
     // In case of error, show the UI
@@ -188,6 +190,7 @@ isFirstLaunchPromise.then(isFirstLaunch => {
         tempStyle.parentNode.removeChild(tempStyle);
     }
     window.isFirstLaunchConfirmed = false;
+    window.isFirstLaunch = false;
 });
 
 // Configuration for initialization wait times (in milliseconds)
@@ -1044,6 +1047,7 @@ if (window.electronAPI && window.electronIntegration && window.electronIntegrati
 }
 
 // Initialize application after first launch check is complete
+// Use the already defined isFirstLaunchPromise from above
 isFirstLaunchPromise.then(isFirstLaunch => {
     // Store the first launch status for other components
     window.isFirstLaunchConfirmed = isFirstLaunch;

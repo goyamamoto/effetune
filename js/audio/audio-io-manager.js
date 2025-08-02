@@ -490,19 +490,25 @@ export class AudioIOManager {
             // For web app (non-Electron), always connect to default destination
             // This is crucial for audio output to work
             if (!window.electronAPI || !window.electronIntegration) {
-                if (!this.defaultDestinationConnection) {
-                    try {
-                        this.defaultDestinationConnection = this.contextManager.workletNode.connect(this.contextManager.audioContext.destination);
-                        
-                        // Ensure proper multichannel configuration for the destination
-                        if (this.contextManager.audioContext.destination.channelCount > 2) {
-                            this.contextManager.audioContext.destination.channelCountMode = 'explicit';
-                            this.contextManager.audioContext.destination.channelInterpretation = 'discrete';
-                        }
-                    } catch (error) {
-                        console.error('Error connecting to default audio destination:', error);
-                        return `Audio Error: Failed to connect to default audio destination: ${error.message}`;
+                // Disconnect any existing connections first to avoid conflicts
+                try {
+                    this.contextManager.workletNode.disconnect();
+                } catch (e) {
+                    // Ignore errors if already disconnected
+                }
+                
+                // Always create a fresh connection for web app
+                try {
+                    this.defaultDestinationConnection = this.contextManager.workletNode.connect(this.contextManager.audioContext.destination);
+                    
+                    // Ensure proper multichannel configuration for the destination
+                    if (this.contextManager.audioContext.destination.channelCount > 2) {
+                        this.contextManager.audioContext.destination.channelCountMode = 'explicit';
+                        this.contextManager.audioContext.destination.channelInterpretation = 'discrete';
                     }
+                } catch (error) {
+                    console.error('Error connecting to default audio destination:', error);
+                    return `Audio Error: Failed to connect to default audio destination: ${error.message}`;
                 }
             }
             
