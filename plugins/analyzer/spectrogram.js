@@ -250,6 +250,7 @@ class SpectrogramPlugin extends PluginBase {
     process(message) {
         if (!message?.measurements?.buffer) return;
         if (!this.enabled) return;
+        if (!this.spectrogramBuffer) return; // Check if spectrogramBuffer exists
 
         const fftSize = 1 << this.pt;
         const bufferPosition = message.measurements.bufferPosition;

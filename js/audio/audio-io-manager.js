@@ -465,8 +465,6 @@ export class AudioIOManager {
                     const preferences = window.electronAPI && window.electronIntegration ? 
                         await window.electronIntegration.loadAudioPreferences() : null;
                     const channelCount = preferences?.outputChannels || 4;
-
-                    console.log(`Direct connection established with ${channelCount} channels`);
                 } catch (error) {
                     console.error('Error connecting direct output:', error);
                     return `Audio Error: Failed to connect direct output: ${error.message}`;

@@ -116,6 +116,33 @@ To use EffeTune with CD players, network players, or other physical sources:
    - Each preset stores your complete effect chain configuration
    - Includes effect order, parameters, and states
 
+### Using Section Features
+
+1. Section Effect Usage:
+   - Add a Section effect at the beginning of a group of effects
+   - Enter a descriptive name in the Comment field
+   - Toggling the Section ON/OFF will enable/disable all effects within that section
+   - Use multiple Section effects to organize your effect chain into logical groups
+   - [More about control effects](docs/plugins/control.md)
+
+### Using AB Pipeline Features
+
+1. AB Pipeline Overview:
+   - EffeTune can maintain two separate effect pipelines: Pipeline A and Pipeline B
+   - At startup, only Pipeline A is loaded; Pipeline B is created when needed
+   - All processing, saving, loading, and editing operations work on the currently selected pipeline
+
+2. AB Toggle Button:
+   - Located to the right of the Effect Pipeline header
+   - Shows "A" by default (Pipeline A active)
+   - Click to switch between Pipeline A and Pipeline B
+   - If Pipeline B doesn't exist when toggling, Pipeline A's settings are copied to Pipeline B
+
+3. AB Menu (Dropdown Button):
+   - Located to the right of the AB toggle button
+   - "A → B": Copy Pipeline A settings to Pipeline B and switch to Pipeline B
+   - "B → A": Copy Pipeline B settings to Pipeline A and switch to Pipeline A
+
 ### Effect Selection and Keyboard Shortcuts
 
 1. Effect Selection Methods:
@@ -135,15 +162,11 @@ To use EffeTune with CD players, network players, or other physical sources:
    - Ctrl + A: Select all effects in the pipeline
    - Delete: Delete selected effects
    - ESC: Deselect all effects
+   - T: Toggle between Pipeline A and Pipeline B
+   - A: Switch to Pipeline A
+   - B: Switch to Pipeline B
 
-3. Using Section Features:
-   - Add a Section effect at the beginning of a group of effects
-   - Enter a descriptive name in the Comment field
-   - Toggling the Section ON/OFF will enable/disable all effects within that section
-   - Use multiple Section effects to organize your effect chain into logical groups
-   - [More about control effects](docs/plugins/control.md)
-
-4. Keyboard Shortcuts (when using the player):
+3. Keyboard Shortcuts (when using the player):
    - Space: Play/Pause
    - Ctrl + → or N: Next track
    - Ctrl + ← or P: Previous track

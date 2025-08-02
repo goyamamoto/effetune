@@ -602,7 +602,7 @@ function registerIpcHandlers() {
             {
               label: menuTemplate.help.submenu[1].label, // Discord
               click: () => {
-                require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+                require('electron').shell.openExternal('https://discord.gg/gf95v3Gza2');
               }
             },
             { type: 'separator' },
@@ -1093,7 +1093,7 @@ function createMenu() {
         {
           label: 'Discord',
           click: () => {
-            require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+            require('electron').shell.openExternal('https://discord.gg/gf95v3Gza2');
           }
         },
         { type: 'separator' },

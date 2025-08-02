@@ -109,6 +109,33 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
    - Chaque préréglage stocke la configuration complète de votre chaîne d'effets
    - Inclut l'ordre des effets, les paramètres et les états
 
+### Utilisation de la fonction Section
+
+1. Utilisation de l'effet Section :
+   - Ajouter un effet Section au début d'un groupe d'effets
+   - Entrer un nom descriptif dans le champ Commentaire
+   - Activer/Désactiver l'effet Section activera/désactivera tous les effets de cette section
+   - Utiliser plusieurs effets Section pour organiser votre chaîne d'effets en groupes logiques
+   - [En savoir plus sur les effets de contrôle](plugins/control.md)
+
+### Utilisation des fonctions Pipeline AB
+
+1. Aperçu du Pipeline AB :
+   - EffeTune peut maintenir deux pipelines d'effets séparés : Pipeline A et Pipeline B
+   - Au démarrage, seul le Pipeline A est chargé ; le Pipeline B est créé si nécessaire
+   - Toutes les opérations de traitement, sauvegarde, chargement et édition fonctionnent sur le pipeline actuellement sélectionné
+
+2. Bouton de basculement AB :
+   - Situé à droite de l'en-tête Effect Pipeline
+   - Affiche "A" par défaut (Pipeline A actif)
+   - Cliquez pour basculer entre Pipeline A et Pipeline B
+   - Si le Pipeline B n'existe pas lors du basculement, les paramètres du Pipeline A sont copiés vers le Pipeline B
+
+3. Menu AB (Bouton déroulant) :
+   - Situé à droite du bouton de basculement AB
+   - "A → B" : Copie les paramètres du Pipeline A vers le Pipeline B et bascule vers le Pipeline B
+   - "B → A" : Copie les paramètres du Pipeline B vers le Pipeline A et bascule vers le Pipeline A
+
 ### Sélection d'effets et raccourcis clavier
 
 1. Méthodes de sélection des effets :
@@ -128,15 +155,11 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
    - Ctrl + A: Sélectionner tous les effets du pipeline
    - Delete: Supprimer les effets sélectionnés
    - ESC: Désélectionner tous les effets
+   - T: Basculer entre Pipeline A et Pipeline B
+   - A: Basculer vers Pipeline A
+   - B: Basculer vers Pipeline B
 
-3. Utilisation de la fonction Section :
-   - Ajouter un effet Section au début d'un groupe d'effets
-   - Entrer un nom descriptif dans le champ Commentaire
-   - Activer/Désactiver l'effet Section activera/désactivera tous les effets de cette section
-   - Utiliser plusieurs effets Section pour organiser votre chaîne d'effets en groupes logiques
-   - [En savoir plus sur les effets de contrôle](plugins/control.md)
-
-4. Raccourcis clavier (lors de l'utilisation du lecteur) :
+3. Raccourcis clavier (lors de l'utilisation du lecteur) :
    - Space : Lecture/Pause
    - Ctrl + → ou N : Piste suivante
    - Ctrl + ← ou P : Piste précédente

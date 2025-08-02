@@ -111,6 +111,33 @@ Para usar EffeTune con reproductores de CD, reproductores de red u otras fuentes
    - Cada preset almacena la configuración completa de tu cadena de efectos
    - Incluye el orden de los efectos, los parámetros y los estados
 
+### Usando Secciones
+
+1. Uso del Efecto de Sección:
+   - Añade un efecto de Sección al principio de un grupo de efectos
+   - Ingresa un nombre descriptivo en el campo de comentario
+   - Alternar el efecto de Sección ON/OFF activará/desactivará todos los efectos dentro de esa sección
+   - Usa múltiples efectos de Sección para organizar tu cadena de efectos en grupos lógicos
+   - [Más sobre efectos de control](plugins/control.md)
+
+### Usando Funciones de Pipeline AB
+
+1. Resumen de Pipeline AB:
+   - EffeTune puede mantener dos pipelines de efectos separados: Pipeline A y Pipeline B
+   - Al inicio, solo se carga el Pipeline A; el Pipeline B se crea cuando es necesario
+   - Todas las operaciones de procesamiento, guardado, carga y edición funcionan en el pipeline seleccionado actualmente
+
+2. Botón de Alternancia AB:
+   - Ubicado a la derecha del encabezado de Effect Pipeline
+   - Muestra "A" por defecto (Pipeline A activo)
+   - Haz clic para alternar entre Pipeline A y Pipeline B
+   - Si el Pipeline B no existe al alternar, la configuración del Pipeline A se copia al Pipeline B
+
+3. Menú AB (Botón Desplegable):
+   - Ubicado a la derecha del botón de alternancia AB
+   - "A → B": Copia la configuración del Pipeline A al Pipeline B y cambia al Pipeline B
+   - "B → A": Copia la configuración del Pipeline B al Pipeline A y cambia al Pipeline A
+
 ### Selección de Efectos y Atajos de Teclado
 
 1. Métodos de Selección de Efectos:
@@ -130,15 +157,11 @@ Para usar EffeTune con reproductores de CD, reproductores de red u otras fuentes
    - Ctrl + A: Seleccionar todos los efectos en el pipeline
    - Delete: Eliminar los efectos seleccionados
    - ESC: Deseleccionar todos los efectos
+   - T: Alternar entre Pipeline A y Pipeline B
+   - A: Cambiar al Pipeline A
+   - B: Cambiar al Pipeline B
 
-3. Usando Secciones:
-   - Añade un efecto de Sección al principio de un grupo de efectos
-   - Ingresa un nombre descriptivo en el campo de comentario
-   - Alternar el efecto de Sección ON/OFF activará/desactivará todos los efectos dentro de esa sección
-   - Usa múltiples efectos de Sección para organizar tu cadena de efectos en grupos lógicos
-   - [Más sobre efectos de control](plugins/control.md)
-
-4. Atajos de teclado (al usar el reproductor):
+3. Atajos de teclado (al usar el reproductor):
    - Espacio: Reproducir/Pausar
    - Ctrl + → o N: Siguiente pista
    - Ctrl + ← o P: Pista anterior

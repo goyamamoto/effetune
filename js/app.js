@@ -10,6 +10,9 @@ window.electronIntegration = electronIntegration;
 // Store the latest pipeline state in memory
 let latestPipelineState = null;
 
+// Make saveDualPipelineState globally accessible
+window.saveDualPipelineState = saveDualPipelineState;
+
 // Function to save pipeline state to memory, only write to file on app exit
 async function savePipelineState(pipelineState) {
     if (!window.electronAPI || !window.electronIntegration || !window.electronIntegration.isElectron) {
@@ -28,6 +31,24 @@ async function savePipelineState(pipelineState) {
     
     // Store the latest state in memory
     latestPipelineState = pipelineState;
+}
+
+// Function to save dual pipeline state to memory
+async function saveDualPipelineState() {
+    if (!window.electronAPI || !window.electronIntegration || !window.electronIntegration.isElectron) {
+        return;
+    }
+    
+    // Skip saving during first launch (splash screen)
+    if (window.isFirstLaunch === true) {
+        return;
+    }
+    
+    // Get the dual pipeline state from audioManager
+    if (window.audioManager) {
+        const dualState = window.audioManager.getPipelineState();
+        latestPipelineState = dualState;
+    }
 }
 
 // Function to write the latest pipeline state to file
@@ -94,6 +115,12 @@ async function loadPipelineState() {
         // Parse pipeline state
         const pipelineState = JSON.parse(result.content);
         
+        // Handle dual pipeline format
+        if (pipelineState.pipelineA && pipelineState.pipelineB !== undefined) {
+            return pipelineState;
+        }
+        
+        // Handle old single pipeline format (backward compatibility)
         return pipelineState;
     } catch (error) {
         console.error('Error loading pipeline state:', error);
@@ -547,14 +574,70 @@ class App {
             savedState = this.uiManager.parsePipelineState();
         }
         
-        // Check if savedState is empty array but file exists
-        // This could happen if the file was just created with empty content
-        if (savedState && Array.isArray(savedState) && savedState.length === 0) {
-            savedState = null; // Force default plugin initialization
-        }
-        
-        if (savedState && savedState.length > 0) {
-            // Restore pipeline from saved state
+        // Handle dual pipeline format
+        if (savedState && savedState.pipelineA && savedState.pipelineB !== undefined) {
+            // Load pipeline A
+            const pluginsA = savedState.pipelineA.flatMap(pluginState => {
+                try {
+                    const plugin = this.pluginManager.createPlugin(pluginState.name);
+                    
+                    // Create a state object in the format expected by applySerializedState
+                    const state = {
+                        nm: pluginState.name,
+                        en: pluginState.enabled,
+                        ...(pluginState.inputBus !== undefined && { ib: pluginState.inputBus }),
+                        ...(pluginState.outputBus !== undefined && { ob: pluginState.outputBus }),
+                        ...(pluginState.channel !== undefined && { ch: pluginState.channel }),
+                        ...pluginState.parameters
+                    };
+                    
+                    // Apply serialized state
+                    applySerializedState(plugin, state);
+                    plugin.updateParameters();
+                    this.uiManager.expandedPlugins.add(plugin);
+                    return plugin;
+                } catch (error) {
+                    console.warn(`Failed to create plugin '${pluginState.name}': ${error.message}`);
+                    return []; // Return empty array for flatMap to filter out this plugin
+                }
+            });
+            
+            // Load pipeline B if it exists
+            let pluginsB = null;
+            if (savedState.pipelineB) {
+                pluginsB = savedState.pipelineB.flatMap(pluginState => {
+                    try {
+                        const plugin = this.pluginManager.createPlugin(pluginState.name);
+                        
+                        // Create a state object in the format expected by applySerializedState
+                        const state = {
+                            nm: pluginState.name,
+                            en: pluginState.enabled,
+                            ...(pluginState.inputBus !== undefined && { ib: pluginState.inputBus }),
+                            ...(pluginState.outputBus !== undefined && { ob: pluginState.outputBus }),
+                            ...(pluginState.channel !== undefined && { ch: pluginState.channel }),
+                            ...pluginState.parameters
+                        };
+                        
+                        // Apply serialized state
+                        applySerializedState(plugin, state);
+                        plugin.updateParameters();
+                        return plugin;
+                    } catch (error) {
+                        console.warn(`Failed to create plugin '${pluginState.name}': ${error.message}`);
+                        return []; // Return empty array for flatMap to filter out this plugin
+                    }
+                });
+            }
+            
+            // Set dual pipeline state
+            this.audioManager.pipelineA = pluginsA;
+            this.audioManager.pipelineB = pluginsB;
+            this.audioManager.setCurrentPipeline(savedState.currentPipeline || 'A');
+            plugins.push(...pluginsA); // Use pipeline A for current pipeline
+            
+        } else if (savedState && Array.isArray(savedState) && savedState.length > 0) {
+            // Handle old single pipeline format (backward compatibility)
             plugins.push(...savedState.flatMap(pluginState => {
                 try {
                     const plugin = this.pluginManager.createPlugin(pluginState.name);
@@ -571,7 +654,6 @@ class App {
                     
                     // Apply serialized state
                     applySerializedState(plugin, state);
-
                     plugin.updateParameters();
                     this.uiManager.expandedPlugins.add(plugin);
                     return plugin;
@@ -603,11 +685,13 @@ class App {
         }
         
         // Set the pipeline in audioManager
-        this.audioManager.pipeline = plugins;
+        this.audioManager.pipelineA = plugins;
+        this.audioManager.setCurrentPipeline('A');
         
         // Update UI
         this.uiManager.updatePipelineUI(true);
         this.uiManager.updateURL();
+        this.uiManager.updatePipelineToggleButton();
         
         // Important: Build the audio pipeline immediately after creating plugins
         // This ensures audio processing is connected properly

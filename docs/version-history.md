@@ -1,6 +1,7 @@
 # Version History
 
-### Version 1.61 (Jul xx, 2025)
+### Version 1.61 (Aug 2, 2025)
+- Added A/B switching comparison function for pipelines
 - Added Crossfeed Filter effect
 - Added new version update check function
 - Various minor improvements
