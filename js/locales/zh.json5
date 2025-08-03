@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "搜索效果...",
   "ui.sleepMode": "休眠模式",
   "ui.whatsThisApp": "这是什么应用？",
+  "ui.newVersionAvailable": "新 {version} 可用。",
 
   // 当鼠标悬停在 UI 上时显示的提示
   "ui.title.openMusic": "打开音乐文件",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "在操作系统启动时启动",
   "dialog.config.startMinimized": "最小化启动",
   "dialog.config.minimizeToTray": "最小化到系统托盘",
+  "dialog.config.checkForUpdatesOnStartup": "启动时自动检查更新",
   "dialog.config.pipeline": "启动时的效果流程:",
   "dialog.config.pipeline.default": "默认设置",
   "dialog.config.pipeline.last": "上次退出时的设置",

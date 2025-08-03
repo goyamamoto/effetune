@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "Rechercher des effets...",
   "ui.sleepMode": "Mode veille",
   "ui.whatsThisApp": "Qu'est-ce que cette application ?",
+  "ui.newVersionAvailable": "Nouvelle {version} disponible.",
 
   // Infos-bulles affichées au survol de l'interface
   "ui.title.openMusic": "Ouvrir des fichiers musicaux",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "Lancer au démarrage du système d'exploitation",
   "dialog.config.startMinimized": "Démarrer en mode minimisé",
   "dialog.config.minimizeToTray": "Minimiser dans la barre des tâches",
+  "dialog.config.checkForUpdatesOnStartup": "Vérifier les mises à jour au démarrage",
   "dialog.config.pipeline": "Pipeline d'effets au démarrage :",
   "dialog.config.pipeline.default": "Paramètres par défaut",
   "dialog.config.pipeline.last": "Paramètres de la dernière fermeture",

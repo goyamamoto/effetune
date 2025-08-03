@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "Поиск эффектов...",
   "ui.sleepMode": "Режим сна",
   "ui.whatsThisApp": "Что это за приложение?",
+  "ui.newVersionAvailable": "Доступна новая {version}.",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "Открыть музыкальные файлы",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "Запускать при старте ОС",
   "dialog.config.startMinimized": "Запускать свернутым",
   "dialog.config.minimizeToTray": "Сворачивать в трей",
+  "dialog.config.checkForUpdatesOnStartup": "Проверять обновления при запуске",
   "dialog.config.pipeline": "Конвейер эффектов при запуске:",
   "dialog.config.pipeline.default": "Настройки по умолчанию",
   "dialog.config.pipeline.last": "Настройки с последнего выхода",

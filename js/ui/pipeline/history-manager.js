@@ -35,10 +35,16 @@ export class HistoryManager {
             }
         }
         
-        // Create a deep copy of the current pipeline state
-        const state = this.audioManager.pipeline.map(plugin =>
-            this.pipelineManager.core.getSerializablePluginState(plugin, true, false, false)
-        );
+        // Create a deep copy of the current pipeline state including A/B state
+        const state = {
+            pipelineA: this.audioManager.pipelineA.map(plugin =>
+                this.pipelineManager.core.getSerializablePluginState(plugin, true, false, false)
+            ),
+            pipelineB: this.audioManager.pipelineB ? this.audioManager.pipelineB.map(plugin =>
+                this.pipelineManager.core.getSerializablePluginState(plugin, true, false, false)
+            ) : null,
+            currentPipeline: this.audioManager.currentPipeline
+        };
         
         // If we're not at the end of the history, truncate it
         if (this.historyIndex < this.history.length - 1) {
@@ -74,14 +80,18 @@ export class HistoryManager {
         
         // Save pipeline state to file if in Electron environment
         if (window.electronIntegration && window.electronIntegration.isElectron) {
-            // Get current pipeline state in the new format (with name/enabled/parameters)
-            const pipelineState = this.audioManager.pipeline.map(plugin =>
-                this.pipelineManager.core.getSerializablePluginState(plugin, false, true, true)
-            );
-            
-            // Save to file using the savePipelineState function from app.js
-            if (window.savePipelineState) {
-                window.savePipelineState(pipelineState);
+            // Save dual pipeline state using the saveDualPipelineState function from app.js
+            if (window.saveDualPipelineState) {
+                window.saveDualPipelineState();
+            } else {
+                // Fallback to old method for backward compatibility
+                const pipelineState = this.audioManager.pipeline.map(plugin =>
+                    this.pipelineManager.core.getSerializablePluginState(plugin, false, true, true)
+                );
+                
+                if (window.savePipelineState) {
+                    window.savePipelineState(pipelineState);
+                }
             }
         }
     }
@@ -132,35 +142,101 @@ export class HistoryManager {
                 return;
             }
             
-            // Clean up existing plugins before removing them
-            this.audioManager.pipeline.forEach(plugin => {
-                if (typeof plugin.cleanup === 'function') {
-                    plugin.cleanup();
+            // Handle new dual pipeline format
+            if (state.pipelineA && state.pipelineB !== undefined) {
+                // Clean up existing plugins before removing them
+                this.audioManager.pipelineA.forEach(plugin => {
+                    if (typeof plugin.cleanup === 'function') {
+                        plugin.cleanup();
+                    }
+                });
+                if (this.audioManager.pipelineB) {
+                    this.audioManager.pipelineB.forEach(plugin => {
+                        if (typeof plugin.cleanup === 'function') {
+                            plugin.cleanup();
+                        }
+                    });
                 }
-            });
-            
-            // Clear current pipeline and expanded plugins
-            this.audioManager.pipeline.length = 0;
-            this.pipelineManager.expandedPlugins.clear();
-            
-            // Load plugins from state
-            state.forEach(pluginState => {
-                const plugin = this.pipelineManager.pluginManager.createPlugin(pluginState.nm);
-                if (plugin) {
-                    // Use applySerializedState to properly handle all properties including bus settings
-                    applySerializedState(plugin, pluginState);
-                    
-                    this.audioManager.pipeline.push(plugin);
-                    // Expand all plugins (same as loadPreset)
-                    this.pipelineManager.expandedPlugins.add(plugin);
+                
+                // Clear pipelines and expanded plugins
+                this.audioManager.pipelineA.length = 0;
+                if (this.audioManager.pipelineB) {
+                    this.audioManager.pipelineB.length = 0;
                 }
-            });
+                this.pipelineManager.expandedPlugins.clear();
+                
+                // Load pipeline A
+                state.pipelineA.forEach(pluginState => {
+                    const plugin = this.pipelineManager.pluginManager.createPlugin(pluginState.nm);
+                    if (plugin) {
+                        applySerializedState(plugin, pluginState);
+                        this.audioManager.pipelineA.push(plugin);
+                        this.pipelineManager.expandedPlugins.add(plugin);
+                    }
+                });
+                
+                // Load pipeline B if it exists
+                if (state.pipelineB) {
+                    this.audioManager.pipelineB = [];
+                    state.pipelineB.forEach(pluginState => {
+                        const plugin = this.pipelineManager.pluginManager.createPlugin(pluginState.nm);
+                        if (plugin) {
+                            applySerializedState(plugin, pluginState);
+                            this.audioManager.pipelineB.push(plugin);
+                            // Preserve expanded state for pipeline B plugins
+                            this.pipelineManager.expandedPlugins.add(plugin);
+                        }
+                    });
+                } else {
+                    this.audioManager.pipelineB = null;
+                }
+                
+                // Set current pipeline directly without triggering saveState
+                this.audioManager.currentPipeline = state.currentPipeline || 'A';
+                this.audioManager.pipeline = this.audioManager.getCurrentPipeline();
+                
+                // Rebuild audio pipeline if worklet is initialized
+                if (this.audioManager.workletNode) {
+                    this.audioManager.rebuildPipeline();
+                }
+                
+                // Dispatch event for UI updates
+                this.audioManager.dispatchEvent('pipelineChanged', { pipeline: this.audioManager.currentPipeline });
+                
+            } else {
+                // Handle old single pipeline format (backward compatibility)
+                // Clean up existing plugins before removing them
+                this.audioManager.pipeline.forEach(plugin => {
+                    if (typeof plugin.cleanup === 'function') {
+                        plugin.cleanup();
+                    }
+                });
+                
+                // Clear current pipeline and expanded plugins
+                this.audioManager.pipeline.length = 0;
+                this.pipelineManager.expandedPlugins.clear();
+                
+                // Load plugins from state
+                state.forEach(pluginState => {
+                    const plugin = this.pipelineManager.pluginManager.createPlugin(pluginState.nm);
+                    if (plugin) {
+                        applySerializedState(plugin, pluginState);
+                        this.audioManager.pipeline.push(plugin);
+                        this.pipelineManager.expandedPlugins.add(plugin);
+                    }
+                });
+            }
             
             // Update UI with force rebuild flag
             this.pipelineManager.core.updatePipelineUI(true);
             
             // Update worklet directly without rebuilding pipeline
             this.pipelineManager.core.updateWorkletPlugins();
+            
+            // Update pipeline toggle button to reflect current pipeline
+            if (window.uiManager) {
+                window.uiManager.updatePipelineToggleButton();
+            }
             
             // Ensure master bypass is OFF after loading state (same as loadPreset)
             this.pipelineManager.core.enabled = true;

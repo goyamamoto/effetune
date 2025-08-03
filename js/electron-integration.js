@@ -370,6 +370,30 @@ class ElectronIntegration {
     if (!this.isElectron) return;
     
     try {
+      // Check for available updates (always check in About dialog regardless of config)
+      let updateLinkHTML = '';
+      if (window.electronAPI) {
+        try {
+          // Force check for updates in About dialog
+          await window.electronAPI.forceCheckForUpdates();
+          
+          // Get update info from main process
+          const updateInfo = await window.electronAPI.getUpdateInfo();
+          if (updateInfo && updateInfo.version) {
+            const updateText = window.uiManager && window.uiManager.t ? 
+                window.uiManager.t('ui.newVersionAvailable', { version: updateInfo.version }) : 
+                `New ${updateInfo.version} available.`;
+            updateLinkHTML = `
+              <div class="about-update-link" id="about-update-link">
+                ${updateText}
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error('Failed to get update info:', error);
+        }
+      }
+      
       // Create dialog HTML
       const dialogHTML = `
         <div class="about-dialog">
@@ -379,6 +403,7 @@ class ElectronIntegration {
           </div>
           <div class="about-content">
             <div class="about-version">Version ${data.version}</div>
+            ${updateLinkHTML}
             <div class="about-description">Desktop Audio Effect Processor</div>
             <div class="about-copyright">Copyright © Frieve 2025</div>
           </div>
@@ -442,6 +467,17 @@ class ElectronIntegration {
           font-size: 16px;
           margin-bottom: 10px;
         }
+        .about-update-link {
+          color: #4a9eff;
+          text-decoration: none;
+          font-size: 14px;
+          margin-bottom: 10px;
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        .about-update-link:hover {
+          color: #66b3ff;
+        }
         .about-description {
           font-size: 14px;
           color: #ccc;
@@ -476,6 +512,18 @@ class ElectronIntegration {
         document.body.removeChild(dialogElement);
         document.head.removeChild(styleElement);
       });
+      
+      // Add event listener for update link if it exists
+      const updateLink = document.getElementById('about-update-link');
+      if (updateLink) {
+        updateLink.addEventListener('click', () => {
+          if (window.electronAPI && window.electronAPI.openExternal) {
+            window.electronAPI.openExternal('https://github.com/Frieve-A/effetune/releases/');
+          } else {
+            window.open('https://github.com/Frieve-A/effetune/releases/', '_blank');
+          }
+        });
+      }
     } catch (error) {
       console.error('Failed to show about dialog:', error);
     }
@@ -528,6 +576,8 @@ class ElectronIntegration {
   }
 
   async showConfigDialog() {
+    // Load the latest config before showing the dialog
+    await this.loadConfig();
     return showConfigDialog(this.isElectron, this.config);
   }
 }

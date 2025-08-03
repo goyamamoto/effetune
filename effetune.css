@@ -142,6 +142,15 @@ input[type="checkbox"] {
     margin-left: auto;
 }
 
+.update-notification {
+    color: #4a9eff;
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
 .message-display {
     display: inline-block;
     margin-left: 10px;
@@ -532,9 +541,10 @@ input[type="checkbox"] {
     padding-bottom: 10px;
 }
 
-.pipeline-header h2 {
+.pipeline-title {
     margin: 0;
     margin-top: 0;
+    font-size: 16px;
 }
 
 .pipeline-header-left {
@@ -606,6 +616,87 @@ input[type="checkbox"] {
     align-items: center;
     margin-left: auto;
     gap: 10px 0px;
+}
+
+/* Pipeline toggle and menu styles */
+.pipeline-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+    margin-left: 5px;
+}
+
+.pipeline-toggle-button {
+    width: 24px;
+    height: 24px;
+    font-weight: bold;
+    background-color: #4a4a4a;
+    border-color: #5a5a5a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.pipeline-toggle-button:hover {
+    background-color: #5a5a5a;
+    border-color: #6a6a6a;
+}
+
+.pipeline-menu-container {
+    position: relative;
+}
+
+.pipeline-menu-button {
+    width: 20px;
+    height: 24px;
+    padding: 0;
+    font-size: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pipeline-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    min-width: 80px;
+}
+
+.pipeline-menu.show {
+    display: block;
+}
+
+.pipeline-menu-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+}
+
+.pipeline-menu-item:hover {
+    background-color: #3d3d3d;
+}
+
+.pipeline-menu-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.pipeline-menu-item:last-child {
+    border-radius: 0 0 4px 4px;
 }
 
 .sample-rate {

@@ -201,7 +201,21 @@ export function applySerializedState(plugin, state) {
     
     // Update parameters if method exists
     if (plugin.updateParameters) {
-        plugin.updateParameters();
+        // Temporarily disable history saving during state restoration
+        const historyManager = plugin.audioManager?.pipelineManager?.historyManager;
+        if (historyManager) {
+            const wasUndoRedoOperation = historyManager.isUndoRedoOperation;
+            historyManager.isUndoRedoOperation = true;
+            
+            try {
+                plugin.updateParameters();
+            } finally {
+                // Restore original flag
+                historyManager.isUndoRedoOperation = wasUndoRedoOperation;
+            }
+        } else {
+            plugin.updateParameters();
+        }
     }
 }
 

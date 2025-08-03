@@ -50,6 +50,7 @@
   "ui.searchEffectsPlaceholder": "エフェクトを検索...",
   "ui.sleepMode": "スリープモード",
   "ui.whatsThisApp": "何このアプリ？",
+  "ui.newVersionAvailable": "新しい {version} が利用可能です。",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "音楽ファイルを開く",
@@ -169,6 +170,7 @@
   "dialog.config.autoLaunch": "OS起動時に自動起動",
   "dialog.config.startMinimized": "最小化して起動",
   "dialog.config.minimizeToTray": "最小化時にタスクトレイに常駐",
+  "dialog.config.checkForUpdatesOnStartup": "起動時にアップデートを自動確認",
   "dialog.config.pipeline": "起動時のエフェクトパイプライン:",
   "dialog.config.pipeline.default": "デフォルト設定",
   "dialog.config.pipeline.last": "終了時の設定",

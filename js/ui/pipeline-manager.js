@@ -68,6 +68,8 @@ export class PipelineManager {
      * @param {boolean} forceRebuild - Whether to force a complete rebuild of the UI
      */
     updatePipelineUI(forceRebuild = false) {
+        // Update the pipeline reference to current pipeline
+        this.audioManager.pipeline = this.audioManager.getCurrentPipeline();
         this.core.updatePipelineUI(forceRebuild);
     }
     

@@ -111,12 +111,40 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
    - 각 프리셋은 전체 이펙트 체인 구성을 저장합니다.
    - 이펙트 순서, 파라미터, 상태 등이 포함됩니다.
 
+### 섹션 기능 사용
+
+1. **섹션 이펙트 사용:**
+   - 이펙트 그룹의 시작 부분에 Section 이펙트를 추가합니다.
+   - Comment 필드에 설명적인 이름을 입력합니다.
+   - Section 이펙트의 ON/OFF를 전환하면 해당 섹션 내의 모든 이펙트가 활성화/비활성화됩니다.
+   - 여러 Section 이펙트를 사용하여 이펙트 체인을 논리적 그룹으로 구성합니다.
+   - [제어 이펙트에 대한 자세한 정보](plugins/control.md)
+
+### AB 파이프라인 기능 사용
+
+1. **AB 파이프라인 개요:**
+   - EffeTune은 두 개의 독립적인 이펙트 파이프라인을 유지할 수 있습니다: 파이프라인 A와 파이프라인 B
+   - 시작 시에는 파이프라인 A만 로드되며, 파이프라인 B는 필요할 때 생성됩니다
+   - 모든 처리, 저장, 로드, 편집 작업은 현재 선택된 파이프라인에서 작동합니다
+
+2. **AB 토글 버튼:**
+   - Effect Pipeline 헤더의 오른쪽에 위치합니다
+   - 기본적으로 "A"를 표시합니다 (파이프라인 A 활성)
+   - 클릭하여 파이프라인 A와 파이프라인 B를 전환합니다
+   - 전환 시 파이프라인 B가 존재하지 않으면 파이프라인 A의 설정이 파이프라인 B로 복사됩니다
+
+3. **AB 메뉴 (드롭다운 버튼):**
+   - AB 토글 버튼의 오른쪽에 위치합니다
+   - "A → B": 파이프라인 A의 설정을 파이프라인 B로 복사하고 파이프라인 B로 전환합니다
+   - "B → A": 파이프라인 B의 설정을 파이프라인 A로 복사하고 파이프라인 A로 전환합니다
+
 ### 이펙트 선택 및 키보드 단축키
 
 1. **이펙트 선택 방법:**
    - 이펙트 헤더를 클릭하여 개별 이펙트를 선택합니다.
    - Ctrl 키를 누른 채 클릭하여 여러 이펙트를 선택합니다.
    - 파이프라인 영역의 빈 공간을 클릭하여 모든 이펙트 선택을 해제합니다.
+
 2. **키보드 단축키:**
    - Ctrl + Z: 실행 취소
    - Ctrl + Y: 다시 실행
@@ -129,6 +157,9 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
    - Ctrl + A: 파이프라인 내 모든 효과 선택
    - Delete: 선택한 효과 삭제
    - ESC: 모든 효과 선택 해제
+   - T: 파이프라인 A와 파이프라인 B 전환
+   - A: 파이프라인 A로 전환
+   - B: 파이프라인 B로 전환
 
 3. **키보드 단축키 (플레이어 사용 시):**
    - Space: 재생/일시 정지
@@ -280,6 +311,7 @@ CD 플레이어, 네트워크 플레이어 또는 기타 물리적 소스를 사
 | Saturation| Multiband Saturation | 주파수 기반 따뜻함을 위한 3밴드 새츄레이션 이펙트 | [세부 정보](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | 새츄레이션 이펙트 | [세부 정보](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | 베이스 보강을 위해 서브하모닉 신호를 혼합 | [세부 정보](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | 자연스러운 스테레오 이미징을 위한 헤드폰 크로스피드 필터 | [세부 정보](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | 스테레오 제어를 위한 미드-사이드 인코딩 및 디코딩 | [세부 정보](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | 주파수 의존 5밴드 스테레오 밸런스 제어 | [세부 정보](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | 스테레오 폭 제어 이펙트 | [세부 정보](plugins/spatial.md#stereo-blend) |
