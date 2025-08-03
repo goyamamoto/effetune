@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "효과 검색...",
   "ui.sleepMode": "절전 모드",
   "ui.whatsThisApp": "이 앱은 무엇인가요?",
+  "ui.newVersionAvailable": "새 {version}을 사용할 수 있습니다.",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "음악 파일 열기",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "OS 시작 시 자동 실행",
   "dialog.config.startMinimized": "최소화된 상태로 시작",
   "dialog.config.minimizeToTray": "트레이로 최소화",
+  "dialog.config.checkForUpdatesOnStartup": "시작 시 업데이트 자동 확인",
   "dialog.config.pipeline": "시작 시 효과 파이프라인:",
   "dialog.config.pipeline.default": "기본 설정",
   "dialog.config.pipeline.last": "마지막 종료 시 설정",

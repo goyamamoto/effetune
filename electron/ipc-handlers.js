@@ -44,6 +44,49 @@ function registerIpcHandlers() {
     return constants.getCommandLinePresetFile();
   });
 
+  // Handle update notifications
+  ipcMain.on('update-available', (event, updateInfo) => {
+    const mainWin = constants.getMainWindow();
+    if (mainWin && mainWin.webContents) {
+      mainWin.webContents.send('update-available', updateInfo);
+    }
+  });
+
+  // Handle renderer ready for update notifications
+  ipcMain.handle('renderer-ready-for-updates', () => {
+    // Import the sendPendingUpdateInfo function
+    const { sendPendingUpdateInfo } = require('./main');
+    sendPendingUpdateInfo();
+    return { success: true };
+  });
+
+  // Handle get update info request
+  ipcMain.handle('get-update-info', () => {
+    try {
+      // Import the getPendingUpdateInfo function from main
+      const { getPendingUpdateInfo } = require('./main');
+      return getPendingUpdateInfo();
+    } catch (error) {
+      console.error('IPC handler: Error in get-update-info:', error);
+      return null;
+    }
+  });
+
+  // Handle force check for updates request
+  ipcMain.handle('force-check-for-updates', async () => {
+    try {
+      // Import the checkForUpdates function from main
+      const { checkForUpdates } = require('./main');
+      await checkForUpdates();
+      return { success: true };
+    } catch (error) {
+      console.error('IPC handler: Error in force-check-for-updates:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+
+
   // File dialog operations
   ipcMain.handle('show-save-dialog', async (event, options) => {
     return await fileHandlers.showSaveDialog(options);
@@ -559,7 +602,7 @@ function registerIpcHandlers() {
             {
               label: menuTemplate.help.submenu[1].label, // Discord
               click: () => {
-                require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+                require('electron').shell.openExternal('https://discord.gg/gf95v3Gza2');
               }
             },
             { type: 'separator' },
@@ -1050,7 +1093,7 @@ function createMenu() {
         {
           label: 'Discord',
           click: () => {
-            require('electron').shell.openExternal('https://discord.com/invite/ctP6Htjs');
+            require('electron').shell.openExternal('https://discord.gg/gf95v3Gza2');
           }
         },
         { type: 'separator' },

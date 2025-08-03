@@ -10,6 +10,9 @@ window.electronIntegration = electronIntegration;
 // Store the latest pipeline state in memory
 let latestPipelineState = null;
 
+// Make saveDualPipelineState globally accessible
+window.saveDualPipelineState = saveDualPipelineState;
+
 // Function to save pipeline state to memory, only write to file on app exit
 async function savePipelineState(pipelineState) {
     if (!window.electronAPI || !window.electronIntegration || !window.electronIntegration.isElectron) {
@@ -28,6 +31,24 @@ async function savePipelineState(pipelineState) {
     
     // Store the latest state in memory
     latestPipelineState = pipelineState;
+}
+
+// Function to save dual pipeline state to memory
+async function saveDualPipelineState() {
+    if (!window.electronAPI || !window.electronIntegration || !window.electronIntegration.isElectron) {
+        return;
+    }
+    
+    // Skip saving during first launch (splash screen)
+    if (window.isFirstLaunch === true) {
+        return;
+    }
+    
+    // Get the dual pipeline state from audioManager
+    if (window.audioManager) {
+        const dualState = window.audioManager.getPipelineState();
+        latestPipelineState = dualState;
+    }
 }
 
 // Function to write the latest pipeline state to file
@@ -94,6 +115,12 @@ async function loadPipelineState() {
         // Parse pipeline state
         const pipelineState = JSON.parse(result.content);
         
+        // Handle dual pipeline format
+        if (pipelineState.pipelineA && pipelineState.pipelineB !== undefined) {
+            return pipelineState;
+        }
+        
+        // Handle old single pipeline format (backward compatibility)
         return pipelineState;
     } catch (error) {
         console.error('Error loading pipeline state:', error);
@@ -136,6 +163,7 @@ if (window.electronAPI && window.electronAPI.isFirstLaunch) {
         isFirstLaunchPromise = Promise.resolve(false);
     }
 } else {
+    // For web version, always resolve to false immediately
     isFirstLaunchPromise = Promise.resolve(false);
 }
 
@@ -154,6 +182,7 @@ isFirstLaunchPromise.then(isFirstLaunch => {
     
     // Store the first launch status for other components
     window.isFirstLaunchConfirmed = isFirstLaunch;
+    window.isFirstLaunch = isFirstLaunch;
 }).catch(error => {
     console.error('Error checking launch status:', error);
     // In case of error, show the UI
@@ -161,6 +190,7 @@ isFirstLaunchPromise.then(isFirstLaunch => {
         tempStyle.parentNode.removeChild(tempStyle);
     }
     window.isFirstLaunchConfirmed = false;
+    window.isFirstLaunch = false;
 });
 
 // Configuration for initialization wait times (in milliseconds)
@@ -205,7 +235,7 @@ class App {
             // Initialize UI components (non-blocking)
             this.uiManager.initPluginList();
             this.uiManager.initDragAndDrop();
-
+            
             // Initialize audio context and input/output (without AudioWorklet)
             // This allows the audio context to be created early, but defers
             // the heavy AudioWorklet initialization until after GUI is rendered
@@ -278,6 +308,13 @@ class App {
             if (window.electronAPI && window.electronAPI.signalReadyForMusicFiles) {
                 // Debug logs removed for release
                 window.electronAPI.signalReadyForMusicFiles();
+            }
+            
+            // Signal to the main process that we're ready to receive update notifications
+            if (window.electronAPI && window.electronAPI.signalReadyForUpdates) {
+                window.electronAPI.signalReadyForUpdates().catch(error => {
+                    console.error('Error signaling ready for updates:', error);
+                });
             }
             
             // Process command line arguments after all initialization is complete
@@ -540,14 +577,70 @@ class App {
             savedState = this.uiManager.parsePipelineState();
         }
         
-        // Check if savedState is empty array but file exists
-        // This could happen if the file was just created with empty content
-        if (savedState && Array.isArray(savedState) && savedState.length === 0) {
-            savedState = null; // Force default plugin initialization
-        }
-        
-        if (savedState && savedState.length > 0) {
-            // Restore pipeline from saved state
+        // Handle dual pipeline format
+        if (savedState && savedState.pipelineA && savedState.pipelineB !== undefined) {
+            // Load pipeline A
+            const pluginsA = savedState.pipelineA.flatMap(pluginState => {
+                try {
+                    const plugin = this.pluginManager.createPlugin(pluginState.name);
+                    
+                    // Create a state object in the format expected by applySerializedState
+                    const state = {
+                        nm: pluginState.name,
+                        en: pluginState.enabled,
+                        ...(pluginState.inputBus !== undefined && { ib: pluginState.inputBus }),
+                        ...(pluginState.outputBus !== undefined && { ob: pluginState.outputBus }),
+                        ...(pluginState.channel !== undefined && { ch: pluginState.channel }),
+                        ...pluginState.parameters
+                    };
+                    
+                    // Apply serialized state
+                    applySerializedState(plugin, state);
+                    plugin.updateParameters();
+                    this.uiManager.expandedPlugins.add(plugin);
+                    return plugin;
+                } catch (error) {
+                    console.warn(`Failed to create plugin '${pluginState.name}': ${error.message}`);
+                    return []; // Return empty array for flatMap to filter out this plugin
+                }
+            });
+            
+            // Load pipeline B if it exists
+            let pluginsB = null;
+            if (savedState.pipelineB) {
+                pluginsB = savedState.pipelineB.flatMap(pluginState => {
+                    try {
+                        const plugin = this.pluginManager.createPlugin(pluginState.name);
+                        
+                        // Create a state object in the format expected by applySerializedState
+                        const state = {
+                            nm: pluginState.name,
+                            en: pluginState.enabled,
+                            ...(pluginState.inputBus !== undefined && { ib: pluginState.inputBus }),
+                            ...(pluginState.outputBus !== undefined && { ob: pluginState.outputBus }),
+                            ...(pluginState.channel !== undefined && { ch: pluginState.channel }),
+                            ...pluginState.parameters
+                        };
+                        
+                        // Apply serialized state
+                        applySerializedState(plugin, state);
+                        plugin.updateParameters();
+                        return plugin;
+                    } catch (error) {
+                        console.warn(`Failed to create plugin '${pluginState.name}': ${error.message}`);
+                        return []; // Return empty array for flatMap to filter out this plugin
+                    }
+                });
+            }
+            
+            // Set dual pipeline state
+            this.audioManager.pipelineA = pluginsA;
+            this.audioManager.pipelineB = pluginsB;
+            this.audioManager.setCurrentPipeline(savedState.currentPipeline || 'A');
+            plugins.push(...pluginsA); // Use pipeline A for current pipeline
+            
+        } else if (savedState && Array.isArray(savedState) && savedState.length > 0) {
+            // Handle old single pipeline format (backward compatibility)
             plugins.push(...savedState.flatMap(pluginState => {
                 try {
                     const plugin = this.pluginManager.createPlugin(pluginState.name);
@@ -564,7 +657,6 @@ class App {
                     
                     // Apply serialized state
                     applySerializedState(plugin, state);
-
                     plugin.updateParameters();
                     this.uiManager.expandedPlugins.add(plugin);
                     return plugin;
@@ -596,11 +688,13 @@ class App {
         }
         
         // Set the pipeline in audioManager
-        this.audioManager.pipeline = plugins;
+        this.audioManager.pipelineA = plugins;
+        this.audioManager.setCurrentPipeline('A');
         
         // Update UI
         this.uiManager.updatePipelineUI(true);
         this.uiManager.updateURL();
+        this.uiManager.updatePipelineToggleButton();
         
         // Important: Build the audio pipeline immediately after creating plugins
         // This ensures audio processing is connected properly
@@ -653,6 +747,13 @@ class App {
             }
         });
 
+        // Listen for update notifications from Electron
+        if (window.electronAPI) {
+            window.electronAPI.onIPC('update-available', (updateInfo) => {
+                this.showUpdateNotification(updateInfo);
+            });
+        }
+
         // Auto-resume audio context when page gains focus
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.audioManager.audioContext &&
@@ -666,6 +767,40 @@ class App {
             navigator.mediaDevices.addEventListener('devicechange', () => {
                 this.handleOutputDeviceChange();
             });
+        }
+    }
+
+    /**
+     * Show update notification
+     */
+    showUpdateNotification(updateInfo) {
+        const whatsThisLink = document.querySelector('.whats-this');
+        
+        if (whatsThisLink) {
+            // Check if update notification already exists
+            const existingNotification = document.querySelector('.update-notification');
+            if (existingNotification) {
+                return; // Already showing update notification
+            }
+            
+            // Create update notification element
+            const updateElement = document.createElement('span');
+            updateElement.className = 'update-notification';
+            updateElement.textContent = window.uiManager && window.uiManager.t ? 
+                window.uiManager.t('ui.newVersionAvailable', { version: updateInfo.version }) : 
+                `New ${updateInfo.version} available.`;
+            
+            // Add click handler to open releases page
+            updateElement.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.openExternal) {
+                    window.electronAPI.openExternal(updateInfo.url);
+                } else {
+                    window.open(updateInfo.url, '_blank');
+                }
+            });
+            
+            // Insert after the whats-this link
+            whatsThisLink.parentNode.insertBefore(updateElement, whatsThisLink.nextSibling);
         }
     }
 
@@ -912,6 +1047,7 @@ if (window.electronAPI && window.electronIntegration && window.electronIntegrati
 }
 
 // Initialize application after first launch check is complete
+// Use the already defined isFirstLaunchPromise from above
 isFirstLaunchPromise.then(isFirstLaunch => {
     // Store the first launch status for other components
     window.isFirstLaunchConfirmed = isFirstLaunch;

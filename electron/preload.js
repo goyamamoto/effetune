@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld(
     // Documentation operations
     openDocumentation: (path) => ipcRenderer.invoke('open-documentation', path),
     openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),
+    openExternal: (url) => ipcRenderer.invoke('open-external-url', url),
     
     // Audio device operations
     getAudioDevices: () => ipcRenderer.invoke('get-audio-devices'),
@@ -137,6 +138,21 @@ contextBridge.exposeInMainWorld(
     // Signal that the renderer is ready to receive music files
     signalReadyForMusicFiles: () => {
       ipcRenderer.send('renderer-ready-for-music-files');
+    },
+    
+    // Signal that the renderer is ready to receive update notifications
+    signalReadyForUpdates: () => {
+      return ipcRenderer.invoke('renderer-ready-for-updates');
+    },
+    
+    // Get update info
+    getUpdateInfo: () => {
+      return ipcRenderer.invoke('get-update-info');
+    },
+    
+    // Force check for updates (used in About dialog)
+    forceCheckForUpdates: () => {
+      return ipcRenderer.invoke('force-check-for-updates');
     }
   }
 );

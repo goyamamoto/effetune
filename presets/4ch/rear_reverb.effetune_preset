@@ -33,6 +33,15 @@
       "channel": "34"
     },
     {
+      "name": "Hi Pass Filter",
+      "enabled": true,
+      "parameters": {
+        "fr": 480,
+        "sl": -12
+      },
+      "channel": "34"
+    },
+    {
       "name": "Stereo Blend",
       "enabled": true,
       "parameters": {

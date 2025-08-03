@@ -7,6 +7,9 @@
     <title>EffeTune</title>
     <link rel="stylesheet" href="effetune.css">
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/icon_192x192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon_180x180.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="images/icon_192x192.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
 </head>
@@ -45,7 +48,17 @@
         <div class="pipeline" id="pipeline">
             <div class="pipeline-header">
                 <button class="toggle-button master-toggle" title="Toggle all effects">ON</button>
-                <h2>Effect Pipeline</h2>
+                <span class="pipeline-title">Effect Pipeline</span>
+                <div class="pipeline-toggle-container">
+                    <button class="header-button pipeline-toggle-button" id="pipelineToggleButton" title="Toggle A/B (T)">A</button>
+                    <div class="pipeline-menu-container">
+                        <button class="header-button pipeline-menu-button" id="pipelineMenuButton" title="Pipeline menu">▼</button>
+                        <div class="pipeline-menu" id="pipelineMenu">
+                            <button class="pipeline-menu-item" id="copyAToBButton">A → B</button>
+                            <button class="pipeline-menu-item" id="copyBToAButton">B → A</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="sample-rate" id="sampleRate"></div>
                 <div class="pipeline-header-right">
                     <button class="header-button undo-button" id="undoButton" title="Undo">↶</button>

@@ -227,6 +227,19 @@ export class PresetManager {
         }
         
         try {
+            // Store expanded state for non-current pipeline before clearing
+            const currentPipeline = this.audioManager.currentPipeline;
+            const nonCurrentPipeline = currentPipeline === 'A' ? this.audioManager.pipelineB : this.audioManager.pipelineA;
+            const nonCurrentExpandedPlugins = new Set();
+            
+            if (nonCurrentPipeline) {
+                nonCurrentPipeline.forEach(plugin => {
+                    if (this.pipelineManager.expandedPlugins.has(plugin)) {
+                        nonCurrentExpandedPlugins.add(plugin);
+                    }
+                });
+            }
+            
             // Clean up existing plugins before removing them
             this.audioManager.pipeline.forEach(plugin => {
                 if (typeof plugin.cleanup === 'function') {
@@ -279,8 +292,17 @@ export class PresetManager {
                 throw new Error('Unrecognized preset format');
             }
             
-            // Update pipeline without rebuilding
-            this.audioManager.pipeline = plugins;
+            // Update current pipeline (A or B) with new plugins
+            this.audioManager.updateCurrentPipeline(plugins);
+            
+            // Restore expanded state for non-current pipeline
+            if (nonCurrentPipeline) {
+                nonCurrentPipeline.forEach(plugin => {
+                    if (nonCurrentExpandedPlugins.has(plugin)) {
+                        this.pipelineManager.expandedPlugins.add(plugin);
+                    }
+                });
+            }
             
             // Update UI with force rebuild flag
             this.pipelineManager.core.updatePipelineUI(true);

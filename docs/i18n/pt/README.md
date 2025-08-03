@@ -111,6 +111,33 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
    - Cada preset armazena a configuração completa da sua cadeia de efeitos
    - Inclui a ordem dos efeitos, os parâmetros e os estados
 
+### Usando a Funcionalidade de Seção
+
+1. Uso do Efeito de Seção:
+   - Adicione um efeito de Seção no início de um grupo de efeitos
+   - Digite um nome descritivo no campo Comentário
+   - Alternar a Seção ON/OFF habilitará/desabilitará todos os efeitos dentro dessa seção
+   - Use múltiplos efeitos de Seção para organizar sua cadeia de efeitos em grupos lógicos
+   - [Mais sobre efeitos de controle](plugins/control.md)
+
+### Usando Recursos de Pipeline AB
+
+1. Visão Geral do Pipeline AB:
+   - O EffeTune pode manter dois pipelines de efeitos separados: Pipeline A e Pipeline B
+   - Na inicialização, apenas o Pipeline A é carregado; o Pipeline B é criado quando necessário
+   - Todas as operações de processamento, salvamento, carregamento e edição funcionam no pipeline atualmente selecionado
+
+2. Botão de Alternância AB:
+   - Localizado à direita do cabeçalho Effect Pipeline
+   - Mostra "A" por padrão (Pipeline A ativo)
+   - Clique para alternar entre Pipeline A e Pipeline B
+   - Se o Pipeline B não existir ao alternar, as configurações do Pipeline A serão copiadas para o Pipeline B
+
+3. Menu AB (Botão Dropdown):
+   - Localizado à direita do botão de alternância AB
+   - "A → B": Copia as configurações do Pipeline A para o Pipeline B e alterna para o Pipeline B
+   - "B → A": Copia as configurações do Pipeline B para o Pipeline A e alterna para o Pipeline A
+
 ### Seleção de Efeitos e Atalhos de Teclado
 
 1. Métodos de Seleção de Efeitos:
@@ -130,15 +157,11 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
    - Ctrl + A: Selecionar todos os efeitos no pipeline
    - Delete: Excluir os efeitos selecionados
    - ESC: Desmarcar todos os efeitos
+   - T: Alternar entre Pipeline A e Pipeline B
+   - A: Alternar para Pipeline A
+   - B: Alternar para Pipeline B
 
-3. Usando a Funcionalidade de Seção:
-   - Adicione um efeito de Seção no início de um grupo de efeitos
-   - Digite um nome descritivo no campo Comentário
-   - Alternar a Seção ON/OFF habilitará/desabilitará todos os efeitos dentro dessa seção
-   - Use múltiplos efeitos de Seção para organizar sua cadeia de efeitos em grupos lógicos
-   - [Mais sobre efeitos de controle](plugins/control.md)
-
-4. Atalhos de teclado (ao usar o player):
+3. Atalhos de teclado (ao usar o player):
    - Space: Reproduzir/Pausar
    - Ctrl + → ou N: Próxima faixa
    - Ctrl + ← ou P: Faixa anterior
@@ -284,6 +307,7 @@ Se o problema continuar, reporte em [GitHub Issues](https://github.com/Frieve-A/
 | Saturation| Multiband Saturation | Efeito de saturação de 3 bandas para aquecimento preciso baseado em frequência | [Detalhes](plugins/saturation.md#multiband-saturation) |
 | Saturation| Saturation | Efeito de saturação | [Detalhes](plugins/saturation.md#saturation) |
 | Saturation| Sub Synth | Mistura sinais sub-harmônicos para realce de graves | [Detalhes](plugins/saturation.md#sub-synth) |
+| Spatial   | Crossfeed Filter | Filtro de crossfeed para fones de ouvido para imagem estéreo natural | [Detalhes](plugins/spatial.md#crossfeed-filter) |
 | Spatial   | MS Matrix | Codificação e decodificação mid-side para manipulação estéreo | [Detalhes](plugins/spatial.md#ms-matrix) |
 | Spatial   | Multiband Balance | Controle de balanço estéreo dependente de frequência de 5 bandas | [Detalhes](plugins/spatial.md#multiband-balance) |
 | Spatial   | Stereo Blend | Efeito de controle de largura estéreo | [Detalhes](plugins/spatial.md#stereo-blend) |

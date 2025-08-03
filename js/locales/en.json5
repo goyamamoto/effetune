@@ -51,6 +51,7 @@
   "ui.searchEffectsPlaceholder": "Search effects...",
   "ui.sleepMode": "Sleep Mode",
   "ui.whatsThisApp": "What's this app?",
+  "ui.newVersionAvailable": "New {version} available.",
 
   // Hints displayed when hovering over UI
   "ui.title.openMusic": "Open music files",
@@ -170,6 +171,7 @@
   "dialog.config.autoLaunch": "Launch on OS startup",
   "dialog.config.startMinimized": "Start minimized",
   "dialog.config.minimizeToTray": "Minimize to tray",
+  "dialog.config.checkForUpdatesOnStartup": "Check for updates on startup",
   "dialog.config.pipeline": "Effect Pipeline at startup:",
   "dialog.config.pipeline.default": "Default settings",
   "dialog.config.pipeline.last": "Settings from last exit",

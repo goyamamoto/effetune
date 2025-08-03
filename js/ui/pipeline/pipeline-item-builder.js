@@ -505,7 +505,7 @@ export class PipelineItemBuilder {
      */
     createPluginUI(plugin) {
         const ui = document.createElement('div');
-        ui.className = 'plugin-ui' + (this.expandedPlugins.has(plugin) ? ' expanded' : '');
+        ui.className = 'plugin-ui' + (this.pipelineCore.expandedPlugins.has(plugin) ? ' expanded' : '');
         
         // Optimize parameter update handling to avoid unnecessary pipeline rebuilds
         this.setupParameterUpdateHandling(plugin);
@@ -582,9 +582,13 @@ export class PipelineItemBuilder {
                 if (!this.paramChangeStarted || (now - this.lastSaveTime > 500)) {
                     // Save state immediately for the first parameter change
                     if (this.audioManager && this.audioManager.pipelineManager) {
-                        this.audioManager.pipelineManager.historyManager.saveState();
-                        this.lastSaveTime = now;
-                        this.paramChangeStarted = true;
+                        // Skip saving during pipeline switching operations
+                        const historyManager = this.audioManager.pipelineManager.historyManager;
+                        if (!historyManager.isUndoRedoOperation) {
+                            historyManager.saveState();
+                            this.lastSaveTime = now;
+                            this.paramChangeStarted = true;
+                        }
                     }
                 }
                 
@@ -598,7 +602,11 @@ export class PipelineItemBuilder {
                 this.saveStateTimeout = setTimeout(() => {
                     // Save the final state at the end of parameter changes
                     if (this.audioManager && this.audioManager.pipelineManager) {
-                        this.audioManager.pipelineManager.historyManager.saveState();
+                        // Skip saving during pipeline switching operations
+                        const historyManager = this.audioManager.pipelineManager.historyManager;
+                        if (!historyManager.isUndoRedoOperation) {
+                            historyManager.saveState();
+                        }
                     }
                     this.paramChangeStarted = false;
                 }, 500);
@@ -621,7 +629,7 @@ export class PipelineItemBuilder {
                 this.pipelineCore.handlePluginSelection(plugin, e);
                 
                 // Determine if we should expand or collapse based on the clicked plugin's current state
-                const shouldExpand = !this.expandedPlugins.has(plugin);
+                const shouldExpand = !this.pipelineCore.expandedPlugins.has(plugin);
                 
                 // Apply the same expand/collapse state to all plugins
                 this.audioManager.pipeline.forEach(p => {
@@ -634,7 +642,7 @@ export class PipelineItemBuilder {
                     
                     if (shouldExpand) {
                         pluginUI.classList.add('expanded');
-                        this.expandedPlugins.add(p);
+                        this.pipelineCore.expandedPlugins.add(p);
                         if (p.updateMarkers && p.updateResponse) {
                             requestAnimationFrame(() => {
                                 p.updateMarkers();
@@ -643,7 +651,7 @@ export class PipelineItemBuilder {
                         }
                     } else {
                         pluginUI.classList.remove('expanded');
-                        this.expandedPlugins.delete(p);
+                        this.pipelineCore.expandedPlugins.delete(p);
                     }
                 });
 
@@ -656,7 +664,7 @@ export class PipelineItemBuilder {
                     const nameEl = item.querySelector('.plugin-name');
                     if (!nameEl) return;
                     
-                    nameEl.title = this.expandedPlugins.has(p)
+                    nameEl.title = this.pipelineCore.expandedPlugins.has(p)
                         ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
                         : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
                 });
@@ -681,7 +689,7 @@ export class PipelineItemBuilder {
             // Then toggle expanded state for individual plugin (non-shift click)
             const isExpanded = ui.classList.toggle('expanded');
             if (isExpanded) {
-                this.expandedPlugins.add(plugin);
+                this.pipelineCore.expandedPlugins.add(plugin);
                 if (plugin.updateMarkers && plugin.updateResponse) {
                     requestAnimationFrame(() => {
                         plugin.updateMarkers();
@@ -689,13 +697,13 @@ export class PipelineItemBuilder {
                     });
                 }
             } else {
-                this.expandedPlugins.delete(plugin);
+                this.pipelineCore.expandedPlugins.delete(plugin);
             }
             name.title = isExpanded
                 ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
                 : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
         };
-        name.title = this.expandedPlugins.has(plugin)
+        name.title = this.pipelineCore.expandedPlugins.has(plugin)
             ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
             : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
     }
@@ -706,7 +714,7 @@ export class PipelineItemBuilder {
      */
     handleShiftClickExpansion(plugin) {
         // Determine if we're expanding or collapsing based on current state
-        const shouldExpand = !this.expandedPlugins.has(plugin);
+        const shouldExpand = !this.pipelineCore.expandedPlugins.has(plugin);
         
         // Special handling for Section plugins - expand/collapse entire section
         if (plugin.constructor.name === 'SectionPlugin') {
@@ -737,7 +745,7 @@ export class PipelineItemBuilder {
                     // Set expanded state
                     if (shouldExpand) {
                         pluginUI.classList.add('expanded');
-                        this.expandedPlugins.add(p);
+                        this.pipelineCore.expandedPlugins.add(p);
                         if (p.updateMarkers && p.updateResponse) {
                             requestAnimationFrame(() => {
                                 p.updateMarkers();
@@ -746,7 +754,7 @@ export class PipelineItemBuilder {
                         }
                     } else {
                         pluginUI.classList.remove('expanded');
-                        this.expandedPlugins.delete(p);
+                        this.pipelineCore.expandedPlugins.delete(p);
                     }
                 }
             }
@@ -771,7 +779,7 @@ export class PipelineItemBuilder {
                 // Set expanded state
                 if (shouldExpand) {
                     pluginUI.classList.add('expanded');
-                    this.expandedPlugins.add(p);
+                    this.pipelineCore.expandedPlugins.add(p);
                     if (p.updateMarkers && p.updateResponse) {
                         requestAnimationFrame(() => {
                             p.updateMarkers();
@@ -780,7 +788,7 @@ export class PipelineItemBuilder {
                     }
                 } else {
                     pluginUI.classList.remove('expanded');
-                    this.expandedPlugins.delete(p);
+                    this.pipelineCore.expandedPlugins.delete(p);
                 }
             });
         }
@@ -794,7 +802,7 @@ export class PipelineItemBuilder {
             const nameEl = item.querySelector('.plugin-name');
             if (!nameEl) return;
             
-            nameEl.title = this.expandedPlugins.has(p)
+            nameEl.title = this.pipelineCore.expandedPlugins.has(p)
                 ? (window.uiManager ? window.uiManager.t('ui.title.collapse') : 'Click to collapse')
                 : (window.uiManager ? window.uiManager.t('ui.title.expand') : 'Click to expand');
         });

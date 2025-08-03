@@ -39,6 +39,9 @@ export class AudioContextManager {
                 }
             } else if (window.isFirstLaunchConfirmed !== undefined) {
                 this.isFirstLaunch = window.isFirstLaunchConfirmed;
+            } else {
+                // For web version, default to false
+                this.isFirstLaunch = false;
             }
             
             // Create audio context if not exists

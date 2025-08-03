@@ -77,6 +77,7 @@ saturation/harmonic_distortion: Harmonic Distortion | Saturation | HarmonicDisto
 saturation/multiband_saturation: Multiband Saturation | Saturation | MultibandSaturationPlugin | css
 saturation/saturation: Saturation | Saturation | SaturationPlugin | css
 saturation/sub_synth: Sub Synth | Saturation | SubSynthPlugin | css
+spatial/crossfeed_filter: Crossfeed Filter | Spatial | CrossfeedFilterPlugin
 spatial/ms_matrix: MS Matrix | Spatial | MSMatrixPlugin
 spatial/multiband_balance: Multiband Balance | Spatial | MultibandBalancePlugin | css
 spatial/stereo_blend: Stereo Blend | Spatial | StereoBlendPlugin

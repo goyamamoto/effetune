@@ -56,6 +56,13 @@ export class UIManager {
         this.cutButton = document.getElementById('cutButton');
         this.copyButton = document.getElementById('copyButton');
         this.pasteButton = document.getElementById('pasteButton');
+        
+        // Initialize pipeline toggle buttons
+        this.pipelineToggleButton = document.getElementById('pipelineToggleButton');
+        this.pipelineMenuButton = document.getElementById('pipelineMenuButton');
+        this.pipelineMenu = document.getElementById('pipelineMenu');
+        this.copyAToBButton = document.getElementById('copyAToBButton');
+        this.copyBToAButton = document.getElementById('copyBToAButton');
 
         // Initialize localization after everything else is set up
         // This is an async operation, but we can't make the constructor async
@@ -66,6 +73,16 @@ export class UIManager {
             this.initClipboardButtons();
             // Initialize history buttons after translations are loaded
             this.initHistoryButtons();
+            // Initialize pipeline toggle buttons after translations are loaded
+            this.initPipelineToggleButtons();
+            // Initialize keyboard shortcuts
+            this.initKeyboardShortcuts();
+            
+            // Listen for pipeline changes to update UI
+            this.audioManager.addEventListener('pipelineChanged', (event) => {
+                this.updatePipelineToggleButton();
+                this.pipelineManager.updatePipelineUI();
+            });
         }).catch(error => {
             console.error('Failed to initialize localization:', error);
         });
@@ -195,6 +212,7 @@ export class UIManager {
     }
 
     getPipelineState() {
+        // Get current pipeline state for URL sharing
         const state = this.audioManager.pipeline.map(plugin =>
             getSerializablePluginStateShort(plugin)
         );
@@ -969,5 +987,134 @@ export class UIManager {
                 this.pipelineManager.redo();
             });
         }
+    }
+
+    /**
+     * Initialize pipeline toggle buttons and menu
+     */
+    initPipelineToggleButtons() {
+        if (this.pipelineToggleButton) {
+            this.pipelineToggleButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePipeline();
+            });
+        }
+
+        if (this.pipelineMenuButton) {
+            this.pipelineMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePipelineMenu();
+            });
+        }
+
+        if (this.copyAToBButton) {
+            this.copyAToBButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.copyAToB();
+                this.hidePipelineMenu();
+            });
+        }
+
+        if (this.copyBToAButton) {
+            this.copyBToAButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.copyBToA();
+                this.hidePipelineMenu();
+            });
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.pipelineMenu?.contains(e.target) && !this.pipelineMenuButton?.contains(e.target)) {
+                this.hidePipelineMenu();
+            }
+        });
+    }
+
+    /**
+     * Toggle between pipeline A and B
+     */
+    togglePipeline() {
+        this.audioManager.togglePipeline();
+        this.updatePipelineToggleButton();
+        this.pipelineManager.updatePipelineUI();
+    }
+
+    /**
+     * Copy pipeline A to B and switch to B
+     */
+    copyAToB() {
+        this.audioManager.copyAToB();
+        this.updatePipelineToggleButton();
+        this.pipelineManager.updatePipelineUI();
+    }
+
+    /**
+     * Copy pipeline B to A and switch to A
+     */
+    copyBToA() {
+        this.audioManager.copyBToA();
+        this.updatePipelineToggleButton();
+        this.pipelineManager.updatePipelineUI();
+    }
+
+    /**
+     * Update pipeline toggle button text
+     */
+    updatePipelineToggleButton() {
+        if (this.pipelineToggleButton) {
+            this.pipelineToggleButton.textContent = this.audioManager.currentPipeline;
+        }
+    }
+
+    /**
+     * Toggle pipeline menu visibility
+     */
+    togglePipelineMenu() {
+        if (this.pipelineMenu) {
+            this.pipelineMenu.classList.toggle('show');
+        }
+    }
+
+    /**
+     * Hide pipeline menu
+     */
+    hidePipelineMenu() {
+        if (this.pipelineMenu) {
+            this.pipelineMenu.classList.remove('show');
+        }
+    }
+
+    /**
+     * Initialize keyboard shortcuts
+     */
+    initKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Only handle shortcuts when not typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            switch (e.key.toLowerCase()) {
+                case 't':
+                    e.preventDefault();
+                    this.togglePipeline();
+                    break;
+                case 'a':
+                    e.preventDefault();
+                    this.audioManager.setCurrentPipeline('A');
+                    this.updatePipelineToggleButton();
+                    this.pipelineManager.updatePipelineUI();
+                    break;
+                case 'b':
+                    e.preventDefault();
+                    if (this.audioManager.pipelineB !== null) {
+                        this.audioManager.setCurrentPipeline('B');
+                        this.updatePipelineToggleButton();
+                        this.pipelineManager.updatePipelineUI();
+                    }
+                    break;
+            }
+        });
     }
 }

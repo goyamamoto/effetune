@@ -4,6 +4,7 @@ import { PipelineProcessor } from './audio/pipeline-processor.js';
 import { OfflineProcessor } from './audio/offline-processor.js';
 import { AudioEncoder } from './audio/audio-encoder.js';
 import { EventManager } from './audio/event-manager.js';
+import { getSerializablePluginStateShort, applySerializedState } from './utils/serialization-utils.js';
 
 /**
  * AudioManager - Main class for audio processing
@@ -26,12 +27,17 @@ export class AudioManager {
         // Store reference to pipeline manager
         this.pipelineManager = pipelineManager;
         
+        // Dual pipeline management
+        this.pipelineA = [];
+        this.pipelineB = null; // Initially null, will be created when needed
+        this.currentPipeline = 'A'; // 'A' or 'B'
+        
         // Expose properties for backward compatibility
         this.audioContext = null;
         this.stream = null;
         this.sourceNode = null;
         this.workletNode = null;
-        this.pipeline = [];
+        this.pipeline = this.pipelineA; // Reference to current pipeline
         this.masterBypass = false;
         this.offlineContext = null;
         this.offlineWorkletNode = null;
@@ -42,6 +48,176 @@ export class AudioManager {
         
         // Set global reference
         window.audioManager = this;
+    }
+
+    /**
+     * Get current pipeline (A or B)
+     * @returns {Array} Current pipeline array
+     */
+    getCurrentPipeline() {
+        return this.currentPipeline === 'A' ? this.pipelineA : this.pipelineB;
+    }
+
+    /**
+     * Set current pipeline (A or B)
+     * @param {string} pipeline - 'A' or 'B'
+     * @param {boolean} skipHistorySave - Skip saving to history (for internal operations)
+     */
+    setCurrentPipeline(pipeline, skipHistorySave = false) {
+        if (pipeline !== 'A' && pipeline !== 'B') {
+            throw new Error('Pipeline must be "A" or "B"');
+        }
+        
+        this.currentPipeline = pipeline;
+        this.pipeline = this.getCurrentPipeline();
+        
+        // Rebuild audio pipeline if worklet is initialized
+        if (this.workletNode) {
+            this.rebuildPipeline();
+        }
+        
+        // Dispatch event for UI updates
+        this.dispatchEvent('pipelineChanged', { pipeline: this.currentPipeline });
+        
+        // Save state to history for undo/redo (unless explicitly skipped)
+        if (!skipHistorySave && this.pipelineManager && this.pipelineManager.historyManager) {
+            this.pipelineManager.historyManager.saveState();
+        }
+    }
+
+    /**
+     * Switch between pipeline A and B
+     * If B doesn't exist, copy A to B first
+     */
+    togglePipeline() {
+        if (this.currentPipeline === 'A') {
+            if (this.pipelineB === null) {
+                // Copy A to B if B doesn't exist
+                this.pipelineB = this._copyPipeline(this.pipelineA);
+            }
+            this.setCurrentPipeline('B');
+        } else {
+            this.setCurrentPipeline('A');
+        }
+    }
+
+    /**
+     * Copy pipeline A to B and switch to B
+     */
+    copyAToB() {
+        this.pipelineB = this._copyPipeline(this.pipelineA);
+        this.setCurrentPipeline('B');
+    }
+
+    /**
+     * Copy pipeline B to A and switch to A
+     */
+    copyBToA() {
+        if (this.pipelineB !== null) {
+            this.pipelineA = this._copyPipeline(this.pipelineB);
+            this.setCurrentPipeline('A');
+        }
+    }
+
+    /**
+     * Create a deep copy of pipeline without circular references
+     * @param {Array} pipeline - Pipeline to copy
+     * @returns {Array} Copied pipeline
+     */
+    _copyPipeline(pipeline) {
+        if (!pipeline || !Array.isArray(pipeline)) {
+            return [];
+        }
+
+        // Use plugin manager to recreate plugins from serialized state
+        const pluginManager = this.pipelineManager?.pluginManager || window.pluginManager;
+        if (!pluginManager) {
+            console.warn('Plugin manager not available for pipeline copy');
+            return [];
+        }
+
+        // Get expanded plugins state from pipeline manager
+        const expandedPlugins = this.pipelineManager?.expandedPlugins || new Set();
+        
+        // Create a map of plugin positions to their expanded state
+        const expandedPositions = new Set();
+        pipeline.forEach((plugin, index) => {
+            if (expandedPlugins.has(plugin)) {
+                expandedPositions.add(index);
+            }
+        });
+
+        const copiedPlugins = pipeline.map((plugin, index) => {
+            try {
+                // Get serialized state using utility function
+                const serializedState = getSerializablePluginStateShort(plugin);
+                
+                // Create new plugin instance
+                const newPlugin = pluginManager.createPlugin(serializedState.nm);
+                if (!newPlugin) {
+                    console.warn(`Failed to create plugin: ${serializedState.nm}`);
+                    return null;
+                }
+
+                // Apply serialized state
+                applySerializedState(newPlugin, serializedState);
+                
+                // Preserve expanded state if the original plugin at this position was expanded
+                if (expandedPositions.has(index)) {
+                    expandedPlugins.add(newPlugin);
+                }
+                
+                return newPlugin;
+            } catch (error) {
+                console.warn(`Failed to copy plugin ${plugin.name}:`, error);
+                return null;
+            }
+        }).filter(plugin => plugin !== null);
+
+        return copiedPlugins;
+    }
+
+    /**
+     * Update current pipeline with new plugins
+     * @param {Array} plugins - Array of plugins to set
+     */
+    updateCurrentPipeline(plugins) {
+        if (this.currentPipeline === 'A') {
+            this.pipelineA = plugins;
+        } else if (this.currentPipeline === 'B') {
+            this.pipelineB = plugins;
+        }
+        this.pipeline = this.getCurrentPipeline();
+    }
+
+    /**
+     * Get pipeline state for serialization
+     * @returns {Object} Pipeline state object
+     */
+    getPipelineState() {
+        return {
+            pipelineA: this.pipelineA,
+            pipelineB: this.pipelineB,
+            currentPipeline: this.currentPipeline
+        };
+    }
+
+    /**
+     * Set pipeline state from serialization
+     * @param {Object} state - Pipeline state object
+     */
+    setPipelineState(state) {
+        if (state.pipelineA) {
+            this.pipelineA = state.pipelineA;
+        }
+        if (state.pipelineB) {
+            this.pipelineB = state.pipelineB;
+        }
+        if (state.currentPipeline) {
+            this.setCurrentPipeline(state.currentPipeline);
+        } else {
+            this.pipeline = this.pipelineA; // Default to A
+        }
     }
     /**
      * Initialize audio system (without AudioWorklet)

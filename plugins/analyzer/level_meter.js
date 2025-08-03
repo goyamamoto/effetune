@@ -142,8 +142,7 @@ class LevelMeterPlugin extends PluginBase {
             // Reset overload state if channel count changes, although it might not be strictly necessary
             this.ol = false;
             this.ot = 0;
-            // Trigger UI redraw or parameter update if needed after resize
-            this.updateParameters(); // Or potentially redraw UI if layout changes significantly
+
         }
 
         // Process each channel
