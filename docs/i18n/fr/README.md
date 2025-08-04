@@ -164,9 +164,12 @@ Pour traiter l'audio des services de streaming (Spotify, YouTube Music, etc.) :
    - Ctrl + → ou N : Piste suivante
    - Ctrl + ← ou P : Piste précédente
    - Shift + → ou F ou . : Avancer de 10 secondes
-   - Shift + ← ou B ou , : Reculer de 10 secondes
-   - Ctrl + T : Activer/Désactiver la répétition
+   - Shift + ← ou R ou , : Reculer de 10 secondes
+   - Ctrl + M : Activer/Désactiver la répétition
    - Ctrl + H : Activer/Désactiver le mode aléatoire
+   - T : Basculer entre Pipeline A et Pipeline B
+   - A : Basculer vers Pipeline A
+   - B : Basculer vers Pipeline B
 
 ### Traitement des fichiers audio
 

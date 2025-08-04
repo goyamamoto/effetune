@@ -6,6 +6,7 @@
 import { PlaybackManager } from './audio-player/playback-manager.js';
 import { AudioPlayerUI } from './audio-player/audio-player-ui.js';
 import { AudioContextManager } from './audio-player/audio-context-manager.js';
+import { StateManager } from './audio-player/state-manager.js';
 
 export class AudioPlayer {
   constructor(audioManager) {
@@ -13,10 +14,16 @@ export class AudioPlayer {
     this.audioContext = audioManager.audioContext;
     this.audioElement = null;
     
-    // Initialize sub-modules
+    // Initialize centralized state manager first
+    this.stateManager = new StateManager(this);
+    
+    // Initialize sub-modules with state manager reference
     this.playbackManager = new PlaybackManager(this);
     this.ui = new AudioPlayerUI(this);
     this.contextManager = new AudioContextManager(this, audioManager);
+    
+    // Set up state manager listeners
+    this.setupStateManagerListeners();
     
     // Load saved player state
     this.playbackManager.loadPlayerState().then(() => {
@@ -27,37 +34,36 @@ export class AudioPlayer {
   }
   
   /**
-   * Load audio files into the playlist
+   * Enhanced loadFiles with seamless playback support
    * @param {(string[]|File[])} files - Array of file paths or File objects to load
    * @param {boolean} append - Whether to append to existing playlist or replace it
    */
-  loadFiles(files, append = false) {
+  async loadFiles(files, append = false) {
     this.playbackManager.loadFiles(files, append);
     if (!this.ui.container) {
       this.ui.createPlayerUI();
     }
-    this.loadTrack(this.playbackManager.currentTrackIndex);
-    this.play();
+    await this.loadTrack(this.stateManager.getCurrentTrackIndex());
+    await this.play();
   }
   
   /**
-   * Load a track at the specified index
+   * Enhanced loadTrack with unified state management
    * @param {number} index - Index of the track to load
    */
-  loadTrack(index) {
+  async loadTrack(index) {
     const track = this.playbackManager.getTrack(index);
     if (track) {
-      this.contextManager.setupAudioElement(track);
-      this.contextManager.loadMetadata(track);
-      this.ui.updateTrackDisplay(track);
+      // UNIFIED STATE: Use context manager's loadTrack method
+      await this.contextManager.loadTrack(track);
     }
   }
   
   /**
    * Play the current track
    */
-  play() {
-    this.playbackManager.play();
+  async play() {
+    await this.playbackManager.play();
   }
   
   /**
@@ -70,21 +76,21 @@ export class AudioPlayer {
   /**
    * Toggle between play and pause
    */
-  togglePlayPause() {
-    this.playbackManager.togglePlayPause();
+  async togglePlayPause() {
+    await this.playbackManager.togglePlayPause();
   }
   
   /**
    * Stop playback and reset position
    */
-  stop() {
-    this.playbackManager.stop();
+  async stop() {
+    await this.playbackManager.stop();
   }
   
   /**
    * Play the previous track
    */
-  playPrevious() {
+  async playPrevious() {
     this.playbackManager.playPrevious();
   }
   
@@ -92,7 +98,7 @@ export class AudioPlayer {
    * Play the next track
    * @param {boolean} userInitiated - Whether this was initiated by user action (default: true)
    */
-  playNext(userInitiated = true) {
+  async playNext(userInitiated = true) {
     this.playbackManager.playNext(userInitiated);
   }
   
@@ -111,18 +117,86 @@ export class AudioPlayer {
   }
   
   /**
-   * Close the player and restore original audio input
+   * Set up state manager listeners for UI updates
+   * Note: Most UI updates are now handled automatically by AudioPlayerUI's state monitoring
+   */
+  setupStateManagerListeners() {
+    // Listen for UI state changes that require special handling
+    this.stateManager.addListener('seekBarEnabled', (enabled) => {
+      if (this.ui && this.ui.seekBar) {
+        this.ui.seekBar.disabled = !enabled;
+      }
+    });
+    
+    this.stateManager.addListener('controlsEnabled', (enabled) => {
+      if (this.ui) {
+        const controls = [
+          this.ui.playPauseButton,
+          this.ui.stopButton,
+          this.ui.prevButton,
+          this.ui.nextButton,
+          this.ui.repeatButton,
+          this.ui.shuffleButton
+        ];
+        
+        controls.forEach(control => {
+          if (control) {
+            control.disabled = !enabled;
+          }
+        });
+      }
+    });
+  }
+  
+  /**
+   * NEW: Enhanced close method with proper cleanup
    */
   close() {
+    console.log('[AudioPlayer] Closing audio player');
+    
+    // Save player state
     this.playbackManager.savePlayerState();
+    
+    // Disconnect audio context
     this.contextManager.disconnect();
+    this.contextManager.clearNextTrackBuffer();
+    
+    // Remove UI
     this.ui.removeUI();
+    
+    // Clear playback manager
     this.playbackManager.clear();
+    
+    // Clear state manager
+    this.stateManager.clearStateHistory();
     
     // Clean up references
     this.audioElement = null;
     if (window.uiManager) {
       window.uiManager.audioPlayer = null;
     }
+    
+    console.log('[AudioPlayer] Audio player closed');
+  }
+  
+  /**
+   * Get debug information
+   * @returns {Object} Debug info
+   */
+  getDebugInfo() {
+    return {
+      stateManager: this.stateManager.getDebugInfo(),
+      playbackManager: {
+        currentTrackIndex: this.stateManager.getCurrentTrackIndex(),
+        playlistLength: this.playbackManager.playlist.length,
+        state: this.stateManager.getStateSnapshot()
+      },
+      contextManager: {
+        currentPlaybackMode: this.contextManager.currentPlaybackMode,
+        isUsingBufferPlayback: this.contextManager.isUsingBufferPlayback(),
+        hasNextTrackBuffer: !!this.contextManager.nextTrackBuffer,
+        isTransitioning: this.contextManager.isTransitioning
+      }
+    };
   }
 }

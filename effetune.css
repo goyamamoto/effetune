@@ -53,6 +53,15 @@ body {
     transition: padding-left 0.3s ease;
 }
 
+/* Disable image dragging globally */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+}
+
 /* Override user-select for input elements */
 input {
     user-select: text;

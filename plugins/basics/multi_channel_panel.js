@@ -589,21 +589,21 @@ class MultiChannelPanelPlugin extends PluginBase {
         for (let ch = 0; ch < this.MAX_CHANNELS; ch++) {
             // Channel container
             const channelContainer = document.createElement('div');
-            channelContainer.className = 'channel-container';
+            channelContainer.className = 'multichannel-panel-channel-container';
 
             // Row 1: Channel name and level meter
             const row1 = document.createElement('div');
-            row1.className = 'channel-row channel-header';
+            row1.className = 'multichannel-panel-channel-row multichannel-panel-channel-header';
 
             // Channel label
             const channelLabel = document.createElement('div');
-            channelLabel.className = 'channel-label';
+            channelLabel.className = 'multichannel-panel-channel-label';
             channelLabel.textContent = `Ch ${ch + 1}:`;
             row1.appendChild(channelLabel);
 
             // Level meter
             const meterCanvas = document.createElement('canvas');
-            meterCanvas.className = 'level-meter';
+            meterCanvas.className = 'multichannel-panel-level-meter';
             meterCanvas.width = 932; // Consider making these configurable or CSS-driven
             meterCanvas.height = 16;
             this.meterCanvases[ch] = meterCanvas;
@@ -614,17 +614,17 @@ class MultiChannelPanelPlugin extends PluginBase {
 
             // Row 2: Controls
             const row2 = document.createElement('div');
-            row2.className = 'channel-row channel-controls';
+            row2.className = 'multichannel-panel-channel-row multichannel-panel-channel-controls';
 
             // Spacer for channel label alignment
             const channelSpace = document.createElement('div');
-            channelSpace.className = 'channel-space';
+            channelSpace.className = 'multichannel-panel-channel-space';
             row2.appendChild(channelSpace);
 
             // Only show link button for channels 1 through MAX_CHANNELS-1
             if (ch < this.MAX_CHANNELS - 1) {
                 const linkButton = document.createElement('button');
-                linkButton.className = 'link-button';
+                linkButton.className = 'multichannel-panel-link-button';
                 linkButton.textContent = '🔗'; // Link symbol
                 linkButton.title = `Link Channel ${ch + 1} to Channel ${ch + 2}`;
                 linkButton.style.width = '21px';
@@ -641,11 +641,11 @@ class MultiChannelPanelPlugin extends PluginBase {
 
             // Control buttons container
             const controlsContainer = document.createElement('div');
-            controlsContainer.className = 'button-controls';
+            controlsContainer.className = 'multichannel-panel-button-controls';
 
             // Mute button
             const muteButton = document.createElement('button');
-            muteButton.className = 'mute-button';
+            muteButton.className = 'multichannel-panel-mute-button';
             muteButton.textContent = 'M';
             muteButton.title = `Mute Channel ${ch + 1}`;
             muteButton.style.width = '21px';
@@ -660,7 +660,7 @@ class MultiChannelPanelPlugin extends PluginBase {
 
             // Solo button
             const soloButton = document.createElement('button');
-            soloButton.className = 'solo-button';
+            soloButton.className = 'multichannel-panel-solo-button';
             soloButton.textContent = 'S';
             soloButton.title = `Solo Channel ${ch + 1}`;
             soloButton.style.width = '21px';
