@@ -96,6 +96,53 @@ class HornResonatorPlusPlugin extends PluginBase {
                 return [ ( S22*t1 - S12*t2)*inv, (-S12*t1 + S11*t2)*inv ];
             }
 
+            // -------- Passive clamp helper: compute convex mix toward -1 --------
+            function computePassiveMix(b0, a1, a2, sr) {
+                // Base log grid
+                const fmin = 5.0;
+                const fmax = Math.max(40.0, 0.45 * sr);
+                const K = 160; // dense for higher-Q safety
+                const grid = [];
+                for (let i = 0; i < K; i++) {
+                    const t = i / (K - 1);
+                    grid.push(fmin * Math.pow(fmax / fmin, t));
+                }
+                // Add local dense probes near the resonant angle if a2 > 0 (complex poles)
+                if (a2 > 0 && a2 < 0.999999) {
+                    const r = Math.sqrt(a2);
+                    const cosw0 = -a1 / (2 * r);
+                    if (cosw0 > -1 && cosw0 < 1) {
+                        const w0 = Math.acos(cosw0);
+                        const f0 = (w0 * sr) / TWO_PI;
+                        const cand = [0.8, 0.9, 0.95, 1.0, 1.05, 1.1, 1.25, 1.4].map(m => f0 * m);
+                        for (const f of cand) {
+                            if (f > fmin && f < fmax) grid.push(f);
+                        }
+                        if (r > 0.985) { // very sharp
+                            [0.975, 1.025, 1.075, 1.125].forEach(m => {
+                                const f = f0 * m;
+                                if (f > fmin && f < fmax) grid.push(f);
+                            });
+                        }
+                    }
+                }
+                grid.sort((a,b)=>a-b);
+
+                let maxMag = 0.0;
+                for (const f of grid) {
+                    const w = TWO_PI * f / sr;
+                    const cw = Math.cos(w),  sw = Math.sin(w);
+                    const c2 = Math.cos(2*w), s2 = Math.sin(2*w);
+                    const den_re = 1 + a1*cw + a2*c2;
+                    const den_im = -a1*sw - a2*s2;
+                    const den_mag = Math.hypot(den_re, den_im) + EPS;
+                    const Hmag = Math.abs(b0) / den_mag;
+                    if (Hmag > maxMag) maxMag = Hmag;
+                }
+                if (!isFinite(maxMag) || maxMag <= 0) return 1.0;
+                return Math.min(1.0, 1.0 / (maxMag + 1e-6)); // s ∈ (0,1]
+            }
+
             // -------- Bessel-based normalized radiation impedance z(ka) ≈ R + jX --------
             // For a circular piston in an infinite baffle, exact formulas involve Struve H1.
             // We adopt a practical approximation using J1, Y1 with low-frequency blending:
@@ -106,7 +153,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const J1 = hBesselJ1(2*ka);
                 const Y1 = hBesselY1(2*ka);
 
-                // Baseline (same algebraic structure as the original, but used at proper ka(f))
+                // Baseline
                 let zr = 1 - (J1 / ka);
                 let zi = - (Y1 / ka);
 
@@ -214,30 +261,30 @@ class HornResonatorPlusPlugin extends PluginBase {
                    We fit a 2nd-order IIR of the form:
                        H_R(z) = b0 / (1 + a1 z^-1 + a2 z^-2)
                    subject to DC constraint H_R(1) = -1, while least-squares fitting
-                   the complex reflection Γ(f) over multiple frequency samples near fc_mouth. */
+                   the complex reflection Γ(f) over multiple frequency samples. */
                 const effectiveMouthRadius = mouthRadius;
                 const a_mouth = effectiveMouthRadius;
                 const nyq = 0.5 * sr;
                 const fc_mouth = (a_mouth > EPS) ? C / (TWO_PI * a_mouth) : sr / 4;
 
-                // Frequency sampling: emphasize around mouth cutoff; prune near Nyquist
-                const mults = [0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0];
+                // --- Improved frequency sampling for LS fit ---
+                const fc_ref = Math.min(fc_mouth, 0.30 * sr); // keep reference safely inside band
+                const fmin = Math.max(1.0, 0.05 * fc_ref);
+                const fmax = Math.min(0.45 * sr, 6.0 * fc_ref);
+                const Nfit = 40; // 36–48 recommended
                 const freqs = [];
-                for (let m of mults) {
-                    const f = Math.max(1.0, m * fc_mouth);
-                    if (f < nyq * 0.95) freqs.push(f);
+                for (let i = 0; i < Nfit; i++) {
+                    const t = i / (Nfit - 1);
+                    freqs.push(fmin * Math.pow(fmax / fmin, t));
                 }
-                if (freqs.length < 6) {
-                    // Add extra points if sample rate is low or fc_mouth is too high
-                    for (let i=1;i<=5;i++){
-                        const f = nyq * i/6;
-                        if (!freqs.some(x=>Math.abs(x-f)<1e-3)) freqs.push(f);
-                    }
-                }
+                // Anchor multiples around fc_mouth
+                [0.25, 0.5, 1.0, 2.0, 4.0].forEach(m => {
+                    const f = m * fc_mouth;
+                    if (f > fmin && f < fmax && !freqs.some(x => Math.abs(x - f) < 1e-6)) freqs.push(f);
+                });
+                freqs.sort((a,b)=>a-b);
 
-                // Build normal equations for a1, a2 (real coefficients), given DC constraint for b0 later.
-                // From: (Γ e^{-jω} + 1) a1 + (Γ e^{-j2ω} + 1) a2 = - (Γ + 1)
-                // We stack Re/Im by inner products -> 2x2 system (S11,S12,S22) * [a1 a2]^T = [T1 T2]^T
+                // Build normal equations for a1, a2 with weights centered at fc_ref (log-Gaussian)
                 let S11=0, S22=0, S12=0, T1=0, T2=0;
                 for (let k=0;k<freqs.length;k++){
                     const f = freqs[k];
@@ -247,7 +294,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // Radiation impedance z = R + jX
                     const z = normalizedRadiationImpedance(ka);
                     // Reflection Γ = (z - 1) / (z + 1)
-                    const Gamma = (()=>{
+                    const Gamma = (( )=>{
                         const num = cSub(z, [1,0]);
                         const den = cAdd(z, [1,0]);
                         return cDiv(num, den);
@@ -260,9 +307,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                     const A2 = cAdd( cMul(Gamma, ej2w), [1,0] );
                     const b  = cMul( [-1,0], cAdd(Gamma, [1,0]) ); // - (Γ + 1)
 
-                    // Weight more around fc_mouth
-                    const d = Math.log2( (f+1e-6) / (fc_mouth+1e-6) );
-                    const weight = 1 + 2 * Math.exp( - (d*d) / (0.6*0.6) );
+                    // Log-Gaussian weight around fc_ref (σ ≈ 0.5 oct)
+                    const d = Math.log2( (f+1e-6) / (fc_ref+1e-6) );
+                    const weight = 0.5 + Math.exp( - (d*d) / (0.5*0.5) );
 
                     const A1A1 = cAbs2(A1);
                     const A2A2 = cAbs2(A2);
@@ -281,7 +328,6 @@ class HornResonatorPlusPlugin extends PluginBase {
                 let [bessel_a1, bessel_a2] = solve2x2(S11,S12,S22,T1,T2);
 
                 // Stabilize: ensure poles inside unit circle (|p| < 0.995).
-                // Roots of λ^2 + a1 λ + a2 = 0
                 const discr = bessel_a1*bessel_a1 - 4*bessel_a2;
                 if (discr >= 0) {
                     // Real roots
@@ -319,6 +365,9 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.rm_a1 = bessel_a1 * (1 - blend) + simple_a1 * blend;
                 context.rm_a2 = bessel_a2 * (1 - blend) + simple_a2 * blend;
                 context.rm_b0 = bessel_b0 * (1 - blend) + simple_b0 * blend;
+
+                // >>> Passive clamp: precompute convex mix factor s ∈ (0,1]
+                context.rm_mix = computePassiveMix(context.rm_b0, context.rm_a1, context.rm_a2, sr);
 
                 // Allocate mouth reflection filter states
                 if (!context.rm_y1_states || context.rm_y1_states.length !== chs) {
@@ -513,15 +562,18 @@ class HornResonatorPlusPlugin extends PluginBase {
                         rv_next[j]     = g * (r_in + scatterDiff);
                     }
 
-                    // ---- Mouth boundary (index N): frequency-dependent reflection ----
+                    // ---- Mouth boundary (index N): frequency-dependent reflection with passive clamp ----
                     const fwN = fw_next[N]; // incoming forward wave at the mouth boundary
 
-                    // 2nd-order IIR with enforced DC reflection of -1 via b0
-                    const reflectedMouthWave = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
+                    // Raw 2nd-order IIR enforcing DC reflection of -1 via b0
+                    const yMouth = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
+                    // Passive convex mixing toward -1 to keep |Γ|≤~1 over scanned band
+                    const sMix = (context.rm_mix === undefined) ? 1.0 : context.rm_mix;
+                    const reflectedMouthWave = sMix * yMouth + (1 - sMix) * (-fwN);
                     rv_next[N] = reflectedMouthWave;
-                    // Update mouth filter states
+                    // Update mouth filter states with UNMIXED output to preserve recursion
                     rm_y2 = rm_y1;
-                    rm_y1 = reflectedMouthWave;
+                    rm_y1 = yMouth;
 
                     // ---- Throat boundary (index 0): input injection + low-shelved reflection ----
                     // Low frequencies reflect more due to the first-order LP on returning wave.
