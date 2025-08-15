@@ -12,32 +12,35 @@ class HornResonatorPlusPlugin extends PluginBase {
     constructor() {
         super('Horn Resonator Plus', 'Horn resonance emulator (enhanced)');
 
-        this.co = 600;  // Crossover frequency (Hz)
-        this.ln = 70;   // Horn length (cm)
-        this.th = 3.0;  // Throat diameter (cm)
-        this.mo = 60;   // Mouth diameter (cm)
-        this.cv = 40;   // Curve (%)
-        this.dp = 0.03; // Damping loss (dB/meter)
-        this.tr = 0.99; // Throat reflection coefficient
-        this.wg = 30.0; // Output signal gain (dB)
-        this.bl = 1.0;  // Blend between Bessel and simple mouth filter
+        // Default parameters
+        this.co = 600;   // Crossover frequency (Hz)
+        this.ln = 70;    // Horn length (cm)
+        this.th = 3.0;   // Throat diameter (cm)
+        this.mo = 60;    // Mouth diameter (cm)
+        this.cv = 40;    // Curve (%)
+        this.dp = 0.03;  // Damping loss (dB/meter)
+        this.tr = 0.99;  // Throat reflection coefficient
+        this.wg = 30.0;  // Output signal gain (dB)
+        this.bl = 1.0;   // Blend between Bessel-fitted and simple mouth filter
 
         // Physical constants
         const C = 343;   // Speed of sound in air (m/s)
         const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
 
         this.registerProcessor(`
-            // --- Define constants required within this processor's scope ---
-            const C = 343;     // Speed of sound in air (m/s)
-            const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
+            // -------- Constants inside processor scope --------
+            const C = 343;      // Speed of sound in air (m/s)
+            const RHO_C = 413;  // Characteristic impedance of air (Pa*s/m^3)
             const PI = Math.PI;
             const TWO_PI = 2 * PI;
             const SQRT2 = Math.SQRT2;
             const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
             const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
 
-            // -- Bessel-based helper functions for radiation impedance --
+            // -------- Utility: polynomial Horner and Bessel J1/Y1 approximations --------
             function hHorner(arr, v) { let z = 0; for (let i = 0; i < arr.length; ++i) z = z * v + arr[i]; return z; }
+
+            // Approximate Bessel J1(x). Coeffs adapted for numeric stability across ranges.
             function hBesselJ1(x) {
                 const W = 0.636619772; // 2/PI
                 const ax = Math.abs(x);
@@ -54,13 +57,13 @@ class HornResonatorPlusPlugin extends PluginBase {
                 let ans = Math.sqrt(W / ax) * (Math.cos(xx) * hHorner(b1.slice().reverse(), y) - Math.sin(xx) * hHorner(b2.slice().reverse(), y) * 8 / ax);
                 return x < 0 ? -ans : ans;
             }
+
+            // Approximate Bessel Y1(x). Coeffs adapted for numeric stability across ranges.
             function hBesselY1(x) {
-                const W = 0.636619772;
+                const W = 0.636619772; // 2/PI
                 if (x < 8.0) {
                     const y = x * x;
-                    const a1 = [-0.4900604943e13, 0.1275274390e13,
-                                 -0.5153438139e11, 0.7349264551e9,
-                                 -0.4237922726e7, 0.8511937935e4];
+                    const a1 = [-0.4900604943e13, 0.1275274390e13, -0.5153438139e11, 0.7349264551e9, -0.4237922726e7, 0.8511937935e4];
                     const a2 = [2.49958057e13, 4.244419664e11, 3.733650367e9, 2.245904002e7, 1.02042605e5, 3.549632885e2, 1.0];
                     const term1 = x * hHorner(a1.slice().reverse(), y);
                     const term2 = hHorner(a2.slice().reverse(), y);
@@ -72,41 +75,69 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-7, 1.05787412e-7];
                 return Math.sqrt(W / x) * (Math.sin(xx) * hHorner(b1.slice().reverse(), y) + Math.cos(xx) * hHorner(b2.slice().reverse(), y) * 8 / x);
             }
-            function solveReflectionPole(target, w) {
-                const mag = (p) => {
-                    const b0 = (1 - p) * (1 - p);
-                    const cosw = Math.cos(w); const sinw = Math.sin(w);
-                    const re = 1 - 2 * p * cosw + p * p * Math.cos(2 * w);
-                    const im = -2 * p * sinw + p * p * Math.sin(2 * w);
-                    const den = Math.sqrt(re * re + im * im);
-                    return b0 / den;
-                };
-                let low = 0.0, high = 0.999, mid;
-                for (let i = 0; i < 25; ++i) {
-                    mid = (low + high) / 2;
-                    if (mag(mid) < target) high = mid; else low = mid;
-                }
-                return (low + high) / 2;
+
+            // -------- Complex arithmetic helpers (arrays [re, im]) --------
+            const cAdd = (a,b)=>[a[0]+b[0], a[1]+b[1]];
+            const cSub = (a,b)=>[a[0]-b[0], a[1]-b[1]];
+            const cMul = (a,b)=>[a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];
+            const cConj= (a)=>[a[0], -a[1]];
+            const cAbs2= (a)=>a[0]*a[0]+a[1]*a[1];
+            const cDiv = (a,b)=>{
+                const d = cAbs2(b) + EPS;
+                return [(a[0]*b[0]+a[1]*b[1])/d, (a[1]*b[0]-a[0]*b[1])/d];
+            };
+            const e_jw = (w)=>[Math.cos(w), Math.sin(w)];
+
+            // Solve 2x2 normal equations (real symmetric positive definite)
+            function solve2x2(S11,S12,S22,t1,t2){
+                const det = S11*S22 - S12*S12;
+                if (Math.abs(det) < 1e-12) return [0,0];
+                const inv = 1.0/det;
+                return [ ( S22*t1 - S12*t2)*inv, (-S12*t1 + S11*t2)*inv ];
             }
 
-            // If the plugin is disabled, bypass processing.
+            // -------- Bessel-based normalized radiation impedance z(ka) ≈ R + jX --------
+            // For a circular piston in an infinite baffle, exact formulas involve Struve H1.
+            // We adopt a practical approximation using J1, Y1 with low-frequency blending:
+            //   R_lf ≈ (ka)^2 / 2,  X_lf ≈ (8/(3π)) * ka   (valid for ka << 1)
+            // Then blend toward the J1/Y1-based form as ka grows.
+            function normalizedRadiationImpedance(ka){
+                if (ka < 1e-6) return [0.0, 0.0]; // z ~ 0 => Γ ≈ -1 at DC
+                const J1 = hBesselJ1(2*ka);
+                const Y1 = hBesselY1(2*ka);
+
+                // Baseline (same algebraic structure as the original, but used at proper ka(f))
+                let zr = 1 - (J1 / ka);
+                let zi = - (Y1 / ka);
+
+                // Low-frequency correction blend (improves behavior for ka ≲ 0.6)
+                if (ka < 0.6) {
+                    const R_lf = 0.5 * ka * ka;
+                    const X_lf = (8.0 / (3.0 * Math.PI)) * ka;
+                    const w = Math.max(0, Math.min(1, (0.6 - ka)/0.6)); // w→1 at ka→0
+                    zr = zr*(1-w) + R_lf*w;
+                    zi = zi*(1-w) + X_lf*w;
+                }
+                return [zr, zi];
+            }
+
+            // -------- Early exit if disabled --------
             if (!parameters.en) return data;
 
             const sr  = parameters.sampleRate;
             const chs = parameters.channelCount;
             const bs  = parameters.blockSize;
 
-            // --- Determine if recalculation of internal state is needed ---
+            // Determine if state/coefficients must be recalculated
             const needsRecalc = !context.initialized ||
                                 context.sr  !== sr ||
                                 context.chs !== chs ||
-                                // List of parameters that necessitate recalculation
                                 ['ln','th','mo','cv','dp','tr','co','wg','bl']
                                 .some(key => context[key] !== parameters[key]);
 
-            /* ---------- 1. Recalculate geometry & filter coefficients if needed -------- */
+            /* ---------- 1) Recalculate geometry & filters if needed ---------- */
             if (needsRecalc) {
-                // Update context with current parameters
+                // Cache parameters in context
                 context.sr  = sr;
                 context.chs = chs;
                 context.ln = parameters.ln;
@@ -119,56 +150,58 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.wg = parameters.wg;
                 context.bl = parameters.bl;
 
-                // --- Horn Geometry Calculation ---
-                const dx = C / sr; // Spatial step size based on sample rate
-                const L  = context.ln / 100; // Horn length in meters
-                const N  = Math.max(1, Math.round(L / dx)); // Number of waveguide segments
+                // ---- Horn geometry discretization ----
+                const dx = C / sr;              // spatial step via CFL (one sample per dx)
+                const L  = context.ln / 100;    // horn length [m]
+                const N  = Math.max(1, Math.round(L / dx)); // number of segments
                 context.N = N;
 
-                const curveExponent = Math.pow(10, context.cv / 100); // Curve parameter exponent
-                const throatRadius = context.th / 200; // Throat radius [m]
-                const mouthRadius = context.mo / 200;  // Mouth radius [m]
+                const curveExponent = Math.pow(10, context.cv / 100); // flare exponent
+                const throatRadius = context.th / 200; // [m] (diameter in cm -> radius in m)
+                const mouthRadius  = context.mo / 200; // [m]
 
-                // Allocate or resize impedance and reflection coefficient arrays if N changed
+                // Allocate impedance and reflection arrays
                 if (!context.Z || context.Z.length !== N + 1) {
-                    context.Z = new Float32Array(N + 1); // Impedance at section boundaries
-                    context.R = new Float32Array(N);     // Reflection coefficients between sections
+                    context.Z = new Float32Array(N + 1); // impedance at section boundaries
+                    context.R = new Float32Array(N);     // reflection between sections
                 }
                 const Z = context.Z;
                 const R = context.R;
 
-                // Calculate impedance Z at each section boundary (0 to N)
+                // Boundary impedances Z[i] from local cross-sectional area
                 for (let i = 0; i <= N; i++) {
-                    let radius; // Radius at boundary i
+                    let radius;
                     if (i === 0) {
                         radius = throatRadius;
                     } else if (i === N) {
                         radius = mouthRadius;
                     } else {
-                        radius = throatRadius + (mouthRadius - throatRadius) * Math.pow(i / N, curveExponent); // Interpolate radius
+                        // Power interpolation controlled by curveExponent
+                        radius = throatRadius + (mouthRadius - throatRadius) * Math.pow(i / N, curveExponent);
                     }
-                    const area = PI * Math.max(EPS, radius * radius); // Section area
-                    Z[i] = RHO_C / area; // Characteristic impedance
+                    const area = PI * Math.max(EPS, radius * radius);
+                    Z[i] = RHO_C / area;
                 }
 
-                // Calculate reflection coefficient R between sections i and i+1 (0 to N-1)
+                // Local reflection coefficients between adjacent sections
                 for (let i = 0; i < N; i++) {
-                    const Z_i = Z[i];
-                    const Z_i1 = Z[i+1];
-                    const sumZ = Z_i + Z_i1;
-                    R[i] = (sumZ < EPS) ? 0 : (Z_i1 - Z_i) / sumZ; // Reflection coefficient
+                    const Zi = Z[i];
+                    const Zi1 = Z[i+1];
+                    const sumZ = Zi + Zi1;
+                    R[i] = (sumZ < EPS) ? 0 : (Zi1 - Zi) / sumZ;
                 }
 
-                // Damping gain per segment
+                // Per-segment attenuation from dp [dB/m]
                 context.g = Math.pow(10, -context.dp * dx / 20);
-                // Throat reflection coefficient (base)
+                // Base throat reflection scalar
                 context.trCoeff = context.tr;
 
-                /* ---- Throat Reflection Filter (frequency-dependent) ---- */
+                /* ---- Throat reflection filter (frequency-shaped) ----
+                   A gentle 1st-order low-pass on the returning wave: low frequencies reflect more. */
                 const effectiveThroatRadius = throatRadius;
                 const fc_throat = (effectiveThroatRadius > EPS) ? C / (TWO_PI * effectiveThroatRadius) : sr / 4;
                 const f_norm_th = Math.min(fc_throat, sr * 0.45) / sr;
-                const pole_th = 0.99 * Math.exp(-TWO_PI * f_norm_th);
+                const pole_th = 0.99 * Math.exp(-TWO_PI * f_norm_th); // inside unit circle
                 context.rt_b0 = 1 - pole_th;
                 context.rt_a1 = -pole_th;
                 if (!context.rt_y1_states || context.rt_y1_states.length !== chs) {
@@ -177,37 +210,117 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.rt_y1_states.fill(0);
                 }
 
-                /* ---- Mouth Reflection Filter H_R(z) Design ---- */
+                /* ---- Mouth reflection filter H_R(z) design (multi-point Bessel fit) ----
+                   We fit a 2nd-order IIR of the form:
+                       H_R(z) = b0 / (1 + a1 z^-1 + a2 z^-2)
+                   subject to DC constraint H_R(1) = -1, while least-squares fitting
+                   the complex reflection Γ(f) over multiple frequency samples near fc_mouth. */
                 const effectiveMouthRadius = mouthRadius;
-                const fc_mouth = (effectiveMouthRadius > EPS) ? C / (TWO_PI * effectiveMouthRadius) : sr / 4;
+                const a_mouth = effectiveMouthRadius;
+                const nyq = 0.5 * sr;
+                const fc_mouth = (a_mouth > EPS) ? C / (TWO_PI * a_mouth) : sr / 4;
 
-                // Bessel-based coefficients
-                const w_mouth = TWO_PI * fc_mouth / sr;
-                const ka = TWO_PI * fc_mouth * effectiveMouthRadius / C;
-                const J1 = hBesselJ1(2 * ka);
-                const Y1 = hBesselY1(2 * ka);
-                const zr = 1 - J1 / ka;
-                const zi = -Y1 / ka;
-                const rTarget = Math.sqrt((zr - 1) * (zr - 1) + zi * zi) / Math.sqrt((zr + 1) * (zr + 1) + zi * zi);
-                const poleBessel = solveReflectionPole(rTarget, w_mouth);
-                const bessel_a1 = -2 * poleBessel;
-                const bessel_a2 = poleBessel * poleBessel;
+                // Frequency sampling: emphasize around mouth cutoff; prune near Nyquist
+                const mults = [0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0];
+                const freqs = [];
+                for (let m of mults) {
+                    const f = Math.max(1.0, m * fc_mouth);
+                    if (f < nyq * 0.95) freqs.push(f);
+                }
+                if (freqs.length < 6) {
+                    // Add extra points if sample rate is low or fc_mouth is too high
+                    for (let i=1;i<=5;i++){
+                        const f = nyq * i/6;
+                        if (!freqs.some(x=>Math.abs(x-f)<1e-3)) freqs.push(f);
+                    }
+                }
+
+                // Build normal equations for a1, a2 (real coefficients), given DC constraint for b0 later.
+                // From: (Γ e^{-jω} + 1) a1 + (Γ e^{-j2ω} + 1) a2 = - (Γ + 1)
+                // We stack Re/Im by inner products -> 2x2 system (S11,S12,S22) * [a1 a2]^T = [T1 T2]^T
+                let S11=0, S22=0, S12=0, T1=0, T2=0;
+                for (let k=0;k<freqs.length;k++){
+                    const f = freqs[k];
+                    const w = TWO_PI * f / sr;
+                    const ka = TWO_PI * f * a_mouth / C;
+
+                    // Radiation impedance z = R + jX
+                    const z = normalizedRadiationImpedance(ka);
+                    // Reflection Γ = (z - 1) / (z + 1)
+                    const Gamma = (()=>{
+                        const num = cSub(z, [1,0]);
+                        const den = cAdd(z, [1,0]);
+                        return cDiv(num, den);
+                    })();
+
+                    const ejw  = e_jw(-w);
+                    const ej2w = e_jw(-2*w);
+
+                    const A1 = cAdd( cMul(Gamma, ejw),  [1,0] );
+                    const A2 = cAdd( cMul(Gamma, ej2w), [1,0] );
+                    const b  = cMul( [-1,0], cAdd(Gamma, [1,0]) ); // - (Γ + 1)
+
+                    // Weight more around fc_mouth
+                    const d = Math.log2( (f+1e-6) / (fc_mouth+1e-6) );
+                    const weight = 1 + 2 * Math.exp( - (d*d) / (0.6*0.6) );
+
+                    const A1A1 = cAbs2(A1);
+                    const A2A2 = cAbs2(A2);
+                    const A1A2 = ( cMul( cConj(A1), A2 ) )[0]; // real part
+                    const A1b  = ( cMul( cConj(A1), b  ) )[0];
+                    const A2b  = ( cMul( cConj(A2), b  ) )[0];
+
+                    S11 += weight * A1A1;
+                    S22 += weight * A2A2;
+                    S12 += weight * A1A2;
+                    T1  += weight * A1b;
+                    T2  += weight * A2b;
+                }
+
+                // Solve for a1, a2
+                let [bessel_a1, bessel_a2] = solve2x2(S11,S12,S22,T1,T2);
+
+                // Stabilize: ensure poles inside unit circle (|p| < 0.995).
+                // Roots of λ^2 + a1 λ + a2 = 0
+                const discr = bessel_a1*bessel_a1 - 4*bessel_a2;
+                if (discr >= 0) {
+                    // Real roots
+                    let r1 = (-bessel_a1 + Math.sqrt(discr)) / 2;
+                    let r2 = (-bessel_a1 - Math.sqrt(discr)) / 2;
+                    const maxR = Math.max(Math.abs(r1), Math.abs(r2));
+                    if (maxR >= 0.995) {
+                        const s = 0.995 / (maxR + 1e-9);
+                        bessel_a1 *= s;
+                        bessel_a2 *= s*s;
+                    }
+                } else {
+                    // Complex conjugate roots; modulus r = sqrt(a2) if a2 > 0
+                    const r = Math.sqrt(Math.abs(bessel_a2));
+                    if (r >= 0.995) {
+                        const s = 0.995 / (r + 1e-9);
+                        bessel_a1 *= s;      // scale a1 linearly
+                        bessel_a2 *= s*s;    // scale a2 quadratically to scale pole radius
+                    }
+                }
+
+                // Enforce DC reflection of -1: H_R(1) = b0 / (1 + a1 + a2) = -1  => b0 = -(1 + a1 + a2)
                 const bessel_b0 = -1 - bessel_a1 - bessel_a2;
 
-                // Simple two-pole approximation (repeated pole)
+                // ---- Simple 2-pole model for bright emphasis (kept for blending) ----
                 const f_norm_mouth = Math.min(fc_mouth, sr * 0.45) / sr;
                 const poleSimple = 0.99 * Math.exp(-TWO_PI * f_norm_mouth);
                 const simple_a1 = -2 * poleSimple;
                 const simple_a2 = poleSimple * poleSimple;
                 const simple_b0 = -1 - simple_a1 - simple_a2;
 
+                // Blend (0 = physically fitted, 1 = simple bright model)
                 const blend = Math.max(0, Math.min(1, parameters.bl));
-                context.bl = blend;
+                context.bl    = blend;
                 context.rm_a1 = bessel_a1 * (1 - blend) + simple_a1 * blend;
                 context.rm_a2 = bessel_a2 * (1 - blend) + simple_a2 * blend;
                 context.rm_b0 = bessel_b0 * (1 - blend) + simple_b0 * blend;
 
-                // Allocate or resize state buffers for mouth reflection filter
+                // Allocate mouth reflection filter states
                 if (!context.rm_y1_states || context.rm_y1_states.length !== chs) {
                     context.rm_y1_states = new Float32Array(chs).fill(0); // y[n-1]
                     context.rm_y2_states = new Float32Array(chs).fill(0); // y[n-2]
@@ -216,10 +329,11 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.rm_y2_states.fill(0);
                 }
 
-                // --- Waveguide delay line buffer initialization ---
+                // ---- Waveguide delay-line buffers (double-buffered forward/reverse) ----
                 const needsNewBuffers =
                     !context.fwd || context.fwd.length !== chs ||
                     !context.fwd[0] || context.fwd[0][0]?.length !== N + 1;
+
                 if (needsNewBuffers) {
                     context.fwd = Array.from({length: chs}, () => [
                         new Float32Array(N + 1).fill(0),
@@ -240,15 +354,15 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.bufIdx.fill(0);
                 }
 
-                /* ---- Crossover Filter (Linkwitz-Riley 4th order) Initialization ---- */
-                const crossoverFreq = Math.max(20, Math.min(sr * 0.5 - 1, context.co)); // Clamp frequency
-                const omega = Math.tan(crossoverFreq * PI / sr); // Prewarp
+                /* ---- 4th-order Linkwitz-Riley crossover initialization ---- */
+                const crossoverFreq = Math.max(20, Math.min(sr * 0.5 - 1, context.co));
+                const omega = Math.tan(crossoverFreq * PI / sr); // bilinear prewarp (one-pole prototype)
                 const omega2 = omega * omega;
                 const k = SQRT2 * omega; // Butterworth factor
                 const den = omega2 + k + 1.0;
-                const invDen = (den < EPS) ? 1.0 : 1.0 / den; // Inverse denominator
+                const invDen = (den < EPS) ? 1.0 : 1.0 / den;
 
-                // Calculate coefficients (Direct Form II)
+                // 2nd-order sections (same for LP and HP; LR4 = cascade of Butterworths)
                 const b0_lp = omega2 * invDen;
                 const b1_lp = 2.0 * b0_lp;
                 const b2_lp = b0_lp;
@@ -259,8 +373,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const a2_c = (omega2 - k + 1.0) * invDen;
                 context.lrCoeffs = { b0_lp, b1_lp, b2_lp, b0_hp, b1_hp, b2_hp, a1_c, a2_c };
 
-                // Initialize crossover filter states as flat arrays
-                // [x1_1, x2_1, y1_1, y2_1, x1_2, x2_2, y1_2, y2_2]
+                // Initialize crossover filter DF-II states: [x1_1, x2_1, y1_1, y2_1, x1_2, x2_2, y1_2, y2_2]
                 const initStage = () => new Float32Array([
                     DC_OFFSET, -DC_OFFSET, DC_OFFSET, -DC_OFFSET,
                     DC_OFFSET, -DC_OFFSET, DC_OFFSET, -DC_OFFSET
@@ -278,109 +391,110 @@ class HornResonatorPlusPlugin extends PluginBase {
                     }
                 }
 
-                // Initialize low-band delay buffer (delay = N samples)
+                // Low-band pure delay of N samples (to align with waveguide travel time)
                 if (!context.lowDelay || context.lowDelay.length !== chs || context.lowDelay[0]?.length !== N) {
                     context.lowDelay = Array.from({length: chs}, () => new Float32Array(N).fill(0));
-                    context.lowDelayIdx = new Uint32Array(chs).fill(0); // Reset indices
+                    context.lowDelayIdx = new Uint32Array(chs).fill(0);
                 } else {
-                    for(let ch = 0; ch < chs; ++ch) { // Reset delay buffer
+                    for(let ch = 0; ch < chs; ++ch) {
                         context.lowDelay[ch].fill(0);
                     }
-                context.lowDelayIdx.fill(0); // Reset indices
+                    context.lowDelayIdx.fill(0);
                 }
 
-                // Pre-compute output gain in linear scale
+                // Output gain (linear)
                 context.outputGain = Math.pow(10, context.wg / 20);
 
                 context.initialized = true;
-            } // End of needsRecalc block
+            } // end needsRecalc
 
-            /* ------------------ 2. Sample processing loop ---------------- */
-            const N = context.N;             // Number of waveguide segments
-            const R = context.R;             // Reflection coefficient array [N]
-            const g = context.g;             // Damping gain per segment
-            const trCoeff = context.trCoeff; // Throat reflection coefficient
+            /* ------------------ 2) Sample processing loop ------------------ */
+            const N = context.N;
+            const R = context.R;
+            const g = context.g;
+            const trCoeff = context.trCoeff;
 
-            const fwd = context.fwd; // [chs][2][N+1] Forward wave states
-            const rev = context.rev; // [chs][2][N+1] Reverse wave states
+            const fwd = context.fwd; // [chs][2][N+1]
+            const rev = context.rev; // [chs][2][N+1]
 
-            // Mouth reflection filter coefficients and states
+            // Mouth reflection filter (2nd-order IIR, DF-I form with output recursion)
             const rm_b0 = context.rm_b0;
             const rm_a1 = context.rm_a1;
             const rm_a2 = context.rm_a2;
-            const rm_y1_states = context.rm_y1_states; // [chs] y[n-1]
-            const rm_y2_states = context.rm_y2_states; // [chs] y[n-2]
+            const rm_y1_states = context.rm_y1_states;
+            const rm_y2_states = context.rm_y2_states;
 
-            // Throat reflection filter coefficients and states
+            // Throat reflection filter (1st-order IIR on returning wave)
             const rt_b0 = context.rt_b0;
             const rt_a1 = context.rt_a1;
             const rt_y1_states = context.rt_y1_states;
 
             // Crossover filter coefficients and states
             const { b0_lp, b1_lp, b2_lp, b0_hp, b1_hp, b2_hp, a1_c, a2_c } = context.lrCoeffs;
-            const lpStates = context.lrStates.low;  // [chs][8] Low-pass states
-            const hpStates = context.lrStates.high; // [chs][8] High-pass states
+            const lpStates = context.lrStates.low;
+            const hpStates = context.lrStates.high;
 
-            // Low-band delay buffer and index array
-            const lowDelay = context.lowDelay;       // [chs][N] Delay buffer
-            const lowDelayIdx = context.lowDelayIdx; // [chs] Current write indices
+            // Low-band delay
+            const lowDelay = context.lowDelay;
+            const lowDelayIdx = context.lowDelayIdx;
 
-            // Output gain (linear)
             const outputGain = context.outputGain;
 
-            // --- Channel Loop ---
+            // ---- Per-channel processing ----
             for (let ch = 0; ch < chs; ch++) {
-                const channelOffset = ch * bs; // Offset for current channel in data buffer
+                const channelOffset = ch * bs;
                 let bufIndex = context.bufIdx[ch];
-                let fw_current = fwd[ch][bufIndex];   // Current forward wave states
-                let rv_current = rev[ch][bufIndex];   // Current reverse wave states
-                let fw_next    = fwd[ch][bufIndex ^ 1]; // Buffer to write next state
+                let fw_current = fwd[ch][bufIndex];
+                let rv_current = rev[ch][bufIndex];
+                let fw_next    = fwd[ch][bufIndex ^ 1];
                 let rv_next    = rev[ch][bufIndex ^ 1];
 
-                // --- Load channel-specific states ---
+                // Load mouth filter states
                 let rm_y1 = rm_y1_states[ch];
                 let rm_y2 = rm_y2_states[ch];
 
+                // Load throat filter state
                 let rt_y1 = rt_y1_states[ch];
 
                 const lpState = lpStates[ch];
                 const hpState = hpStates[ch];
 
-                let currentLowDelayWriteIdx = lowDelayIdx[ch]; // Low-band delay state
+                let currentLowDelayWriteIdx = lowDelayIdx[ch];
                 const currentLowDelayLine = lowDelay[ch];
 
-                // --- Sample Loop ---
+                // ---- Per-sample loop ----
                 for (let i = 0; i < bs; i++) {
-                    const inputSample = data[channelOffset + i]; // Get input sample
+                    const inputSample = data[channelOffset + i];
 
-                    // --- Apply Crossover Filter (4th order LR) ---
+                    // ---- 4th-order Linkwitz-Riley split ----
                     let y1_lp, y1_hp;
                     let outputLow, outputHigh;
 
-                    // Low-pass path - Stage 1 (DF-II Transposed)
+                    // Low-pass, stage 1 (DF-II transposed)
                     y1_lp = b0_lp * inputSample + b1_lp * lpState[0] + b2_lp * lpState[1] - a1_c * lpState[2] - a2_c * lpState[3];
                     lpState[1] = lpState[0]; lpState[0] = inputSample; lpState[3] = lpState[2]; lpState[2] = y1_lp;
-                    // Low-pass path - Stage 2
+                    // Low-pass, stage 2
                     outputLow = b0_lp * y1_lp + b1_lp * lpState[4] + b2_lp * lpState[5] - a1_c * lpState[6] - a2_c * lpState[7];
                     lpState[5] = lpState[4]; lpState[4] = y1_lp; lpState[7] = lpState[6]; lpState[6] = outputLow;
 
-                    // High-pass path - Stage 1
+                    // High-pass, stage 1
                     y1_hp = b0_hp * inputSample + b1_hp * hpState[0] + b2_hp * hpState[1] - a1_c * hpState[2] - a2_c * hpState[3];
                     hpState[1] = hpState[0]; hpState[0] = inputSample; hpState[3] = hpState[2]; hpState[2] = y1_hp;
-                    // High-pass path - Stage 2
+                    // High-pass, stage 2
                     outputHigh = b0_hp * y1_hp + b1_hp * hpState[4] + b2_hp * hpState[5] - a1_c * hpState[6] - a2_c * hpState[7];
                     hpState[5] = hpState[4]; hpState[4] = y1_hp; hpState[7] = hpState[6]; hpState[6] = outputHigh;
 
-                    // --- Propagate waves along the horn segments ---
-                    // Calculate scattering at junctions j=0 to N-1 and apply damping (g).
+                    // ---- Scatter waves along the horn (energy-conserving junctions) ----
                     for (let j = 0, Rj, f_in, r_in, scatterDiff; j < N - 1; j += 2) {
+                        // Even junction j
                         Rj = R[j];
                         f_in = fw_current[j];
                         r_in = rv_current[j + 1];
                         scatterDiff = Rj * (f_in - r_in);
                         fw_next[j + 1] = g * (f_in + scatterDiff);
-                        rv_next[j] = g * (r_in + scatterDiff);
+                        rv_next[j]     = g * (r_in + scatterDiff);
 
+                        // Odd junction j+1
                         Rj = R[j + 1];
                         f_in = fw_current[j + 1];
                         r_in = rv_current[j + 2];
@@ -389,68 +503,58 @@ class HornResonatorPlusPlugin extends PluginBase {
                         rv_next[j + 1] = g * (r_in + scatterDiff);
                     }
                     if (N & 1) {
+                        // Last junction if N is odd
                         const j = N - 1;
                         const Rj = R[j];
                         const f_in = fw_current[j];
                         const r_in = rv_current[j + 1];
                         const scatterDiff = Rj * (f_in - r_in);
                         fw_next[j + 1] = g * (f_in + scatterDiff);
-                        rv_next[j] = g * (r_in + scatterDiff);
+                        rv_next[j]     = g * (r_in + scatterDiff);
                     }
 
-                    /* ---- Mouth Node Boundary Condition (j=N) ---- */
-                    const fwN = fw_next[N]; // Forward wave arriving at mouth boundary
+                    // ---- Mouth boundary (index N): frequency-dependent reflection ----
+                    const fwN = fw_next[N]; // incoming forward wave at the mouth boundary
 
-                    // Apply 2nd order mouth reflection filter H_R(z)
+                    // 2nd-order IIR with enforced DC reflection of -1 via b0
                     const reflectedMouthWave = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
-                    rv_next[N] = reflectedMouthWave; // Update reverse wave at mouth
-
-                    // Update mouth reflection filter states
+                    rv_next[N] = reflectedMouthWave;
+                    // Update mouth filter states
                     rm_y2 = rm_y1;
                     rm_y1 = reflectedMouthWave;
 
-                    /* ---- Throat Node Boundary Condition (j=0) ---- */
-                    // Inject high-pass input signal and add throat reflection.
+                    // ---- Throat boundary (index 0): input injection + low-shelved reflection ----
+                    // Low frequencies reflect more due to the first-order LP on returning wave.
                     const throatFiltered = rt_b0 * rv_next[0] - rt_a1 * rt_y1;
                     rt_y1 = throatFiltered;
                     fw_next[0] = outputHigh + trCoeff * throatFiltered;
 
-                    /* ---- Update Waveguide State for the Next Sample ---- */
-                    // Swap buffer pointers for next sample
+                    // ---- Swap double buffers ----
                     bufIndex ^= 1;
                     fw_current = fwd[ch][bufIndex];
                     rv_current = rev[ch][bufIndex];
                     fw_next    = fwd[ch][bufIndex ^ 1];
                     rv_next    = rev[ch][bufIndex ^ 1];
 
-                    /* ---- Calculate Output Signal ---- */
-                    // High-frequency output is transmitted wave at mouth.
-                    const transmittedHighFreq = fwN + reflectedMouthWave;
+                    // ---- Form output ----
+                    const transmittedHighFreq = fwN + reflectedMouthWave; // boundary pressure proxy
+                    const delayedLowFreq = currentLowDelayLine[currentLowDelayWriteIdx];
+                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLow; // write current low
+                    currentLowDelayWriteIdx++;
+                    if (currentLowDelayWriteIdx >= N) currentLowDelayWriteIdx = 0;
 
-                    // --- Low-Frequency Path Delay and Mix ---
-                    const delayedLowFreq = currentLowDelayLine[currentLowDelayWriteIdx]; // Read delayed low freq
-                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLow; // Write current low freq
-                    currentLowDelayWriteIdx++; // Increment and wrap delay index
-                    if (currentLowDelayWriteIdx >= N) {
-                        currentLowDelayWriteIdx = 0;
-                    }
-
-                    // Combine processed high-frequency signal (with gain) and delayed low-frequency signal.
                     data[channelOffset + i] = transmittedHighFreq * outputGain + delayedLowFreq;
+                } // end sample loop
 
-                } // --- End of Sample Loop ---
-
-                // --- Store updated channel-specific states ---
+                // Store updated states
                 rm_y1_states[ch] = rm_y1;
                 rm_y2_states[ch] = rm_y2;
                 rt_y1_states[ch] = rt_y1;
-                // Crossover states updated in-place
-                lowDelayIdx[ch] = currentLowDelayWriteIdx; // Store updated delay index
-                context.bufIdx[ch] = bufIndex; // Remember current buffer for next block
+                lowDelayIdx[ch]  = currentLowDelayWriteIdx;
+                context.bufIdx[ch] = bufIndex;
+            } // end channel loop
 
-            } // --- End of Channel Loop ---
-
-            return data; // Return processed audio data
+            return data;
         `);
     }
 
@@ -480,25 +584,17 @@ class HornResonatorPlusPlugin extends PluginBase {
         let up = false;
         const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
 
-        // Geometry & Damping Parameters
-        if (p.ln !== undefined && !isNaN(p.ln))
-        { this.ln = clamp(+p.ln, 20, 120); up = true; }
-        if (p.th !== undefined && !isNaN(p.th))
-        { this.th = clamp(+p.th, 0.5, 50); up = true; }
-        if (p.mo !== undefined && !isNaN(p.mo))
-        { this.mo = clamp(+p.mo, 5, 200);  up = true; }
-        if (p.cv !== undefined && !isNaN(p.cv))
-        { this.cv = clamp(+p.cv, -100, 100); up = true; }
-        if (p.dp !== undefined && !isNaN(p.dp))
-        { this.dp = clamp(+p.dp, 0, 10);   up = true; }
-        if (p.wg !== undefined && !isNaN(p.wg))
-        { this.wg = clamp(+p.wg, -36, 36); up = true; }
-        if (p.bl !== undefined && !isNaN(p.bl))
-        { this.bl = clamp(+p.bl, 0, 1); up = true; }
+        // Geometry & damping
+        if (p.ln !== undefined && !isNaN(p.ln)) { this.ln = clamp(+p.ln, 20, 120); up = true; }
+        if (p.th !== undefined && !isNaN(p.th)) { this.th = clamp(+p.th, 0.5, 50); up = true; }
+        if (p.mo !== undefined && !isNaN(p.mo)) { this.mo = clamp(+p.mo, 5, 200);  up = true; }
+        if (p.cv !== undefined && !isNaN(p.cv)) { this.cv = clamp(+p.cv, -100, 100); up = true; }
+        if (p.dp !== undefined && !isNaN(p.dp)) { this.dp = clamp(+p.dp, 0, 10);   up = true; }
+        if (p.wg !== undefined && !isNaN(p.wg)) { this.wg = clamp(+p.wg, -36, 36); up = true; }
+        if (p.bl !== undefined && !isNaN(p.bl)) { this.bl = clamp(+p.bl, 0, 1);     up = true; }
 
-        // Reflection & Crossover Parameters
-        if (p.tr !== undefined && !isNaN(p.tr)) // Throat Reflection
-        { this.tr = clamp(+p.tr, 0, 0.99); up = true; }
+        // Reflection & crossover
+        if (p.tr !== undefined && !isNaN(p.tr)) { this.tr = clamp(+p.tr, 0, 0.99);  up = true; }
         if (p.co !== undefined && !isNaN(p.co)) { this.co = clamp(+p.co, 20, 5000); up = true; }
 
         if (up) this.updateParameters();
@@ -512,7 +608,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         const c = document.createElement('div');
         c.className = 'plugin-parameter-ui horn-resonator-plus-ui';
 
-        // Add sliders using the base class createParameterControl helper
+        // Sliders (keep labels consistent with original UI)
         c.appendChild(this.createParameterControl('Crossover', 20, 5000, 10, this.co, (v) => this.setParameters({ co: v }), 'Hz'));
         c.appendChild(this.createParameterControl('Horn Length', 20, 120, 1, this.ln, (v) => this.setParameters({ ln: v }), 'cm'));
         c.appendChild(this.createParameterControl('Throat Dia.', 0.5, 50, 0.1, this.th, (v) => this.setParameters({ th: v }), 'cm'));
