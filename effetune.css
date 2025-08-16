@@ -188,15 +188,43 @@ input[type="checkbox"] {
 
 /* Plugin list */
 .plugin-list {
-    width: 260px;
+    width: 300px;
     background-color: #2d2d2d;
     border-radius: 4px;
     padding: 20px;
-    position: relative;
+    position: sticky; /* Allow vertical positioning */
+    top: 20px; /* Initial position from top */
     min-width: 200px;
     min-height: 200px; /* Ensure minimum height for spinner positioning */
+    max-height: calc(100vh - 40px); /* Limit height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    box-sizing: border-box; /* Include padding in width calculation */
     transition: transform 0.3s ease, margin-left 0.3s ease;
     z-index: 20;
+}
+
+/* Custom scrollbar for plugin list */
+.plugin-list {
+    scrollbar-color: #3a3a3a #2d2d2d; /* thumb track */
+}
+
+.plugin-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.plugin-list::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-radius: 4px;
+}
+
+.plugin-list::-webkit-scrollbar-thumb {
+    background: #3a3a3a !important; /* Darker color closer to background */
+    border-radius: 4px;
+}
+
+.plugin-list::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a; /* Slightly lighter on hover */
 }
 
 /* Pull tab for plugin list */
@@ -244,6 +272,7 @@ input[type="checkbox"] {
     padding-bottom: 14px;
     height: 33px;
     position: relative;
+    width: 260px; /* Fixed width regardless of scrollbar */
 }
 
 .tab-switcher {
@@ -327,6 +356,8 @@ input[type="checkbox"] {
 .plugin-list-content {
     display: flex;
     flex-direction: column;
+    width: 260px; /* Fixed width regardless of scrollbar */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
 }
 
 .category-row {
@@ -404,14 +435,13 @@ input[type="checkbox"] {
 
 .plugin-description {
     display: none;
-    position: absolute;
-    left: 100%;
-    top: 0;
+    position: fixed; /* Use fixed positioning to escape overflow */
     width: 200px;
     padding: 10px;
     background-color: #4d4d4d;
     border-radius: 4px;
-    margin-left: 10px;
+    z-index: 10000; /* Ensure tooltip appears above scrollbar */
+    pointer-events: none; /* Prevent tooltip from interfering with hover */
 }
 
 .plugin-item:hover .plugin-description {

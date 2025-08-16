@@ -173,6 +173,20 @@ export class PluginListManager {
             this.dragDropManager.dragMessage.style.display = 'block';
         });
 
+        // Setup tooltip positioning
+        const description = item.querySelector('.plugin-description');
+        if (description) {
+            item.addEventListener('mouseenter', (e) => {
+                const rect = item.getBoundingClientRect();
+                const pluginList = this.pluginList;
+                const pluginListRect = pluginList.getBoundingClientRect();
+                
+                // Position tooltip to the right of the plugin item
+                description.style.left = (rect.right + 10) + 'px';
+                description.style.top = rect.top + 'px';
+            });
+        }
+
         // Handle double click to add plugin to pipeline
         item.addEventListener('dblclick', (e) => {
             e.preventDefault();
