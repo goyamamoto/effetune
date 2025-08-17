@@ -1,6 +1,7 @@
 /**
  * AudioPlayerUI - Handles player UI creation and management
  * Manages user input and display updates
+ * UNIFIED STATE MANAGEMENT: UI automatically updates based on state changes
  */
 export class AudioPlayerUI {
   constructor(audioPlayer) {
@@ -17,11 +18,63 @@ export class AudioPlayerUI {
     this.shuffleButton = null;
     this.closeButton = null;
     this.updateInterval = null;
+    
+    // State change listeners
+    this.stateListeners = [];
+    
+    // Initialize state monitoring
+    this.initStateMonitoring();
+  }
+  
+  /**
+   * Initialize state monitoring for automatic UI updates
+   */
+  initStateMonitoring() {
+    if (!this.audioPlayer.stateManager) return;
+    
+    // Listen to all state changes
+    this.audioPlayer.stateManager.addListener('*', (newValue, key, source) => {
+      this.handleStateChange(key, newValue, source);
+    });
+    
+    // Listen to specific state changes
+    this.audioPlayer.stateManager.addListener('currentTrack', (track) => {
+      this.updateTrackDisplay(track);
+    });
+    
+    this.audioPlayer.stateManager.addListener('currentTrackPosition', (position) => {
+      requestAnimationFrame(() => {
+        this.updateTimeDisplay();
+      });
+    });
+    
+    this.audioPlayer.stateManager.addListener('currentTrackDuration', (duration) => {
+      this.updateTimeDisplay();
+    });
+    
+    this.audioPlayer.stateManager.addListener('isPlaying', (isPlaying) => {
+      this.updatePlayPauseButton();
+    });
+    
+    this.audioPlayer.stateManager.addListener('isPaused', (isPaused) => {
+      this.updatePlayPauseButton();
+    });
+    
+    this.audioPlayer.stateManager.addListener('isStopped', (isStopped) => {
+      this.updateTimeDisplay();
+      this.updatePlayPauseButton();
+    });
+  }
+  
+  /**
+   * Handle state changes and update UI accordingly
+   */
+  handleStateChange(key, newValue, source) {
+    // UI updates are handled by specific listeners
   }
   
   /**
    * Create the player UI
-   * @returns {HTMLElement} The player container element
    */
   createPlayerUI() {
     // Create container
@@ -30,7 +83,8 @@ export class AudioPlayerUI {
     
     // Set initial button image based on repeat mode
     let repeatButtonImg = 'repeat_button.png';
-    if (this.audioPlayer.playbackManager.repeatMode === 'ONE') {
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    if (state?.repeatMode === 'ONE') {
       repeatButtonImg = 'repeat1_button.png';
     }
     
@@ -66,7 +120,9 @@ export class AudioPlayerUI {
     this.closeButton = container.querySelector('.close-button');
 
     // Add event listeners
-    this.playPauseButton.addEventListener('click', () => this.audioPlayer.togglePlayPause());
+    this.playPauseButton.addEventListener('click', () => {
+      this.audioPlayer.togglePlayPause();
+    });
     this.stopButton.addEventListener('click', () => this.audioPlayer.stop());
     this.prevButton.addEventListener('click', () => this.audioPlayer.playPrevious());
     this.nextButton.addEventListener('click', () => this.audioPlayer.playNext());
@@ -82,10 +138,36 @@ export class AudioPlayerUI {
     this.updatePlayerUIState();
     
     this.seekBar.addEventListener('input', () => {
-      if (this.audioPlayer.audioElement) {
-        const seekTime = (this.seekBar.value / 100) * this.audioPlayer.audioElement.duration;
-        this.audioPlayer.audioElement.currentTime = seekTime;
-        this.updateTimeDisplay();
+      // Check if seeking is enabled
+      if (this.audioPlayer.stateManager) {
+        const state = this.audioPlayer.stateManager.getStateSnapshot();
+        if (!state.seekBarEnabled) {
+          return;
+        }
+      }
+      
+      // Handle seeking using unified state management
+      if (this.audioPlayer.contextManager) {
+        const state = this.audioPlayer.contextManager.getCurrentState();
+        const duration = state.currentTrackDuration;
+        if (duration > 0) {
+          const seekTime = (this.seekBar.value / 100) * duration;
+          if (isFinite(seekTime)) {
+            this.audioPlayer.contextManager.seek(seekTime);
+            this.updateTimeDisplay();
+          }
+        }
+      } else if (this.audioPlayer.audioElement) {
+        // Check if audio element has valid duration and is not paused
+        if (this.audioPlayer.audioElement.duration && 
+            isFinite(this.audioPlayer.audioElement.duration) && 
+            !this.audioPlayer.audioElement.paused) {
+          const seekTime = (this.seekBar.value / 100) * this.audioPlayer.audioElement.duration;
+          if (isFinite(seekTime)) {
+            this.audioPlayer.contextManager.handleSeek(seekTime, 'user');
+            this.updateTimeDisplay();
+          }
+        }
       }
     });
 
@@ -108,8 +190,13 @@ export class AudioPlayerUI {
   updatePlayerUIState() {
     if (!this.repeatButton || !this.shuffleButton) return;
     
+    // Get state from StateManager
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    const repeatMode = state?.repeatMode || 'OFF';
+    const shuffleMode = state?.shuffleMode || false;
+    
     // Update repeat button state
-    switch (this.audioPlayer.playbackManager.repeatMode) {
+    switch (repeatMode) {
       case 'ALL':
         this.repeatButton.innerHTML = '<img src="images/repeat_button.png" width="16" height="16">';
         this.repeatButton.style.backgroundColor = '#4a9eff'; // Highlight button when active
@@ -134,7 +221,7 @@ export class AudioPlayerUI {
     }
     
     // Update shuffle button state
-    if (this.audioPlayer.playbackManager.shuffleMode && this.audioPlayer.playbackManager.repeatMode !== 'ONE') {
+    if (shuffleMode && repeatMode !== 'ONE') {
       this.shuffleButton.style.backgroundColor = '#4a9eff'; // Highlight button when active
     } else {
       this.shuffleButton.style.backgroundColor = ''; // Reset button color
@@ -147,7 +234,18 @@ export class AudioPlayerUI {
   updatePlayPauseButton() {
     if (!this.playPauseButton) return;
     
-    if (this.audioPlayer.playbackManager.isPlaying) {
+    // Get state from StateManager (single source of truth)
+    let isPlaying = false;
+    
+    if (this.audioPlayer.stateManager) {
+      const state = this.audioPlayer.stateManager.getStateSnapshot();
+      isPlaying = state.isPlaying;
+    } else {
+      console.warn('[AudioPlayerUI] StateManager not available for updatePlayPauseButton');
+      return;
+    }
+    
+    if (isPlaying) {
       this.playPauseButton.innerHTML = '<img src="images/pause_button.png" width="16" height="16">';
     } else {
       this.playPauseButton.innerHTML = '<img src="images/play_button.png" width="16" height="16">';
@@ -156,10 +254,15 @@ export class AudioPlayerUI {
 
   /**
    * Update track display with track name
-   * @param {Object} track - The track object
    */
-  updateTrackDisplay(track) {
+  updateTrackDisplay(track = null) {
     if (!this.trackNameDisplay) return;
+    
+    // Get track from state if not provided
+    if (!track && this.audioPlayer.stateManager) {
+      const state = this.audioPlayer.stateManager.getStateSnapshot();
+      track = state.currentTrack;
+    }
     
     if (track && track.name) {
       this.trackNameDisplay.textContent = track.name;
@@ -172,25 +275,51 @@ export class AudioPlayerUI {
    * Update time display and seek bar
    */
   updateTimeDisplay() {
-    if (!this.audioPlayer.audioElement || !this.timeDisplay || !this.seekBar) return;
+    if (!this.timeDisplay || !this.seekBar) {
+      console.warn('[AudioPlayerUI] Time display or seek bar not available');
+      return;
+    }
     
-    // Update time display
-    const currentTime = this.audioPlayer.audioElement.currentTime;
-    const duration = this.audioPlayer.audioElement.duration || 0;
+    let currentTime = 0;
+    let duration = 0;
+    
+    // Get state from StateManager (single source of truth)
+    if (this.audioPlayer.stateManager) {
+      const state = this.audioPlayer.stateManager.getStateSnapshot();
+      currentTime = state.currentTrackPosition || 0;
+      duration = state.currentTrackDuration || 0;
+    } else {
+      console.warn('[AudioPlayerUI] StateManager not available for updateTimeDisplay');
+      return;
+    }
+    
+    // Ensure values are valid numbers
+    currentTime = isFinite(currentTime) ? Math.max(0, currentTime) : 0;
+    duration = isFinite(duration) ? Math.max(0, duration) : 0;
     
     // Format time display
-    this.timeDisplay.textContent = `${this.formatTime(currentTime)} / ${this.formatTime(duration)}`;
+    const timeText = `${this.formatTime(currentTime)} / ${this.formatTime(duration)}`;
+    this.timeDisplay.textContent = timeText;
     
     // Update seek bar position
-    if (!isNaN(duration) && duration > 0) {
-      this.seekBar.value = (currentTime / duration) * 100;
+    if (duration > 0) {
+      const seekValue = (currentTime / duration) * 100;
+      if (isFinite(seekValue) && seekValue >= 0 && seekValue <= 100) {
+        this.seekBar.value = seekValue;
+      }
+    } else {
+      // Reset seek bar when no duration
+      this.seekBar.value = 0;
     }
+    
+    // Force UI update by triggering a reflow
+    this.seekBar.style.display = 'none';
+    this.seekBar.offsetHeight; // Force reflow
+    this.seekBar.style.display = '';
   }
 
   /**
    * Format time in seconds to MM:SS format
-   * @param {number} time - Time in seconds
-   * @returns {string} Formatted time string
    */
   formatTime(time) {
     if (isNaN(time)) return '00:00';

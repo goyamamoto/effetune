@@ -4,45 +4,45 @@
     gap: 4px;
 }
 
-.channel-container {
+.multichannel-panel-channel-container {
     background: #2d2d2d;
     border-radius: 4px;
     padding: 10px;
 }
 
-.channel-row {
+.multichannel-panel-channel-row {
     display: flex;
     align-items: center;
 }
 
-.channel-header {
+.multichannel-panel-channel-header {
     gap: 5px;
     margin-bottom: 2px;
 }
 
-.channel-controls {
+.multichannel-panel-channel-controls {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
-.channel-label, .channel-space {
+.multichannel-panel-channel-label, .multichannel-panel-channel-space {
     width: 40px;
     font-weight: bold;
     display: block;
 }
 
-.level-meter {
+.multichannel-panel-level-meter {
     flex-grow: 1;
     border: 1px solid #555;
 }
 
-.button-controls {
+.multichannel-panel-button-controls {
     display: flex;
     gap: 2px;
 }
 
-.link-button, .mute-button, .solo-button {
+.multichannel-panel-link-button, .multichannel-panel-mute-button, .multichannel-panel-solo-button {
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
@@ -55,22 +55,22 @@
     background-color: #808080;
 }
 
-.link-button {
+.multichannel-panel-link-button {
     margin: 0px 17px;
     position: relative;
     top: 24px;
-  }
+}
 
-.mute-button, .solo-button {
+.multichannel-panel-mute-button, .multichannel-panel-solo-button {
     padding: 8px 10px;
 }
 
-input[type="range"] {
+.multichannel-panel-ui input[type="range"] {
     width: 100px;
     flex-grow: 1;
 }
 
-input[type="number"] {
+.multichannel-panel-ui input[type="number"] {
     width: 80px;
     padding: 4px;
     background-color: #3d3d3d;
@@ -79,7 +79,7 @@ input[type="number"] {
     border-radius: 4px;
 }
 
-label {
+.multichannel-panel-ui label {
     margin-right: 5px;
     min-width: 80px;
 } 

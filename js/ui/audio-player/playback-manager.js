@@ -7,13 +7,10 @@ export class PlaybackManager {
     this.audioPlayer = audioPlayer;
     this.playlist = [];
     this.originalPlaylist = []; // For shuffle mode
-    this.currentTrackIndex = 0;
-    this.isPlaying = false;
-    this.isPaused = false;
     
-    // Playback modes
-    this.shuffleMode = false;
-    this.repeatMode = 'OFF'; // OFF, ALL, ONE
+    // Additional properties for seamless playback
+    this.transitionInProgress = false;
+    this.seamlessMode = true; // Enable seamless mode by default
     
     // Initialize keyboard shortcuts
     this.initKeyboardShortcuts();
@@ -21,58 +18,56 @@ export class PlaybackManager {
   
   /**
    * Load files into the playlist
-   * @param {(string[]|File[])} files - Array of file paths or File objects
-   * @param {boolean} append - Whether to append to existing playlist or replace it
    */
   loadFiles(files, append = false) {
     if (!files || files.length === 0) {
       return;
     }
     
-    // Debug logs removed for release
-    
-    // Clear current playlist if not appending
     if (!append) {
       this.playlist = [];
-      this.originalPlaylist = []; // Clear original playlist as well
-      this.currentTrackIndex = 0; // Reset the track index when replacing the playlist
+      this.originalPlaylist = [];
     }
     
-    // Add files to playlist
     files.forEach(file => {
       if (typeof file === 'string') {
-        // Handle file path string
         const fileName = file.split(/[\\/]/).pop();
         const trackEntry = {
           path: file,
           name: fileName,
-          file: null // No File object for path-based entries
+          file: null
         };
-        // Debug logs removed for release
         this.playlist.push(trackEntry);
-        this.originalPlaylist.push({...trackEntry}); // Store a copy in original playlist
+        this.originalPlaylist.push({...trackEntry});
       } else if (file instanceof File) {
-        // Handle File object
         const trackEntry = {
-          path: null, // No path for File object-based entries
+          path: null,
           name: file.name,
           file: file
         };
-        // Debug logs removed for release
         this.playlist.push(trackEntry);
-        this.originalPlaylist.push({...trackEntry}); // Store a copy in original playlist
-      } else {
-        console.warn('Unknown file type in loadFiles:', typeof file, file);
+        this.originalPlaylist.push({...trackEntry});
       }
     });
     
-    // Debug logs removed for release
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    const shuffleMode = state?.shuffleMode || false;
+    
+    if (shuffleMode && !append) {
+      const isCurrentlyPlaying = state?.isPlaying || false;
+      this.shufflePlaylistFromBeginning(isCurrentlyPlaying);
+    } else if (shuffleMode && append) {
+      const isCurrentlyPlaying = state?.isPlaying || false;
+      this.shufflePlaylistFromBeginning(isCurrentlyPlaying);
+    }
+    
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updatePlaylist(this.playlist, 0);
+    }
   }
   
   /**
    * Get track at specified index
-   * @param {number} index - Index of the track to get
-   * @returns {Object|null} Track object or null if index is invalid
    */
   getTrack(index) {
     if (index >= 0 && index < this.playlist.length) {
@@ -84,198 +79,452 @@ export class PlaybackManager {
   /**
    * Play the current track
    */
-  play() {
-    if (!this.audioPlayer.audioElement) return;
-    
-    this.audioPlayer.audioElement.play()
-      .then(() => {
-        this.isPlaying = true;
-        this.isPaused = false;
-        if (this.audioPlayer.ui) {
-          this.audioPlayer.ui.updatePlayPauseButton();
-        }
-      })
-      .catch(error => {
-        console.error('Error playing audio:', error);
-        if (window.uiManager) {
-          window.uiManager.setError(`Error playing audio: ${error.message}`);
-        }
-      });
+  async play() {
+    if (this.audioPlayer.contextManager) {
+      const currentTrack = this.getTrack(this.audioPlayer.stateManager.getCurrentTrackIndex());
+      if (currentTrack && !this.audioPlayer.contextManager.hasCurrentBuffer()) {
+        await this.audioPlayer.contextManager.seamlessTransition(currentTrack);
+      }
+      
+      await this.audioPlayer.contextManager.play();
+    } else {
+      console.warn('[PlaybackManager] ContextManager not available for play');
+    }
   }
   
   /**
    * Pause the current track
    */
-  pause() {
-    if (!this.audioPlayer.audioElement) return;
-    
-    this.audioPlayer.audioElement.pause();
-    this.isPlaying = false;
-    this.isPaused = true;
-    
-    if (this.audioPlayer.ui) {
-      this.audioPlayer.ui.updatePlayPauseButton();
+  async pause() {
+    if (this.audioPlayer.contextManager) {
+      await this.audioPlayer.contextManager.pause();
+    } else {
+      console.warn('[PlaybackManager] ContextManager not available for pause');
     }
   }
   
   /**
    * Toggle between play and pause
    */
-  togglePlayPause() {
-    if (this.isPlaying) {
-      this.pause();
+  async togglePlayPause() {
+    if (!this.audioPlayer.stateManager) {
+      console.warn('[PlaybackManager] StateManager not available for togglePlayPause');
+      return;
+    }
+    
+    const state = this.audioPlayer.stateManager.getStateSnapshot();
+    
+    if (state.isPlaying) {
+      await this.pause();
     } else {
-      this.play();
+      await this.play();
     }
   }
   
   /**
    * Stop playback and reset position
    */
-  stop() {
-    if (!this.audioPlayer.audioElement) return;
-    
-    this.audioPlayer.audioElement.pause();
-    this.audioPlayer.audioElement.currentTime = 0;
-    this.isPlaying = false;
-    this.isPaused = false;
-    
-    if (this.audioPlayer.ui) {
-      this.audioPlayer.ui.updatePlayPauseButton();
-      this.audioPlayer.ui.updateTimeDisplay();
+  async stop() {
+    if (this.audioPlayer.contextManager) {
+      await this.audioPlayer.contextManager.stop();
+    } else {
+      console.warn('[PlaybackManager] ContextManager not available for stop');
     }
   }
   
   /**
-   * Play the previous track
+   * Enhanced playPrevious with seamless transition
    */
-  playPrevious() {
-    if (this.playlist.length === 0) return;
+  async playPrevious() {
+    if (this.playlist.length === 0 || this.transitionInProgress) return;
     
-    // If current time is more than 3 seconds, restart the current track
-    if (this.audioPlayer.audioElement && this.audioPlayer.audioElement.currentTime > 3) {
-      this.audioPlayer.audioElement.currentTime = 0;
-      this.play();
-      return;
-    }
+    const currentIndex = this.audioPlayer.stateManager.getCurrentTrackIndex();
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    const shuffleMode = state?.shuffleMode || false;
+    const repeatMode = state?.repeatMode || 'OFF';
     
-    // If we're at the first track, just restart it instead of going to the last track
-    if (this.currentTrackIndex === 0) {
-      this.audioPlayer.audioElement.currentTime = 0;
-      this.play();
-      return;
-    }
-    
-    // Go to previous track
-    const newIndex = this.currentTrackIndex - 1;
-    this.currentTrackIndex = newIndex;
-    this.audioPlayer.loadTrack(this.currentTrackIndex);
-    this.play();
-  }
-  
-  /**
-   * Play the next track
-   * @param {boolean} userInitiated - Whether this was initiated by user action (button click)
-   */
-  playNext(userInitiated = true) {
-    if (this.playlist.length === 0) return;
-    
-    // If in repeat ONE mode and not user initiated, just restart the current track
-    // This happens when a track ends naturally
-    if (this.repeatMode === 'ONE' && !userInitiated) {
-      this.audioPlayer.audioElement.currentTime = 0;
-      this.play();
-      return;
-    }
-    
-    // Go to next track
-    let newIndex = this.currentTrackIndex + 1;
-    if (newIndex >= this.playlist.length) {
-      // If in repeat ALL mode, wrap around to the first track
-      // Otherwise, stop at the end
-      if (this.repeatMode === 'ALL') {
-        newIndex = 0;
-      } else {
-        this.stop();
+    if (this.audioPlayer.contextManager && this.audioPlayer.contextManager.isUsingBufferPlayback()) {
+      const currentTime = this.audioPlayer.contextManager.getCurrentBufferTime();
+      if (currentTime > 3) {
+        const currentTrack = this.getTrack(currentIndex);
+        if (currentTrack) {
+          await this.audioPlayer.contextManager.seamlessTransition(currentTrack);
+        }
         return;
+      }
+    } else if (this.audioPlayer.audioElement && this.audioPlayer.audioElement.currentTime > 3) {
+      this.audioPlayer.audioElement.currentTime = 0;
+      this.play();
+      return;
+    }
+    
+    let newIndex;
+    
+    if (shuffleMode) {
+      newIndex = currentIndex - 1;
+      
+      if (newIndex < 0) {
+        if (repeatMode === 'ALL') {
+          this.reshufflePlaylist();
+          newIndex = this.playlist.length - 1;
+        } else {
+          if (this.audioPlayer.contextManager && this.audioPlayer.contextManager.isUsingBufferPlayback()) {
+            const currentTrack = this.getTrack(currentIndex);
+            if (currentTrack) {
+              await this.audioPlayer.contextManager.seamlessTransition(currentTrack);
+            }
+          } else {
+            this.audioPlayer.audioElement.currentTime = 0;
+            this.play();
+          }
+          return;
+        }
+      }
+    } else {
+      newIndex = currentIndex - 1;
+      
+      if (newIndex < 0) {
+        if (repeatMode === 'ALL') {
+          newIndex = this.playlist.length - 1;
+        } else {
+          if (this.audioPlayer.contextManager && this.audioPlayer.contextManager.isUsingBufferPlayback()) {
+            const currentTrack = this.getTrack(currentIndex);
+            if (currentTrack) {
+              await this.audioPlayer.contextManager.seamlessTransition(currentTrack);
+            }
+          } else {
+            this.audioPlayer.audioElement.currentTime = 0;
+            this.play();
+          }
+          return;
+        }
       }
     }
     
-    this.currentTrackIndex = newIndex;
-    this.audioPlayer.loadTrack(this.currentTrackIndex);
-    this.play();
+    const prevTrack = this.getTrack(newIndex);
+    if (!prevTrack) return;
+    
+    if (this.seamlessMode && state?.isPlaying && !state?.isPaused) {
+      this.transitionInProgress = true;
+      
+      try {
+        await this.audioPlayer.contextManager.loadTrack(prevTrack);
+        await this.audioPlayer.contextManager.play();
+        
+        if (this.audioPlayer.stateManager) {
+          this.audioPlayer.stateManager.updateState({
+            currentTrackIndex: newIndex
+          }, 'PlaybackManager playPrevious seamless');
+        }
+        
+      } catch (error) {
+        console.warn('Seamless transition failed, using fallback:', error);
+        if (this.audioPlayer.stateManager) {
+          this.audioPlayer.stateManager.updateState({
+            currentTrackIndex: newIndex
+          }, 'PlaybackManager playPrevious fallback');
+        }
+        this.audioPlayer.loadTrack(newIndex);
+        this.play();
+      } finally {
+        this.transitionInProgress = false;
+      }
+    } else {
+      if (this.audioPlayer.stateManager) {
+        this.audioPlayer.stateManager.updateState({
+          currentTrackIndex: newIndex
+        }, 'PlaybackManager playPrevious');
+      }
+      this.audioPlayer.loadTrack(newIndex);
+      this.play();
+    }
+    
+    if (this.audioPlayer.ui) {
+      this.audioPlayer.ui.updatePlayPauseButton();
+    }
+  }
+  
+  /**
+   * Enhanced playNext with seamless transition and proper error handling
+   */
+  async playNext(userInitiated = true) {
+    if (this.playlist.length === 0) {
+      return;
+    }
+    
+    if (this.transitionInProgress) {
+      return;
+    }
+    
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    const repeatMode = state?.repeatMode || 'OFF';
+    const shuffleMode = state?.shuffleMode || false;
+    
+    if (repeatMode === 'ONE' && !userInitiated) {
+      if (this.audioPlayer.contextManager && this.audioPlayer.contextManager.isUsingBufferPlayback()) {
+        const currentTrack = this.getTrack(this.audioPlayer.stateManager.getCurrentTrackIndex());
+        if (currentTrack) {
+          await this.audioPlayer.contextManager.seamlessTransition(currentTrack);
+        }
+      } else {
+        this.audioPlayer.audioElement.currentTime = 0;
+        this.play();
+      }
+      return;
+    }
+    
+    const currentIndex = this.audioPlayer.stateManager.getCurrentTrackIndex();
+    let newIndex;
+    
+    if (shuffleMode) {
+      newIndex = currentIndex + 1;
+      
+      if (newIndex >= this.playlist.length) {
+        if (repeatMode === 'ALL') {
+          this.reshufflePlaylist();
+          newIndex = 0;
+        } else {
+          return;
+        }
+      }
+    } else {
+      newIndex = currentIndex + 1;
+      
+      if (newIndex >= this.playlist.length) {
+        if (repeatMode === 'ALL') {
+          newIndex = 0;
+        } else {
+          return;
+        }
+      }
+    }
+    
+    const nextTrack = this.getTrack(newIndex);
+    if (!nextTrack) {
+      console.warn('[PlaybackManager] No next track available');
+      return;
+    }
+    
+    this.transitionInProgress = true;
+    
+    try {
+      if (this.audioPlayer.contextManager) {
+        await this.audioPlayer.contextManager.transitionToNextTrack(nextTrack);
+      } else {
+        console.warn('[PlaybackManager] ContextManager not available for transition');
+      }
+      
+      if (this.audioPlayer.ui) {
+        this.audioPlayer.ui.updatePlayPauseButton();
+      }
+      
+    } catch (error) {
+      console.error('[PlaybackManager] Transition failed:', error);
+      
+      if (this.audioPlayer.stateManager) {
+        this.audioPlayer.stateManager.updateState({
+          isTransitioning: false,
+          transitionType: null
+        }, 'PlaybackManager playNext error');
+      }
+    } finally {
+      this.transitionInProgress = false;
+    }
   }
   
   /**
    * Handle track ended event
-   * This is called automatically when a track finishes playing
    */
   onTrackEnded() {
-    // Call playNext with userInitiated = false to indicate this was not a manual action
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    if (state?.isStopped) {
+      return;
+    }
+    
+    if (this.transitionInProgress) {
+      return;
+    }
+    
+    const repeatMode = state?.repeatMode || 'OFF';
+    const shuffleMode = state?.shuffleMode || false;
+    const currentIndex = this.audioPlayer.stateManager.getCurrentTrackIndex();
+    const isLastTrack = currentIndex >= this.playlist.length - 1;
+    
+    if (repeatMode === 'ONE') {
+      const currentTrack = this.getTrack(currentIndex);
+      if (currentTrack && this.audioPlayer.contextManager) {
+        this.audioPlayer.contextManager.seamlessTransition(currentTrack).catch(error => {
+          console.error('[PlaybackManager] Failed to restart track in repeat ONE mode:', error);
+        });
+      }
+      return;
+    }
+    
+    if (isLastTrack && repeatMode === 'ALL') {
+      if (shuffleMode) {
+        this.reshufflePlaylist();
+        const firstTrack = this.getTrack(0);
+        if (firstTrack && this.audioPlayer.contextManager) {
+          this.audioPlayer.contextManager.transitionToNextTrack(firstTrack).catch(error => {
+            console.error('[PlaybackManager] Failed to transition to first track after reshuffle:', error);
+          });
+        }
+      } else {
+        if (this.audioPlayer.stateManager) {
+          this.audioPlayer.stateManager.updateState({
+            currentTrackIndex: 0
+          }, 'PlaybackManager onTrackEnded repeat ALL');
+        }
+        
+        const firstTrack = this.getTrack(0);
+        if (firstTrack && this.audioPlayer.contextManager) {
+          this.audioPlayer.contextManager.transitionToNextTrack(firstTrack).catch(error => {
+            console.error('[PlaybackManager] Failed to transition to first track:', error);
+          });
+        }
+      }
+      return;
+    }
+    
+    if (isLastTrack && repeatMode === 'OFF') {
+      if (this.audioPlayer.stateManager) {
+        this.audioPlayer.stateManager.updateState({
+          currentTrackIndex: 0
+        }, 'PlaybackManager onTrackEnded repeat OFF');
+      }
+      
+      if (this.audioPlayer.contextManager) {
+        this.audioPlayer.contextManager.stop();
+      }
+      return;
+    }
+    
     this.playNext(false);
+  }
+  
+  /**
+   * Reset to first track and prepare buffer
+   */
+  resetToFirstTrack(autoPlay = true) {
+    if (this.playlist.length === 0) {
+      console.warn('[PlaybackManager] No playlist to reset');
+      return;
+    }
+    
+    const finalIndex = 0;
+    
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updateState({
+        currentTrackIndex: finalIndex,
+        currentTrackPosition: 0,
+        isPlaying: false,
+        isPaused: false,
+        isStopped: true
+      }, 'PlaybackManager resetToFirstTrack');
+    }
+    
+    if (this.audioPlayer.contextManager) {
+      const track = this.getTrack(finalIndex);
+      if (track) {
+        this.audioPlayer.contextManager.seamlessTransition(track).catch(error => {
+          console.error('[PlaybackManager] Failed to load first track:', error);
+        });
+      }
+    }
+  }
+  
+  /**
+   * Shuffle the playlist from the beginning
+   */
+  shufflePlaylistFromBeginning(autoPlay = true) {
+    if (this.originalPlaylist.length === 0) {
+      console.warn('[PlaybackManager] No original playlist to shuffle');
+      return;
+    }
+    
+    const playlistCopy = [...this.originalPlaylist];
+    
+    for (let i = playlistCopy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [playlistCopy[i], playlistCopy[j]] = [playlistCopy[j], playlistCopy[i]];
+    }
+    
+    this.playlist = playlistCopy;
+    this.resetToFirstTrack(autoPlay);
+  }
+  
+  /**
+   * Reshuffle the playlist while maintaining the current track position
+   */
+  reshufflePlaylist() {
+    if (this.originalPlaylist.length === 0) {
+      console.warn('[PlaybackManager] No original playlist to reshuffle');
+      return;
+    }
+    
+    const currentTrack = this.playlist[this.audioPlayer.stateManager.getCurrentTrackIndex()];
+    
+    const playlistCopy = [...this.originalPlaylist];
+    
+    for (let i = playlistCopy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [playlistCopy[i], playlistCopy[j]] = [playlistCopy[j], playlistCopy[i]];
+    }
+    
+    this.playlist = playlistCopy;
+    
+    const newIndex = this.playlist.findIndex(track =>
+      (track.path === currentTrack.path && track.name === currentTrack.name) ||
+      (track.file && currentTrack.file && track.file.name === currentTrack.file.name)
+    );
+    
+    const finalIndex = newIndex === -1 ? 0 : newIndex;
+    
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updateState({
+        currentTrackIndex: finalIndex,
+        currentTrackPosition: 0
+      }, 'PlaybackManager reshufflePlaylist');
+    }
   }
   
   /**
    * Toggle shuffle mode
    */
   toggleShuffleMode() {
-    if (this.repeatMode === 'ONE') return;
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    if (state?.repeatMode === 'ONE') return;
     
-    this.shuffleMode = !this.shuffleMode;
+    const newShuffleMode = !(state?.shuffleMode || false);
     
-    if (this.shuffleMode) {
-      // Enable shuffle mode
-      // Save current track
-      const currentTrack = this.playlist[this.currentTrackIndex];
-      
-      // Create a copy of the original playlist
-      const playlistCopy = [...this.originalPlaylist];
-      
-      // Shuffle the playlist copy using Fisher-Yates algorithm
-      for (let i = playlistCopy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [playlistCopy[i], playlistCopy[j]] = [playlistCopy[j], playlistCopy[i]];
-      }
-      
-      // Replace the playlist with the shuffled copy
-      this.playlist = playlistCopy;
-      
-      // Find the current track in the shuffled playlist
-      this.currentTrackIndex = this.playlist.findIndex(track =>
-        (track.path === currentTrack.path && track.name === currentTrack.name) ||
-        (track.file && currentTrack.file && track.file.name === currentTrack.file.name)
-      );
-      
-      // If track not found (shouldn't happen), reset to first track
-      if (this.currentTrackIndex === -1) {
-        this.currentTrackIndex = 0;
-      }
-    } else {
-      // Disable shuffle mode
-      // Save current track
-      const currentTrack = this.playlist[this.currentTrackIndex];
-      
-      // Restore original playlist
-      this.playlist = [...this.originalPlaylist];
-      
-      // Find the current track in the original playlist
-      this.currentTrackIndex = this.playlist.findIndex(track =>
-        (track.path === currentTrack.path && track.name === currentTrack.name) ||
-        (track.file && currentTrack.file && track.file.name === currentTrack.file.name)
-      );
-      
-      // If track not found (shouldn't happen), reset to first track
-      if (this.currentTrackIndex === -1) {
-        this.currentTrackIndex = 0;
-      }
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updateState({
+        shuffleMode: newShuffleMode
+      }, 'PlaybackManager toggleShuffleMode');
     }
     
-    // Update UI if available
+    if (newShuffleMode) {
+      const isCurrentlyPlaying = state?.isPlaying || false;
+      
+      if (this.audioPlayer.contextManager) {
+        this.audioPlayer.contextManager.stop();
+      }
+      
+      this.shufflePlaylistFromBeginning(isCurrentlyPlaying);
+      
+    } else {
+      if (this.audioPlayer.contextManager) {
+        this.audioPlayer.contextManager.stop();
+      }
+      
+      this.playlist = [...this.originalPlaylist];
+      this.resetToFirstTrack(false);
+    }
+    
     if (this.audioPlayer.ui) {
       this.audioPlayer.ui.updatePlayerUIState();
     }
     
-    // Save player state
     this.savePlayerState();
   }
   
@@ -283,30 +532,38 @@ export class PlaybackManager {
    * Toggle repeat mode (OFF -> ALL -> ONE -> OFF)
    */
   toggleRepeatMode() {
-    // Cycle through repeat modes: OFF -> ALL -> ONE -> OFF
-    switch (this.repeatMode) {
+    const state = this.audioPlayer.stateManager?.getStateSnapshot();
+    const currentRepeatMode = state?.repeatMode || 'OFF';
+    let newRepeatMode;
+    
+    switch (currentRepeatMode) {
       case 'OFF':
-        this.repeatMode = 'ALL';
+        newRepeatMode = 'ALL';
         break;
       case 'ALL':
-        this.repeatMode = 'ONE';
+        newRepeatMode = 'ONE';
         
-        // Disable shuffle button when in ONE mode
-        if (this.shuffleMode) {
-          this.toggleShuffleMode(); // Turn off shuffle mode
+        if (state?.shuffleMode) {
+          this.toggleShuffleMode();
         }
         break;
       case 'ONE':
-        this.repeatMode = 'OFF';
+        newRepeatMode = 'OFF';
         break;
+      default:
+        newRepeatMode = 'OFF';
     }
     
-    // Update UI if available
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updateState({
+        repeatMode: newRepeatMode
+      }, 'PlaybackManager toggleRepeatMode');
+    }
+    
     if (this.audioPlayer.ui) {
       this.audioPlayer.ui.updatePlayerUIState();
     }
     
-    // Save player state
     this.savePlayerState();
   }
   
@@ -315,92 +572,114 @@ export class PlaybackManager {
    */
   initKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Skip if audio player is not initialized or no audio element exists
-      if (!this.audioPlayer.audioElement) return;
+      // Check if audio player is initialized
+      if (!this.audioPlayer) return;
       
-      // Skip if focus is on an input, textarea, or select element (except for Space key on range inputs)
       if (e.target.matches('input:not([type="range"]), textarea, select')) {
         return;
       }
       
-      // Handle keyboard shortcuts
       switch (e.key) {
-        case ' ': // Space - Play/Pause
-          // Only handle space if not on a button or other interactive element
+        case ' ':
           if (!e.target.matches('button, [role="button"], a, .interactive')) {
             e.preventDefault();
             this.togglePlayPause();
           }
           break;
           
-        case 'n': // N - Next track
+        case 'n':
         case 'N':
-          if (!e.target.matches('input, textarea')) {
+          if (!e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
             e.preventDefault();
-            this.playNext();
+            if (this.audioPlayer.contextManager) {
+              this.playNext();
+            }
           }
           break;
           
-        case 'p': // P - Previous track
+        case 'p':
         case 'P':
-          if (!e.target.matches('input, textarea')) {
+          if (!e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
             e.preventDefault();
-            this.playPrevious();
+            if (this.audioPlayer.contextManager) {
+              this.playPrevious();
+            }
           }
           break;
           
-        case 'ArrowRight': // Right arrow
-          if (e.ctrlKey) { // Ctrl+Right - Next track
+        case 'ArrowRight':
+          if (e.ctrlKey) {
             e.preventDefault();
-            this.playNext();
-          } else if (e.shiftKey) { // Shift+Right - Fast forward
+            if (this.audioPlayer.contextManager) {
+              this.playNext();
+            }
+          } else if (e.shiftKey) {
             e.preventDefault();
             this.fastForward();
           }
           break;
           
-        case 'ArrowLeft': // Left arrow
-          if (e.ctrlKey) { // Ctrl+Left - Previous track
+        case 'ArrowLeft':
+          if (e.ctrlKey) {
             e.preventDefault();
-            this.playPrevious();
-          } else if (e.shiftKey) { // Shift+Left - Rewind
+            if (this.audioPlayer.contextManager) {
+              this.playPrevious();
+            }
+          } else if (e.shiftKey) {
             e.preventDefault();
             this.rewind();
           }
           break;
           
-        case 'f': // F - Fast forward
+        case 'f':
         case 'F':
-        case '.': // Period - Fast forward
-          if (!e.target.matches('input, textarea')) {
+        case '.':
+          if (!e.ctrlKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
             e.preventDefault();
             this.fastForward();
           }
           break;
           
-        case 'b': // B - Rewind
-        case 'B':
-        case ',': // Comma - Rewind
-          if (!e.target.matches('input, textarea')) {
+        case 'r':
+        case 'R':
+          if (!e.ctrlKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
             e.preventDefault();
             this.rewind();
           }
           break;
           
-        case 't': // Ctrl+T - Toggle Repeat mode
-        case 'T':
-          if (e.ctrlKey && !e.target.matches('input, textarea')) {
+        case ',':
+          if (!e.ctrlKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
+            e.preventDefault();
+            this.rewind();
+          }
+          break;
+          
+
+          
+        case 'h':
+        case 'H':
+          if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
+            e.preventDefault();
+            this.toggleShuffleMode();
+          }
+          break;
+          
+        case 'm':
+        case 'M':
+          if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey && !e.target.matches('input, textarea')) {
             e.preventDefault();
             this.toggleRepeatMode();
           }
           break;
           
-        case 'h': // Ctrl+H - Toggle Shuffle mode
-        case 'H':
-          if (e.ctrlKey && !e.target.matches('input, textarea')) {
-            e.preventDefault();
-            this.toggleShuffleMode();
-          }
+
+          
+
+          
+
+          
+        default:
           break;
       }
     });
@@ -410,12 +689,14 @@ export class PlaybackManager {
    * Fast forward the current track by 10 seconds
    */
   fastForward() {
-    if (!this.audioPlayer.audioElement) return;
-    
-    const newTime = Math.min(this.audioPlayer.audioElement.currentTime + 10, this.audioPlayer.audioElement.duration);
-    this.audioPlayer.audioElement.currentTime = newTime;
-    if (this.audioPlayer.ui) {
-      this.audioPlayer.ui.updateTimeDisplay();
+    if (this.audioPlayer.contextManager) {
+      const state = this.audioPlayer.contextManager.getCurrentState();
+      const currentTime = state?.currentTrackPosition || 0;
+      const duration = state?.currentTrackDuration || 0;
+      const newTime = Math.min(currentTime + 10, duration);
+      this.audioPlayer.contextManager.seek(newTime);
+    } else {
+      console.warn('[PlaybackManager] ContextManager not available for fastForward');
     }
   }
   
@@ -423,47 +704,44 @@ export class PlaybackManager {
    * Rewind the current track by 10 seconds
    */
   rewind() {
-    if (!this.audioPlayer.audioElement) return;
-    
-    const newTime = Math.max(this.audioPlayer.audioElement.currentTime - 10, 0);
-    this.audioPlayer.audioElement.currentTime = newTime;
-    if (this.audioPlayer.ui) {
-      this.audioPlayer.ui.updateTimeDisplay();
+    if (this.audioPlayer.contextManager) {
+      const state = this.audioPlayer.contextManager.getCurrentState();
+      const currentTime = state?.currentTrackPosition || 0;
+      const newTime = Math.max(currentTime - 10, 0);
+      this.audioPlayer.contextManager.seek(newTime);
+    } else {
+      console.warn('[PlaybackManager] ContextManager not available for rewind');
     }
   }
   
   /**
    * Load player state from storage
-   * @returns {Promise} A promise that resolves when the player state is loaded
    */
   async loadPlayerState() {
     if (!window.electronAPI || !window.electronIntegration) return Promise.resolve();
     
     try {
-      // Get user data path
       const userDataPath = await window.electronAPI.getPath('userData');
-      
-      // Get player state file path
       const stateFilePath = await window.electronAPI.joinPaths(userDataPath, 'player-state.json');
-      
-      // Check if file exists
       const fileExists = await window.electronAPI.fileExists(stateFilePath);
       
       if (fileExists) {
-        // Read player state file
         const result = await window.electronAPI.readFile(stateFilePath);
         
         if (result.success) {
-          // Parse player state
           const playerState = JSON.parse(result.content);
           
-          // Load repeat and shuffle state if available
-          if (playerState.repeatMode) {
-            this.repeatMode = playerState.repeatMode;
-          }
-          
-          if (playerState.shuffleMode !== undefined) {
-            this.shuffleMode = playerState.shuffleMode;
+          if (this.audioPlayer.stateManager) {
+            const updates = {};
+            if (playerState.repeatMode) {
+              updates.repeatMode = playerState.repeatMode;
+            }
+            if (playerState.shuffleMode !== undefined) {
+              updates.shuffleMode = playerState.shuffleMode;
+            }
+            if (Object.keys(updates).length > 0) {
+              this.audioPlayer.stateManager.updateState(updates, 'PlaybackManager loadPlayerState');
+            }
           }
         }
       }
@@ -481,19 +759,16 @@ export class PlaybackManager {
     if (!window.electronAPI || !window.electronIntegration) return;
     
     try {
-      // Get user data path
       const userDataPath = await window.electronAPI.getPath('userData');
-      
-      // Get player state file path
       const stateFilePath = await window.electronAPI.joinPaths(userDataPath, 'player-state.json');
       
-      // Create player state object
+      const state = this.audioPlayer.stateManager?.getStateSnapshot();
+      
       const playerState = {
-        repeatMode: this.repeatMode,
-        shuffleMode: this.shuffleMode
+        repeatMode: state?.repeatMode || 'OFF',
+        shuffleMode: state?.shuffleMode || false
       };
       
-      // Save player state
       await window.electronAPI.saveFile(stateFilePath, JSON.stringify(playerState, null, 2));
     } catch (error) {
       console.error('Failed to save player state:', error);
@@ -501,13 +776,27 @@ export class PlaybackManager {
   }
   
   /**
-   * Clear playlist and reset state
+   * Enhanced clear method with proper cleanup
    */
   clear() {
     this.playlist = [];
     this.originalPlaylist = [];
-    this.currentTrackIndex = 0;
-    this.isPlaying = false;
-    this.isPaused = false;
+    this.transitionInProgress = false;
+    
+    if (this.audioPlayer.stateManager) {
+      this.audioPlayer.stateManager.updateState({
+        isPlaying: false,
+        isPaused: false,
+        isStopped: true,
+        currentTrackPosition: 0
+      }, 'PlaybackManager clear');
+    }
+    
+    this.audioPlayer.contextManager.clearNextTrackBuffer();
+    
+    if (this.audioPlayer.audioElement) {
+      this.audioPlayer.audioElement.pause();
+      this.audioPlayer.audioElement.currentTime = 0;
+    }
   }
 }

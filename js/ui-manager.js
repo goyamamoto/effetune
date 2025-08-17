@@ -1095,6 +1095,12 @@ export class UIManager {
                 return;
             }
 
+            // Only handle pipeline shortcuts when no modifier keys are pressed
+            if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
+                return;
+            }
+
+            // Handle pipeline shortcuts (T, A, B keys)
             switch (e.key.toLowerCase()) {
                 case 't':
                     e.preventDefault();
@@ -1108,7 +1114,11 @@ export class UIManager {
                     break;
                 case 'b':
                     e.preventDefault();
-                    if (this.audioManager.pipelineB !== null) {
+                    if (this.audioManager.pipelineB === null) {
+                        // Use togglePipeline if B doesn't exist (same as T key)
+                        this.togglePipeline();
+                    } else {
+                        // Switch to B if it exists
                         this.audioManager.setCurrentPipeline('B');
                         this.updatePipelineToggleButton();
                         this.pipelineManager.updatePipelineUI();
