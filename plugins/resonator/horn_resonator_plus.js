@@ -215,7 +215,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const Z = context.Z;
                 const R = context.R;
 
-                // Boundary impedances Z[i] from local cross-sectional area
+                // Boundary impedance Z[i] from local cross-sectional area
                 for (let i = 0; i <= N; i++) {
                     let radius;
                     if (i === 0) {
@@ -366,7 +366,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.rm_a2 = bessel_a2 * (1 - blend) + simple_a2 * blend;
                 context.rm_b0 = bessel_b0 * (1 - blend) + simple_b0 * blend;
 
-                // >>> Passive clamp: precompute convex mix factor s ∈ (0,1]
+                // Passive clamp: precompute convex mix factor s ∈ (0,1]
                 context.rm_mix = computePassiveMix(context.rm_b0, context.rm_a1, context.rm_a2, sr);
 
                 // Allocate mouth reflection filter states
