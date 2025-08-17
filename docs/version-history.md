@@ -1,5 +1,10 @@
 # Version History
 
+### Version 1.62 (Aug 16, 2025)
+- Supports gapless playback
+- Independent scrolling of the plugin list
+- Various minor improvements
+
 ### Version 1.61 (Aug 2, 2025)
 - Added A/B switching comparison function for pipelines
 - Added Crossfeed Filter effect

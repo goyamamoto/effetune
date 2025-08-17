@@ -166,9 +166,12 @@ Para usar o EffeTune com players de CD, players de rede ou outras fontes física
    - Ctrl + → ou N: Próxima faixa
    - Ctrl + ← ou P: Faixa anterior
    - Shift + → ou F ou .: Avançar 10 segundos
-   - Shift + ← ou B ou ,: Retroceder 10 segundos
-   - Ctrl + T: Alternar modo de repetição
+   - Shift + ← ou R ou ,: Retroceder 10 segundos
+   - Ctrl + M: Alternar modo de repetição
    - Ctrl + H: Alternar modo aleatório
+   - T: Alternar entre Pipeline A e Pipeline B
+   - A: Alternar para Pipeline A
+   - B: Alternar para Pipeline B
 
 ### Processamento de Arquivos de Áudio
 

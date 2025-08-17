@@ -277,6 +277,16 @@ export class PresetManager {
         // Setup drag events via drag drop manager
         this.pluginListManager.dragDropManager.setupPresetItemDragEvents(item, presetName, false);
 
+        // Setup tooltip positioning
+        const description = item.querySelector('.plugin-description');
+        if (description) {
+            item.addEventListener('mouseenter', (e) => {
+                const rect = item.getBoundingClientRect();
+                description.style.left = (rect.right + 10) + 'px';
+                description.style.top = rect.top + 'px';
+            });
+        }
+
         // Hover effects
         item.addEventListener('mouseenter', () => {
             item.style.backgroundColor = '#3a3a3a';
@@ -302,6 +312,16 @@ export class PresetManager {
 
         // Setup drag events via drag drop manager
         this.pluginListManager.dragDropManager.setupPresetItemDragEvents(item, presetName, true);
+
+        // Setup tooltip positioning
+        const description = item.querySelector('.plugin-description');
+        if (description) {
+            item.addEventListener('mouseenter', (e) => {
+                const rect = item.getBoundingClientRect();
+                description.style.left = (rect.right + 10) + 'px';
+                description.style.top = rect.top + 'px';
+            });
+        }
 
         // Hover effects
         item.addEventListener('mouseenter', () => {

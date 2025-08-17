@@ -171,9 +171,12 @@ To use EffeTune with CD players, network players, or other physical sources:
    - Ctrl + → or N: Next track
    - Ctrl + ← or P: Previous track
    - Shift + → or F or .: Fast-forward 10 seconds
-   - Shift + ← or B or ,: Rewind 10 seconds
-   - Ctrl + T: Toggle Repeat mode
+   - Shift + ← or R or ,: Rewind 10 seconds
+   - Ctrl + M: Toggle Repeat mode
    - Ctrl + H: Toggle Shuffle mode
+   - T: Toggle Pipeline A/B
+   - A: Switch to Pipeline A
+   - B: Switch to Pipeline B
 
 ### Processing Audio Files
 
