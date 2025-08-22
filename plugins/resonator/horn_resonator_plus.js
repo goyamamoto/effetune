@@ -23,8 +23,8 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.wg = 30.0;  // Output signal gain (dB)
         this.bl = 1.0;   // Blend between Bessel-fitted and simple mouth filter
 
-        // Physical constants
-        const C = 343;   // Speed of sound in air (m/s)
+        // Physical constants (for UI/reference; processor defines its own)
+        const C = 343;     // Speed of sound in air (m/s)
         const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
 
         this.registerProcessor(`
@@ -34,11 +34,31 @@ class HornResonatorPlusPlugin extends PluginBase {
             const PI = Math.PI;
             const TWO_PI = 2 * PI;
             const SQRT2 = Math.SQRT2;
-            const EPS = 1e-9;   // Small epsilon value to prevent division by zero or instability
-            const DC_OFFSET = 1e-25; // Small DC offset to stabilize filters
+            const EPS = 1e-9;   // Small epsilon to avoid division by zero/instability
+            const DC_OFFSET = 1e-25; // Tiny DC offset to stabilize filters
 
-            // -------- Utility: polynomial Horner and Bessel J1/Y1 approximations --------
+            // -------- Utility: polynomial Horner and Bessel/Struve approximations --------
             function hHorner(arr, v) { let z = 0; for (let i = 0; i < arr.length; ++i) z = z * v + arr[i]; return z; }
+
+            // Approximate Bessel J0(x) using Cephes-style rational approximation.
+            function hBesselJ0(x) {
+                const ax = Math.abs(x);
+                if (ax < 8.0) {
+                    const y = x * x;
+                    const r = hHorner([57568490574.0, -13362590354.0, 651619640.7, -11214424.18, 77392.33017, -184.9052456], y);
+                    const s = hHorner([57568490411.0,  1029532985.0,  9494680.718,   59272.64853,   267.8532712,    1.0], y);
+                    return r / s;
+                } else {
+                    // Asymptotic region
+                    const z = 8.0 / ax;
+                    const y = z * z;
+                    const xx = ax - 0.785398164; // pi/4
+                    const r = hHorner([1.0, -0.1098628627e-2, 0.2734510407e-4, -0.2073370639e-5, 0.2093887211e-6], y);
+                    const s = hHorner([-0.1562499995e-1, 0.1430488765e-3, -0.6911147651e-5, 0.7621095161e-6, -0.934945152e-7], y);
+                    const ans = Math.sqrt(0.636619772 / ax) * (Math.cos(xx) * r - z * Math.sin(xx) * s); // 2/π = 0.636...
+                    return ans;
+                }
+            }
 
             // Approximate Bessel J1(x). Coeffs adapted for numeric stability across ranges.
             function hBesselJ1(x) {
@@ -58,7 +78,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                 return x < 0 ? -ans : ans;
             }
 
-            // Approximate Bessel Y1(x). Coeffs adapted for numeric stability across ranges.
+            // Approximate Bessel Y1(x). (Kept for completeness; not used in H1 model.)
             function hBesselY1(x) {
                 const W = 0.636619772; // 2/PI
                 if (x < 8.0) {
@@ -74,6 +94,18 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const b1 = [1.0, 0.00183105, -3.516396496e-5, 2.457520174e-6, -2.40337019e-7];
                 const b2 = [0.04687499995, -2.002690873e-4, 8.449199096e-6, -8.8228987e-7, 1.05787412e-7];
                 return Math.sqrt(W / x) * (Math.sin(xx) * hHorner(b1.slice().reverse(), y) + Math.cos(xx) * hHorner(b2.slice().reverse(), y) * 8 / x);
+            }
+
+            // Struve H1 approximation (Aarts & Janssen, JASA 2003, Eq. (16))
+            // H1(x) ≈ 2/π − J0(x) + (16/π − 5) * sin(x)/x + (12 − 36/π) * (1 − cos(x))/x^2
+            function hStruveH1(x) {
+                const ax = Math.abs(x);
+                if (ax < 1e-9) return 0.0;
+                const A = (16.0 / Math.PI) - 5.0;
+                const B = 12.0 - (36.0 / Math.PI);
+                const s = Math.sin(x);
+                const c = Math.cos(x);
+                return (2.0 / Math.PI) - hBesselJ0(x) + A * (s / x) + B * ((1.0 - c) / (x * x));
             }
 
             // -------- Complex arithmetic helpers (arrays [re, im]) --------
@@ -96,9 +128,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 return [ ( S22*t1 - S12*t2)*inv, (-S12*t1 + S11*t2)*inv ];
             }
 
-            // -------- Passive clamp helper: compute convex mix toward -1 --------
+            // -------- Passive clamp helper: convex mixing toward -1 to maintain passivity --------
             function computePassiveMix(b0, a1, a2, sr) {
-                // Base log grid
                 const fmin = 5.0;
                 const fmax = Math.max(40.0, 0.45 * sr);
                 const K = 160; // dense for higher-Q safety
@@ -107,7 +138,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     const t = i / (K - 1);
                     grid.push(fmin * Math.pow(fmax / fmin, t));
                 }
-                // Add local dense probes near the resonant angle if a2 > 0 (complex poles)
+                // Dense probes near resonant angle if complex poles
                 if (a2 > 0 && a2 < 0.999999) {
                     const r = Math.sqrt(a2);
                     const cosw0 = -a1 / (2 * r);
@@ -143,29 +174,31 @@ class HornResonatorPlusPlugin extends PluginBase {
                 return Math.min(1.0, 1.0 / (maxMag + 1e-6)); // s ∈ (0,1]
             }
 
-            // -------- Bessel-based normalized radiation impedance z(ka) ≈ R + jX --------
-            // For a circular piston in an infinite baffle, exact formulas involve Struve H1.
-            // We adopt a practical approximation using J1, Y1 with low-frequency blending:
-            //   R_lf ≈ (ka)^2 / 2,  X_lf ≈ (8/(3π)) * ka   (valid for ka << 1)
-            // Then blend toward the J1/Y1-based form as ka grows.
-            function normalizedRadiationImpedance(ka){
-                if (ka < 1e-6) return [0.0, 0.0]; // z ~ 0 => Γ ≈ -1 at DC
-                const J1 = hBesselJ1(2*ka);
-                const Y1 = hBesselY1(2*ka);
+            // -------- Normalized radiation impedance z(ka) ≈ R + jX (baffled circular piston) --------
+            // Exact forms use Bessel J1 and Struve H1:
+            //   R = 1 - 2 J1(2ka)/(2ka) = 1 - J1(2ka)/ka
+            //   X = 2 H1(2ka)/(2ka) = H1(2ka)/ka
+            // Implement H1 via the Aarts–Janssen closed-form approximation for speed and robustness.
+            function normalizedRadiationImpedance(ka) {
+                if (ka < 1e-9) return [0.0, 0.0]; // z → 0 => Γ ≈ -1 at DC
 
-                // Baseline
-                let zr = 1 - (J1 / ka);
-                let zi = - (Y1 / ka);
+                const z = 2.0 * ka;
+                const R_exact = 1.0 - (hBesselJ1(z) / (ka + EPS));
+                const X_exact =        hStruveH1(z) / (ka + EPS);
 
-                // Low-frequency correction blend (improves behavior for ka ≲ 0.6)
+                // Low-frequency blend (ka ≲ 0.6) to enforce asymptotes and keep the fit well-behaved:
+                // R_lf ≈ (ka)^2/2,  X_lf ≈ (8/(3π)) * ka
                 if (ka < 0.6) {
                     const R_lf = 0.5 * ka * ka;
                     const X_lf = (8.0 / (3.0 * Math.PI)) * ka;
-                    const w = Math.max(0, Math.min(1, (0.6 - ka)/0.6)); // w→1 at ka→0
-                    zr = zr*(1-w) + R_lf*w;
-                    zi = zi*(1-w) + X_lf*w;
+                    const w = (0.6 - ka) / 0.6; // stronger near DC
+                    const t = Math.max(0.0, Math.min(1.0, w));
+                    return [
+                        R_exact * (1 - t) + R_lf * t,
+                        X_exact * (1 - t) + X_lf * t
+                    ];
                 }
-                return [zr, zi];
+                return [R_exact, X_exact];
             }
 
             // -------- Early exit if disabled --------
@@ -257,7 +290,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.rt_y1_states.fill(0);
                 }
 
-                /* ---- Mouth reflection filter H_R(z) design (multi-point Bessel fit) ----
+                /* ---- Mouth reflection filter H_R(z) design (multi-point Bessel/Struve fit) ----
                    We fit a 2nd-order IIR of the form:
                        H_R(z) = b0 / (1 + a1 z^-1 + a2 z^-2)
                    subject to DC constraint H_R(1) = -1, while least-squares fitting
@@ -267,17 +300,16 @@ class HornResonatorPlusPlugin extends PluginBase {
                 const nyq = 0.5 * sr;
                 const fc_mouth = (a_mouth > EPS) ? C / (TWO_PI * a_mouth) : sr / 4;
 
-                // --- Improved frequency sampling for LS fit ---
-                const fc_ref = Math.min(fc_mouth, 0.30 * sr); // keep reference safely inside band
+                // --- Frequency sampling for LS fit (log-spaced + anchors) ---
+                const fc_ref = Math.min(fc_mouth, 0.30 * sr); // safely inside band
                 const fmin = Math.max(1.0, 0.05 * fc_ref);
                 const fmax = Math.min(0.45 * sr, 6.0 * fc_ref);
-                const Nfit = 40; // 36–48 recommended
+                const Nfit = 40;
                 const freqs = [];
                 for (let i = 0; i < Nfit; i++) {
                     const t = i / (Nfit - 1);
                     freqs.push(fmin * Math.pow(fmax / fmin, t));
                 }
-                // Anchor multiples around fc_mouth
                 [0.25, 0.5, 1.0, 2.0, 4.0].forEach(m => {
                     const f = m * fc_mouth;
                     if (f > fmin && f < fmax && !freqs.some(x => Math.abs(x - f) < 1e-6)) freqs.push(f);
@@ -291,7 +323,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     const w = TWO_PI * f / sr;
                     const ka = TWO_PI * f * a_mouth / C;
 
-                    // Radiation impedance z = R + jX
+                    // Radiation impedance z = R + jX (H1-based)
                     const z = normalizedRadiationImpedance(ka);
                     // Reflection Γ = (z - 1) / (z + 1)
                     const Gamma = (( )=>{
@@ -567,7 +599,7 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                     // Raw 2nd-order IIR enforcing DC reflection of -1 via b0
                     const yMouth = rm_b0 * fwN - rm_a1 * rm_y1 - rm_a2 * rm_y2;
-                    // Passive convex mixing toward -1 to keep |Γ|≤~1 over scanned band
+                    // Passive convex mixing toward -1 to keep |Γ| ≤ ~1 over scanned band
                     const sMix = (context.rm_mix === undefined) ? 1.0 : context.rm_mix;
                     const reflectedMouthWave = sMix * yMouth + (1 - sMix) * (-fwN);
                     rv_next[N] = reflectedMouthWave;
@@ -660,7 +692,7 @@ class HornResonatorPlusPlugin extends PluginBase {
         const c = document.createElement('div');
         c.className = 'plugin-parameter-ui horn-resonator-plus-ui';
 
-        // Sliders (keep labels consistent with original UI)
+        // Sliders (labels kept consistent with original UI)
         c.appendChild(this.createParameterControl('Crossover', 20, 5000, 10, this.co, (v) => this.setParameters({ co: v }), 'Hz'));
         c.appendChild(this.createParameterControl('Horn Length', 20, 120, 1, this.ln, (v) => this.setParameters({ ln: v }), 'cm'));
         c.appendChild(this.createParameterControl('Throat Dia.', 0.5, 50, 0.1, this.th, (v) => this.setParameters({ th: v }), 'cm'));
