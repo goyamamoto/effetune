@@ -483,58 +483,93 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.lowDelayIdx.fill(0);
                 }
 
-                /* ---- Group-delay matching allpass at crossover ----
-                   The LR4 split yields different phase responses for LP/HP at co.
-                   Add a 1st-order allpass on the low band to reduce phase mismatch
-                   near the crossover. We design coefficient 'a' so that the allpass
-                   phase at w0 ~= 2π*co/sr matches Δφ = φ_hp(w0) - φ_lp(w0).
-                   Allpass: H_ap(z) = (a + z^-1)/(1 + a z^-1),
-                   φ_ap(ω) = -2 atan( ((1-a)/(1+a)) tan(ω/2) ). */
+                /* ---- Group-delay matching allpass around crossover (least squares) ----
+                   LR4 LP/HP have different phase responses around the crossover.
+                   Design a 1st-order allpass H_ap(z) = (a + z^-1)/(1 + a z^-1) to minimize
+                   sum_k w_k * (wrap(φ_hp(ω_k) - φ_lp(ω_k) - φ_ap(ω_k)))^2 over a small band
+                   ω_k ∈ [0.7, 1.4]×(2π·co/sr). This yields smoother summation near crossover. */
                 (function designLowBandAllpass(){
                     try {
-                        const w0 = 2 * PI * Math.max(20, Math.min(sr * 0.5 - 1, context.co)) / sr;
+                        const clipCo = Math.max(20, Math.min(sr * 0.5 - 1, context.co));
+                        const w0 = 2 * PI * clipCo / sr;
                         const ejw = (w)=>[Math.cos(w), -Math.sin(w)]; // e^{-jw}
+                        const wrap = (x)=>{ let y = (x + Math.PI) % (2*Math.PI); if (y < 0) y += 2*Math.PI; return y - Math.PI; };
 
-                        // Helper to evaluate one biquad at frequency w
+                        // Evaluate one biquad at frequency w
                         const Hsec = (b0,b1,b2,a1,a2,w)=>{
-                            const z1 = ejw(w);              // e^{-jw}
-                            const z2 = ejw(2*w);            // e^{-j2w}
+                            const z1 = ejw(w);
+                            const z2 = ejw(2*w);
                             const num = [b0 + b1*z1[0] + b2*z2[0], b1*z1[1] + b2*z2[1]];
                             const den = [1  + a1*z1[0] + a2*z2[0], a1*z1[1] + a2*z2[1]];
                             const d = den[0]*den[0] + den[1]*den[1] + EPS;
-                            return [
-                                (num[0]*den[0] + num[1]*den[1]) / d,
-                                (num[1]*den[0] - num[0]*den[1]) / d
-                            ];
+                            return [ (num[0]*den[0] + num[1]*den[1]) / d,
+                                     (num[1]*den[0] - num[0]*den[1]) / d ];
                         };
-                        // One section per path, LR4 = square of section
-                        const Hlp = Hsec(b0_lp, b1_lp, b2_lp, a1_c, a2_c, w0);
-                        const Hhp = Hsec(b0_hp, b1_hp, b2_hp, a1_c, a2_c, w0);
                         const phase = (h)=>Math.atan2(h[1], h[0]);
-                        const phi_lp = 2 * phase(Hlp);
-                        const phi_hp = 2 * phase(Hhp);
-                        // Wrap to [-π, π]
-                        let dphi = phi_hp - phi_lp;
-                        dphi = (dphi + Math.PI) % (2*Math.PI) - Math.PI;
 
-                        const tan_w2 = Math.tan(w0/2);
-                        // Avoid degenerate conditions
-                        if (!isFinite(tan_w2) || Math.abs(tan_w2) < 1e-6) {
-                            context.ap_enabled = false;
-                            context.ap_a = 0;
-                        } else {
-                            // Solve r = tan(-dphi/2) / tan(w0/2), a = (1 - r)/(1 + r)
-                            const r = Math.tan(-dphi/2) / tan_w2;
-                            let a = (1 - r) / (1 + r);
-                            if (!isFinite(a)) {
-                                context.ap_enabled = false;
-                                a = 0;
-                            }
-                            // Clamp for stability
-                            a = Math.max(-0.99, Math.min(0.99, a));
-                            context.ap_enabled = true;
-                            context.ap_a = a;
+                        // Build frequency grid around crossover (log-spaced multipliers)
+                        const mults = [];
+                        const mMin = 0.7, mMax = 1.4, K = 13;
+                        for (let i=0;i<K;i++) {
+                            const t = i/(K-1);
+                            mults.push(mMin * Math.pow(mMax/mMin, t));
                         }
+                        const ws = mults.map(m => 2*PI * Math.max(10, Math.min(0.45*sr, m*clipCo)) / sr);
+
+                        // Precompute Δφ_k = φ_hp - φ_lp at each ω_k (LR4 has 2 cascaded sections)
+                        const dphis = ws.map(w => {
+                            const Hlp = Hsec(b0_lp, b1_lp, b2_lp, a1_c, a2_c, w);
+                            const Hhp = Hsec(b0_hp, b1_hp, b2_hp, a1_c, a2_c, w);
+                            const phi_lp = 2 * phase(Hlp);
+                            const phi_hp = 2 * phase(Hhp);
+                            return wrap(phi_hp - phi_lp);
+                        });
+
+                        // Weights: log-Gaussian centered at 1.0 (σ ≈ 0.3 oct)
+                        const weights = mults.map(m => {
+                            const d = Math.log2(m);
+                            return 0.5 + Math.exp(-(d*d)/(0.3*0.3));
+                        });
+
+                        // Allpass phase at ω: φ_ap(ω; a) = -2 atan( ((1-a)/(1+a)) tan(ω/2) )
+                        const phi_ap = (w,a)=>{
+                            const t = Math.tan(w/2);
+                            const r = (1-a)/(1+a);
+                            if (!isFinite(t) || !isFinite(r)) return 0;
+                            return -2 * Math.atan(r * t);
+                        };
+
+                        // Objective: sum weights * wrap(dphi - phi_ap)^2
+                        const objective = (a)=>{
+                            // keep inside stability region
+                            if (a <= -0.999 || a >= 0.999 || !isFinite(a)) return 1e9;
+                            let sse = 0;
+                            for (let k=0;k<ws.length;k++) {
+                                const e = wrap(dphis[k] - phi_ap(ws[k], a));
+                                sse += weights[k] * e * e;
+                            }
+                            return sse;
+                        };
+
+                        // Golden-section search on a ∈ [amin, amax]
+                        let amin = -0.95, amax = 0.95;
+                        const gr = 0.61803398875;
+                        let x1 = amax - gr*(amax-amin);
+                        let x2 = amin + gr*(amax-amin);
+                        let f1 = objective(x1);
+                        let f2 = objective(x2);
+                        for (let it=0; it<48; it++) {
+                            if (f1 > f2) {
+                                amin = x1; x1 = x2; f1 = f2; x2 = amin + gr*(amax-amin); f2 = objective(x2);
+                            } else {
+                                amax = x2; x2 = x1; f2 = f1; x1 = amax - gr*(amax-amin); f1 = objective(x1);
+                            }
+                        }
+                        let a = (f1 < f2 ? x1 : x2);
+                        if (!isFinite(a)) { context.ap_enabled = false; a = 0; }
+                        a = Math.max(-0.99, Math.min(0.99, a));
+                        context.ap_enabled = true;
+                        context.ap_a = a;
 
                         // Allocate state arrays
                         if (!context.ap_x1_states || context.ap_x1_states.length !== chs) {
