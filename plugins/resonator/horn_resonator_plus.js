@@ -493,7 +493,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                         const clipCo = Math.max(20, Math.min(sr * 0.5 - 1, context.co));
                         const w0 = 2 * PI * clipCo / sr;
                         const ejw = (w)=>[Math.cos(w), -Math.sin(w)]; // e^{-jw}
-                        const wrap = (x)=>{ let y = (x + Math.PI) % (2*Math.PI); if (y < 0) y += 2*Math.PI; return y - Math.PI; };
+                        // Numerically robust angle wrapping using atan2(sin, cos)
+                        const angErr = (d)=>Math.atan2(Math.sin(d), Math.cos(d));
 
                         // Evaluate one biquad at frequency w
                         const Hsec = (b0,b1,b2,a1,a2,w)=>{
@@ -522,7 +523,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                             const Hhp = Hsec(b0_hp, b1_hp, b2_hp, a1_c, a2_c, w);
                             const phi_lp = 2 * phase(Hlp);
                             const phi_hp = 2 * phase(Hhp);
-                            return wrap(phi_hp - phi_lp);
+                            return (phi_hp - phi_lp);
                         });
 
                         // Weights: log-Gaussian centered at 1.0 (σ ≈ 0.3 oct)
@@ -545,7 +546,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                             if (a <= -0.999 || a >= 0.999 || !isFinite(a)) return 1e9;
                             let sse = 0;
                             for (let k=0;k<ws.length;k++) {
-                                const e = wrap(dphis[k] - phi_ap(ws[k], a));
+                                const e = angErr(dphis[k] - phi_ap(ws[k], a));
                                 sse += weights[k] * e * e;
                             }
                             return sse;
