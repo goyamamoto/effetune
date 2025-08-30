@@ -483,6 +483,73 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.lowDelayIdx.fill(0);
                 }
 
+                /* ---- Group-delay matching allpass at crossover ----
+                   The LR4 split yields different phase responses for LP/HP at co.
+                   Add a 1st-order allpass on the low band to reduce phase mismatch
+                   near the crossover. We design coefficient 'a' so that the allpass
+                   phase at w0 ~= 2π*co/sr matches Δφ = φ_hp(w0) - φ_lp(w0).
+                   Allpass: H_ap(z) = (a + z^-1)/(1 + a z^-1),
+                   φ_ap(ω) = -2 atan( ((1-a)/(1+a)) tan(ω/2) ). */
+                (function designLowBandAllpass(){
+                    try {
+                        const w0 = 2 * PI * Math.max(20, Math.min(sr * 0.5 - 1, context.co)) / sr;
+                        const ejw = (w)=>[Math.cos(w), -Math.sin(w)]; // e^{-jw}
+
+                        // Helper to evaluate one biquad at frequency w
+                        const Hsec = (b0,b1,b2,a1,a2,w)=>{
+                            const z1 = ejw(w);              // e^{-jw}
+                            const z2 = ejw(2*w);            // e^{-j2w}
+                            const num = [b0 + b1*z1[0] + b2*z2[0], b1*z1[1] + b2*z2[1]];
+                            const den = [1  + a1*z1[0] + a2*z2[0], a1*z1[1] + a2*z2[1]];
+                            const d = den[0]*den[0] + den[1]*den[1] + EPS;
+                            return [
+                                (num[0]*den[0] + num[1]*den[1]) / d,
+                                (num[1]*den[0] - num[0]*den[1]) / d
+                            ];
+                        };
+                        // One section per path, LR4 = square of section
+                        const Hlp = Hsec(b0_lp, b1_lp, b2_lp, a1_c, a2_c, w0);
+                        const Hhp = Hsec(b0_hp, b1_hp, b2_hp, a1_c, a2_c, w0);
+                        const phase = (h)=>Math.atan2(h[1], h[0]);
+                        const phi_lp = 2 * phase(Hlp);
+                        const phi_hp = 2 * phase(Hhp);
+                        // Wrap to [-π, π]
+                        let dphi = phi_hp - phi_lp;
+                        dphi = (dphi + Math.PI) % (2*Math.PI) - Math.PI;
+
+                        const tan_w2 = Math.tan(w0/2);
+                        // Avoid degenerate conditions
+                        if (!isFinite(tan_w2) || Math.abs(tan_w2) < 1e-6) {
+                            context.ap_enabled = false;
+                            context.ap_a = 0;
+                        } else {
+                            // Solve r = tan(-dphi/2) / tan(w0/2), a = (1 - r)/(1 + r)
+                            const r = Math.tan(-dphi/2) / tan_w2;
+                            let a = (1 - r) / (1 + r);
+                            if (!isFinite(a)) {
+                                context.ap_enabled = false;
+                                a = 0;
+                            }
+                            // Clamp for stability
+                            a = Math.max(-0.99, Math.min(0.99, a));
+                            context.ap_enabled = true;
+                            context.ap_a = a;
+                        }
+
+                        // Allocate state arrays
+                        if (!context.ap_x1_states || context.ap_x1_states.length !== chs) {
+                            context.ap_x1_states = new Float32Array(chs).fill(0);
+                            context.ap_y1_states = new Float32Array(chs).fill(0);
+                        } else {
+                            context.ap_x1_states.fill(0);
+                            context.ap_y1_states.fill(0);
+                        }
+                    } catch (e) {
+                        context.ap_enabled = false;
+                        context.ap_a = 0;
+                    }
+                })();
+
                 // Output gain (linear)
                 context.outputGain = Math.pow(10, context.wg / 20);
 
@@ -520,6 +587,10 @@ class HornResonatorPlusPlugin extends PluginBase {
             const lowDelayIdx = context.lowDelayIdx;
 
             const outputGain = context.outputGain;
+            const ap_enabled = !!context.ap_enabled;
+            const ap_a = context.ap_a || 0;
+            const ap_x1_states = context.ap_x1_states;
+            const ap_y1_states = context.ap_y1_states;
 
             // ---- Per-channel processing ----
             for (let ch = 0; ch < chs; ch++) {
@@ -542,6 +613,8 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 let currentLowDelayWriteIdx = lowDelayIdx[ch];
                 const currentLowDelayLine = lowDelay[ch];
+                let ap_x1 = ap_x1_states ? ap_x1_states[ch] : 0;
+                let ap_y1 = ap_y1_states ? ap_y1_states[ch] : 0;
 
                 // ---- Per-sample loop ----
                 for (let i = 0; i < bs; i++) {
@@ -557,6 +630,15 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // Low-pass, stage 2
                     outputLow = b0_lp * y1_lp + b1_lp * lpState[4] + b2_lp * lpState[5] - a1_c * lpState[6] - a2_c * lpState[7];
                     lpState[5] = lpState[4]; lpState[4] = y1_lp; lpState[7] = lpState[6]; lpState[6] = outputLow;
+
+                    // Allpass correction at crossover for low band
+                    let outputLowCorr = outputLow;
+                    if (ap_enabled) {
+                        // y[n] = -a*y[n-1] + a*x[n] + x[n-1]
+                        outputLowCorr = -ap_a * ap_y1 + ap_a * outputLow + ap_x1;
+                        ap_x1 = outputLow;
+                        ap_y1 = outputLowCorr;
+                    }
 
                     // High-pass, stage 1
                     y1_hp = b0_hp * inputSample + b1_hp * hpState[0] + b2_hp * hpState[1] - a1_c * hpState[2] - a2_c * hpState[3];
@@ -623,7 +705,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // ---- Form output ----
                     const transmittedHighFreq = fwN + reflectedMouthWave; // boundary pressure proxy
                     const delayedLowFreq = currentLowDelayLine[currentLowDelayWriteIdx];
-                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLow; // write current low
+                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLowCorr; // write current low (phase-corrected)
                     currentLowDelayWriteIdx++;
                     if (currentLowDelayWriteIdx >= N) currentLowDelayWriteIdx = 0;
 
@@ -635,6 +717,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 rm_y2_states[ch] = rm_y2;
                 rt_y1_states[ch] = rt_y1;
                 lowDelayIdx[ch]  = currentLowDelayWriteIdx;
+                if (ap_x1_states) ap_x1_states[ch] = ap_x1;
+                if (ap_y1_states) ap_y1_states[ch] = ap_y1;
                 context.bufIdx[ch] = bufIndex;
             } // end channel loop
 
