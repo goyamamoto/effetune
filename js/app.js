@@ -2,7 +2,7 @@ import { PluginManager } from './plugin-manager.js';
 import { AudioManager } from './audio-manager.js';
 import { UIManager } from './ui-manager.js';
 import { electronIntegration } from './electron-integration.js';
-import { applySerializedState } from './utils/serialization-utils.js';
+import { applySerializedState, convertShortToLongFormat } from './utils/serialization-utils.js';
 
 // Make electronIntegration globally accessible first
 window.electronIntegration = electronIntegration;
@@ -44,10 +44,26 @@ async function saveDualPipelineState() {
         return;
     }
     
-    // Get the dual pipeline state from audioManager
-    if (window.audioManager) {
-        const dualState = window.audioManager.getPipelineState();
+    // Build a serializable dual-pipeline state (plugin instances -> plain objects)
+    try {
+        const pm = window.pipelineManager;
+        const am = window.audioManager;
+        if (!pm || !pm.core || !am) return;
+
+        // Use long format (name/enabled/parameters) for persistence
+        const serialize = (plugins) => (plugins || []).map(plugin =>
+            pm.core.getSerializablePluginState(plugin, false, true)
+        );
+
+        const dualState = {
+            pipelineA: serialize(am.pipelineA),
+            pipelineB: am.pipelineB ? serialize(am.pipelineB) : null,
+            currentPipeline: am.currentPipeline
+        };
+
         latestPipelineState = dualState;
+    } catch (e) {
+        // Fallback: do nothing if serialization is unavailable
     }
 }
 
@@ -113,7 +129,22 @@ async function loadPipelineState() {
         }
         
         // Parse pipeline state
-        const pipelineState = JSON.parse(result.content);
+        let pipelineState = JSON.parse(result.content);
+
+        // Backward compatibility: convert short-format entries to long-format if needed
+        try {
+            if (pipelineState && typeof pipelineState === 'object' && (pipelineState.pipelineA !== undefined || pipelineState.pipelineB !== undefined)) {
+                const fixArr = (arr) => Array.isArray(arr) ? arr.map(ps => (ps && ps.name === undefined && ps.nm !== undefined) ? convertShortToLongFormat(ps) : ps) : arr;
+                pipelineState = {
+                    ...pipelineState,
+                    pipelineA: fixArr(pipelineState.pipelineA),
+                    pipelineB: fixArr(pipelineState.pipelineB)
+                };
+            } else if (Array.isArray(pipelineState) && pipelineState.length > 0 && pipelineState[0]?.nm !== undefined && pipelineState[0]?.name === undefined) {
+                // Legacy single pipeline saved in short format
+                pipelineState = pipelineState.map(ps => convertShortToLongFormat(ps));
+            }
+        } catch (_) { /* ignore conversion errors */ }
         
         // Handle dual pipeline format
         if (pipelineState.pipelineA && pipelineState.pipelineB !== undefined) {
