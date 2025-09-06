@@ -2,7 +2,7 @@ import { PluginManager } from './plugin-manager.js';
 import { AudioManager } from './audio-manager.js';
 import { UIManager } from './ui-manager.js';
 import { electronIntegration } from './electron-integration.js';
-import { applySerializedState, convertShortToLongFormat } from './utils/serialization-utils.js';
+import { applySerializedState } from './utils/serialization-utils.js';
 
 // Make electronIntegration globally accessible first
 window.electronIntegration = electronIntegration;
@@ -44,26 +44,10 @@ async function saveDualPipelineState() {
         return;
     }
     
-    // Build a serializable dual-pipeline state (plugin instances -> plain objects)
-    try {
-        const pm = window.pipelineManager;
-        const am = window.audioManager;
-        if (!pm || !pm.core || !am) return;
-
-        // Use long format (name/enabled/parameters) for persistence
-        const serialize = (plugins) => (plugins || []).map(plugin =>
-            pm.core.getSerializablePluginState(plugin, false, true)
-        );
-
-        const dualState = {
-            pipelineA: serialize(am.pipelineA),
-            pipelineB: am.pipelineB ? serialize(am.pipelineB) : null,
-            currentPipeline: am.currentPipeline
-        };
-
+    // Get the dual pipeline state from audioManager
+    if (window.audioManager) {
+        const dualState = window.audioManager.getPipelineState();
         latestPipelineState = dualState;
-    } catch (e) {
-        // Fallback: do nothing if serialization is unavailable
     }
 }
 
@@ -129,22 +113,7 @@ async function loadPipelineState() {
         }
         
         // Parse pipeline state
-        let pipelineState = JSON.parse(result.content);
-
-        // Backward compatibility: convert short-format entries to long-format if needed
-        try {
-            if (pipelineState && typeof pipelineState === 'object' && (pipelineState.pipelineA !== undefined || pipelineState.pipelineB !== undefined)) {
-                const fixArr = (arr) => Array.isArray(arr) ? arr.map(ps => (ps && ps.name === undefined && ps.nm !== undefined) ? convertShortToLongFormat(ps) : ps) : arr;
-                pipelineState = {
-                    ...pipelineState,
-                    pipelineA: fixArr(pipelineState.pipelineA),
-                    pipelineB: fixArr(pipelineState.pipelineB)
-                };
-            } else if (Array.isArray(pipelineState) && pipelineState.length > 0 && pipelineState[0]?.nm !== undefined && pipelineState[0]?.name === undefined) {
-                // Legacy single pipeline saved in short format
-                pipelineState = pipelineState.map(ps => convertShortToLongFormat(ps));
-            }
-        } catch (_) { /* ignore conversion errors */ }
+        const pipelineState = JSON.parse(result.content);
         
         // Handle dual pipeline format
         if (pipelineState.pipelineA && pipelineState.pipelineB !== undefined) {
@@ -785,7 +754,7 @@ class App {
             });
         }
 
-        // Auto-resume audio context when page gains focus/visibility
+        // Auto-resume audio context when page gains focus
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.audioManager.audioContext &&
                 this.audioManager.audioContext.state === 'suspended') {
@@ -793,39 +762,10 @@ class App {
             }
         });
 
-        window.addEventListener('focus', () => {
-            if (this.audioManager.audioContext && this.audioManager.audioContext.state === 'suspended') {
-                this.audioManager.audioContext.resume();
-            }
-        });
-
-        // Monitor AudioContext state and attempt recovery
-        if (this.audioManager.audioContext) {
-            try {
-                this.audioManager.audioContext.onstatechange = async () => {
-                    const ctx = this.audioManager.audioContext;
-                    if (!ctx) return;
-                    if (ctx.state === 'suspended') {
-                        try { await ctx.resume(); } catch (_) { /* noop */ }
-                    } else if (ctx.state === 'closed') {
-                        // Reinitialize on unexpected close
-                        try { await this.audioManager.reset(await window.electronIntegration?.loadAudioPreferences?.()); } catch (_) { /* noop */ }
-                    }
-                };
-            } catch (_) { /* ignore */ }
-        }
-
         // Handle audio device changes (e.g., USB device reconnected)
         if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
             navigator.mediaDevices.addEventListener('devicechange', () => {
                 this.handleOutputDeviceChange();
-            });
-        }
-
-        // Handle OS resume (Electron only)
-        if (window.electronAPI && typeof window.electronAPI.onIPC === 'function') {
-            window.electronAPI.onIPC('system-resume', async () => {
-                await this.handleSystemResume();
             });
         }
     }
@@ -923,29 +863,6 @@ class App {
             } else if (currentSink === prefs.outputDeviceId) {
                 await this.audioManager.reset(prefs);
             }
-        }
-    }
-
-    /**
-     * Handle system resume from sleep/hibernation (Electron)
-     */
-    async handleSystemResume() {
-        try {
-            // First try to resume the existing context
-            if (this.audioManager?.audioContext && this.audioManager.audioContext.state === 'suspended') {
-                try { await this.audioManager.audioContext.resume(); } catch (_) {}
-            }
-
-            // If still not running, perform a full reset (ensures worklet reload & pipeline rebuild)
-            if (!this.audioManager?.audioContext || this.audioManager.audioContext.state !== 'running') {
-                const prefs = await window.electronIntegration?.loadAudioPreferences?.();
-                await this.audioManager.reset(prefs || null);
-            }
-
-            // Update UI sample rate display after resume/reset
-            this.uiManager?.updateSampleRateDisplay?.();
-        } catch (e) {
-            console.warn('System resume handling failed:', e);
         }
     }
 
