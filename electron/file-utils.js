@@ -72,10 +72,20 @@ function joinPaths(basePath, ...paths) {
 // Save pipeline state to file
 async function savePipelineStateToFile(pipelineState, userDataPath) {
   try {
-    // Skip saving if pipeline state is empty
-    if (!pipelineState || !Array.isArray(pipelineState) || pipelineState.length === 0) {
-      return { success: false, error: 'Empty pipeline state' };
+    // Validate pipeline state (accept dual-object or legacy array)
+    let isEmpty = false;
+    if (!pipelineState) {
+      isEmpty = true;
+    } else if (Array.isArray(pipelineState)) {
+      isEmpty = pipelineState.length === 0;
+    } else if (typeof pipelineState === 'object') {
+      const A = pipelineState.pipelineA;
+      const B = pipelineState.pipelineB;
+      isEmpty = (!Array.isArray(A) || A.length === 0) && (!Array.isArray(B) || B.length === 0);
+    } else {
+      isEmpty = true;
     }
+    if (isEmpty) return { success: false, error: 'Empty pipeline state' };
     
     // Use path.join for cross-platform compatibility
     const filePath = path.join(userDataPath, 'pipeline-state.json');
@@ -85,7 +95,7 @@ async function savePipelineStateToFile(pipelineState, userDataPath) {
       fs.mkdirSync(userDataPath, { recursive: true });
     }
     
-    // Save pipeline state to file
+    // Save pipeline state to file (pretty printed)
     fs.writeFileSync(filePath, JSON.stringify(pipelineState, null, 2));
     
     return { success: true };
