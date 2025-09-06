@@ -375,10 +375,17 @@ export class AudioManager {
             return '';
         }
         
-        // Initialize audio and rebuild pipeline
+        // Initialize audio context again
         await this.initAudio();
-        
-        // Make sure pipeline is rebuilt with the new audio context
+
+        // Ensure the AudioWorklet is loaded for the new context before rebuilding
+        const workletErr = await this.initializeAudioWorklet();
+        if (workletErr && typeof workletErr === 'string' && workletErr.startsWith('Audio Error:')) {
+            // If worklet failed to load, surface the error but continue best-effort
+            console.warn('AudioWorklet reload error during reset:', workletErr);
+        }
+
+        // Rebuild pipeline on the fresh context
         if (this.pipeline && this.pipeline.length > 0) {
             await this.rebuildPipeline(true);
         }

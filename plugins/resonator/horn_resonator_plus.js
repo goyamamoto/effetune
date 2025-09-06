@@ -483,6 +483,109 @@ class HornResonatorPlusPlugin extends PluginBase {
                     context.lowDelayIdx.fill(0);
                 }
 
+                /* ---- Group-delay matching allpass around crossover (least squares) ----
+                   LR4 LP/HP have different phase responses around the crossover.
+                   Design a 1st-order allpass H_ap(z) = (a + z^-1)/(1 + a z^-1) to minimize
+                   sum_k w_k * (wrap(φ_hp(ω_k) - φ_lp(ω_k) - φ_ap(ω_k)))^2 over a small band
+                   ω_k ∈ [0.7, 1.4]×(2π·co/sr). This yields smoother summation near crossover. */
+                (function designLowBandAllpass(){
+                    try {
+                        const clipCo = Math.max(20, Math.min(sr * 0.5 - 1, context.co));
+                        const w0 = 2 * PI * clipCo / sr;
+                        const ejw = (w)=>[Math.cos(w), -Math.sin(w)]; // e^{-jw}
+                        // Numerically robust angle wrapping using atan2(sin, cos)
+                        const angErr = (d)=>Math.atan2(Math.sin(d), Math.cos(d));
+
+                        // Evaluate one biquad at frequency w
+                        const Hsec = (b0,b1,b2,a1,a2,w)=>{
+                            const z1 = ejw(w);
+                            const z2 = ejw(2*w);
+                            const num = [b0 + b1*z1[0] + b2*z2[0], b1*z1[1] + b2*z2[1]];
+                            const den = [1  + a1*z1[0] + a2*z2[0], a1*z1[1] + a2*z2[1]];
+                            const d = den[0]*den[0] + den[1]*den[1] + EPS;
+                            return [ (num[0]*den[0] + num[1]*den[1]) / d,
+                                     (num[1]*den[0] - num[0]*den[1]) / d ];
+                        };
+                        const phase = (h)=>Math.atan2(h[1], h[0]);
+
+                        // Build frequency grid around crossover (log-spaced multipliers)
+                        const mults = [];
+                        const mMin = 0.7, mMax = 1.4, K = 13;
+                        for (let i=0;i<K;i++) {
+                            const t = i/(K-1);
+                            mults.push(mMin * Math.pow(mMax/mMin, t));
+                        }
+                        const ws = mults.map(m => 2*PI * Math.max(10, Math.min(0.45*sr, m*clipCo)) / sr);
+
+                        // Precompute Δφ_k = φ_hp - φ_lp at each ω_k (LR4 has 2 cascaded sections)
+                        const dphis = ws.map(w => {
+                            const Hlp = Hsec(b0_lp, b1_lp, b2_lp, a1_c, a2_c, w);
+                            const Hhp = Hsec(b0_hp, b1_hp, b2_hp, a1_c, a2_c, w);
+                            const phi_lp = 2 * phase(Hlp);
+                            const phi_hp = 2 * phase(Hhp);
+                            return (phi_hp - phi_lp);
+                        });
+
+                        // Weights: log-Gaussian centered at 1.0 (σ ≈ 0.3 oct)
+                        const weights = mults.map(m => {
+                            const d = Math.log2(m);
+                            return 0.5 + Math.exp(-(d*d)/(0.3*0.3));
+                        });
+
+                        // Allpass phase at ω: φ_ap(ω; a) = -2 atan( ((1-a)/(1+a)) tan(ω/2) )
+                        const phi_ap = (w,a)=>{
+                            const t = Math.tan(w/2);
+                            const r = (1-a)/(1+a);
+                            if (!isFinite(t) || !isFinite(r)) return 0;
+                            return -2 * Math.atan(r * t);
+                        };
+
+                        // Objective: sum weights * wrap(dphi - phi_ap)^2
+                        const objective = (a)=>{
+                            // keep inside stability region
+                            if (a <= -0.999 || a >= 0.999 || !isFinite(a)) return 1e9;
+                            let sse = 0;
+                            for (let k=0;k<ws.length;k++) {
+                                const e = angErr(dphis[k] - phi_ap(ws[k], a));
+                                sse += weights[k] * e * e;
+                            }
+                            return sse;
+                        };
+
+                        // Golden-section search on a ∈ [amin, amax]
+                        let amin = -0.95, amax = 0.95;
+                        const gr = 0.61803398875;
+                        let x1 = amax - gr*(amax-amin);
+                        let x2 = amin + gr*(amax-amin);
+                        let f1 = objective(x1);
+                        let f2 = objective(x2);
+                        for (let it=0; it<48; it++) {
+                            if (f1 > f2) {
+                                amin = x1; x1 = x2; f1 = f2; x2 = amin + gr*(amax-amin); f2 = objective(x2);
+                            } else {
+                                amax = x2; x2 = x1; f2 = f1; x1 = amax - gr*(amax-amin); f1 = objective(x1);
+                            }
+                        }
+                        let a = (f1 < f2 ? x1 : x2);
+                        if (!isFinite(a)) { context.ap_enabled = false; a = 0; }
+                        a = Math.max(-0.99, Math.min(0.99, a));
+                        context.ap_enabled = true;
+                        context.ap_a = a;
+
+                        // Allocate state arrays
+                        if (!context.ap_x1_states || context.ap_x1_states.length !== chs) {
+                            context.ap_x1_states = new Float32Array(chs).fill(0);
+                            context.ap_y1_states = new Float32Array(chs).fill(0);
+                        } else {
+                            context.ap_x1_states.fill(0);
+                            context.ap_y1_states.fill(0);
+                        }
+                    } catch (e) {
+                        context.ap_enabled = false;
+                        context.ap_a = 0;
+                    }
+                })();
+
                 // Output gain (linear)
                 context.outputGain = Math.pow(10, context.wg / 20);
 
@@ -520,6 +623,10 @@ class HornResonatorPlusPlugin extends PluginBase {
             const lowDelayIdx = context.lowDelayIdx;
 
             const outputGain = context.outputGain;
+            const ap_enabled = !!context.ap_enabled;
+            const ap_a = context.ap_a || 0;
+            const ap_x1_states = context.ap_x1_states;
+            const ap_y1_states = context.ap_y1_states;
 
             // ---- Per-channel processing ----
             for (let ch = 0; ch < chs; ch++) {
@@ -542,6 +649,8 @@ class HornResonatorPlusPlugin extends PluginBase {
 
                 let currentLowDelayWriteIdx = lowDelayIdx[ch];
                 const currentLowDelayLine = lowDelay[ch];
+                let ap_x1 = ap_x1_states ? ap_x1_states[ch] : 0;
+                let ap_y1 = ap_y1_states ? ap_y1_states[ch] : 0;
 
                 // ---- Per-sample loop ----
                 for (let i = 0; i < bs; i++) {
@@ -557,6 +666,15 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // Low-pass, stage 2
                     outputLow = b0_lp * y1_lp + b1_lp * lpState[4] + b2_lp * lpState[5] - a1_c * lpState[6] - a2_c * lpState[7];
                     lpState[5] = lpState[4]; lpState[4] = y1_lp; lpState[7] = lpState[6]; lpState[6] = outputLow;
+
+                    // Allpass correction at crossover for low band
+                    let outputLowCorr = outputLow;
+                    if (ap_enabled) {
+                        // y[n] = -a*y[n-1] + a*x[n] + x[n-1]
+                        outputLowCorr = -ap_a * ap_y1 + ap_a * outputLow + ap_x1;
+                        ap_x1 = outputLow;
+                        ap_y1 = outputLowCorr;
+                    }
 
                     // High-pass, stage 1
                     y1_hp = b0_hp * inputSample + b1_hp * hpState[0] + b2_hp * hpState[1] - a1_c * hpState[2] - a2_c * hpState[3];
@@ -623,7 +741,7 @@ class HornResonatorPlusPlugin extends PluginBase {
                     // ---- Form output ----
                     const transmittedHighFreq = fwN + reflectedMouthWave; // boundary pressure proxy
                     const delayedLowFreq = currentLowDelayLine[currentLowDelayWriteIdx];
-                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLow; // write current low
+                    currentLowDelayLine[currentLowDelayWriteIdx] = outputLowCorr; // write current low (phase-corrected)
                     currentLowDelayWriteIdx++;
                     if (currentLowDelayWriteIdx >= N) currentLowDelayWriteIdx = 0;
 
@@ -635,6 +753,8 @@ class HornResonatorPlusPlugin extends PluginBase {
                 rm_y2_states[ch] = rm_y2;
                 rt_y1_states[ch] = rt_y1;
                 lowDelayIdx[ch]  = currentLowDelayWriteIdx;
+                if (ap_x1_states) ap_x1_states[ch] = ap_x1;
+                if (ap_y1_states) ap_y1_states[ch] = ap_y1;
                 context.bufIdx[ch] = bufIndex;
             } // end channel loop
 
