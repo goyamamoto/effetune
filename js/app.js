@@ -754,7 +754,7 @@ class App {
             });
         }
 
-        // Auto-resume audio context when page gains focus
+        // Auto-resume audio context when page gains focus/visibility
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.audioManager.audioContext &&
                 this.audioManager.audioContext.state === 'suspended') {
@@ -762,10 +762,39 @@ class App {
             }
         });
 
+        window.addEventListener('focus', () => {
+            if (this.audioManager.audioContext && this.audioManager.audioContext.state === 'suspended') {
+                this.audioManager.audioContext.resume();
+            }
+        });
+
+        // Monitor AudioContext state and attempt recovery
+        if (this.audioManager.audioContext) {
+            try {
+                this.audioManager.audioContext.onstatechange = async () => {
+                    const ctx = this.audioManager.audioContext;
+                    if (!ctx) return;
+                    if (ctx.state === 'suspended') {
+                        try { await ctx.resume(); } catch (_) { /* noop */ }
+                    } else if (ctx.state === 'closed') {
+                        // Reinitialize on unexpected close
+                        try { await this.audioManager.reset(await window.electronIntegration?.loadAudioPreferences?.()); } catch (_) { /* noop */ }
+                    }
+                };
+            } catch (_) { /* ignore */ }
+        }
+
         // Handle audio device changes (e.g., USB device reconnected)
         if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
             navigator.mediaDevices.addEventListener('devicechange', () => {
                 this.handleOutputDeviceChange();
+            });
+        }
+
+        // Handle OS resume (Electron only)
+        if (window.electronAPI && typeof window.electronAPI.onIPC === 'function') {
+            window.electronAPI.onIPC('system-resume', async () => {
+                await this.handleSystemResume();
             });
         }
     }
@@ -863,6 +892,29 @@ class App {
             } else if (currentSink === prefs.outputDeviceId) {
                 await this.audioManager.reset(prefs);
             }
+        }
+    }
+
+    /**
+     * Handle system resume from sleep/hibernation (Electron)
+     */
+    async handleSystemResume() {
+        try {
+            // First try to resume the existing context
+            if (this.audioManager?.audioContext && this.audioManager.audioContext.state === 'suspended') {
+                try { await this.audioManager.audioContext.resume(); } catch (_) {}
+            }
+
+            // If still not running, perform a full reset (ensures worklet reload & pipeline rebuild)
+            if (!this.audioManager?.audioContext || this.audioManager.audioContext.state !== 'running') {
+                const prefs = await window.electronIntegration?.loadAudioPreferences?.();
+                await this.audioManager.reset(prefs || null);
+            }
+
+            // Update UI sample rate display after resume/reset
+            this.uiManager?.updateSampleRateDisplay?.();
+        } catch (e) {
+            console.warn('System resume handling failed:', e);
         }
     }
 
