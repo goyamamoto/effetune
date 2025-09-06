@@ -5,7 +5,7 @@ class DynamicSaturationPlugin extends PluginBase {
         // Initialize parameters with default values
         this.sd = 3.0;   // sd: Speaker Drive (0.0-10.0)
         this.ss = 2.0;   // ss: Speaker Stiffness (0.0-10.0)
-        this.sp = 1.0;   // sp: Speaker Damping (0.0-10.0)
+        this.sp = 1.0;   // sp: Speaker Damping (0.1-10.0)
         this.sm = 1.0;   // sm: Speaker Mass (0.1-5.0)
         this.dd = 1.5;   // dd: Distortion Drive (0.0-10.0)
         this.db = 0.1;   // db: Distortion Bias (-1.0-1.0)
@@ -32,7 +32,8 @@ class DynamicSaturationPlugin extends PluginBase {
                 sampleRate
             } = parameters;
         
-            const dt_half = 0.5 * (48000 / sampleRate);
+            const dt = 48000 / sampleRate;
+            const dt_half = 0.5 * dt;
         
             const dstMixRatio = dstMix * 0.01;
             const coneMixRatio = coneMix * 0.01;
@@ -59,16 +60,27 @@ class DynamicSaturationPlugin extends PluginBase {
                     const dataIndex = offset + i;
                     const inputSample = data[dataIndex];
         
-                    const a = (spkDrive * inputSample - spkStiff * x - spkDamp * v) * invSpkMass;
-                    const vHalf = v + a * dt_half;
-        
-                    const xNew = x + vHalf * (48000 / sampleRate);
-        
-                    const aNew = (spkDrive * inputSample - spkStiff * xNew - spkDamp * vHalf) * invSpkMass;
-                    const vNew = vHalf + aNew * dt_half;
-        
-                    x = xNew;
-                    v = vNew;
+                    // Improved numerical integration with better stability
+                    const force = spkDrive * inputSample - spkStiff * x - spkDamp * v;
+                    const a = force * invSpkMass;
+                    
+                    // Use adaptive clamping based on current state
+                    const maxAccel = Math.abs(v) * 10 > 1000 ? Math.abs(v) * 10 : 1000;
+                    const aClamped = a < -maxAccel ? -maxAccel : (a > maxAccel ? maxAccel : a);
+                    
+                    // Semi-implicit Euler integration
+                    const vNew = v + aClamped * dt;
+                    const xNew = x + vNew * dt;
+                    
+                    // Adaptive clamping for position and velocity
+                    const maxPos = Math.abs(inputSample) * 2 > 10 ? Math.abs(inputSample) * 2 : 10;
+                    const maxVel = Math.abs(inputSample) * 100 > 1000 ? Math.abs(inputSample) * 100 : 1000;
+                    
+                    const xClamped = xNew < -maxPos ? -maxPos : (xNew > maxPos ? maxPos : xNew);
+                    const vClamped = vNew < -maxVel ? -maxVel : (vNew > maxVel ? maxVel : vNew);
+                    
+                    x = xClamped;
+                    v = vClamped;
         
                     const wetDist = Math.tanh(dstDrive * (x + dstBias)) - dstBiasTerm;
                     const xNl = x + dstMixRatio * (wetDist - x);
@@ -90,34 +102,43 @@ class DynamicSaturationPlugin extends PluginBase {
     setParameters(params) {
         let graphNeedsUpdate = false;
         if (params.sd !== undefined) {
-            this.sd = Math.max(0, Math.min(10, params.sd));
+            const sd = params.sd < 0 ? 0 : (params.sd > 10 ? 10 : params.sd);
+            this.sd = sd;
         }
         if (params.ss !== undefined) {
-            this.ss = Math.max(0, Math.min(10, params.ss));
+            const ss = params.ss < 0 ? 0 : (params.ss > 10 ? 10 : params.ss);
+            this.ss = ss;
         }
         if (params.sp !== undefined) {
-            this.sp = Math.max(0, Math.min(10, params.sp));
+            const sp = params.sp < 0.1 ? 0.1 : (params.sp > 10 ? 10 : params.sp);
+            this.sp = sp;
         }
         if (params.sm !== undefined) {
-            this.sm = Math.max(0.1, Math.min(5, params.sm));
+            const sm = params.sm < 0.1 ? 0.1 : (params.sm > 5 ? 5 : params.sm);
+            this.sm = sm;
         }
         if (params.dd !== undefined) {
-            this.dd = Math.max(0, Math.min(10, params.dd));
+            const dd = params.dd < 0 ? 0 : (params.dd > 10 ? 10 : params.dd);
+            this.dd = dd;
             graphNeedsUpdate = true;
         }
         if (params.db !== undefined) {
-            this.db = Math.max(-1, Math.min(1, params.db));
+            const db = params.db < -1 ? -1 : (params.db > 1 ? 1 : params.db);
+            this.db = db;
             graphNeedsUpdate = true;
         }
         if (params.dm !== undefined) {
-            this.dm = Math.max(0, Math.min(100, params.dm));
+            const dm = params.dm < 0 ? 0 : (params.dm > 100 ? 100 : params.dm);
+            this.dm = dm;
             graphNeedsUpdate = true;
         }
         if (params.cm !== undefined) {
-            this.cm = Math.max(0, Math.min(100, params.cm));
+            const cm = params.cm < 0 ? 0 : (params.cm > 100 ? 100 : params.cm);
+            this.cm = cm;
         }
         if (params.og !== undefined) {
-            this.og = Math.max(-18, Math.min(18, params.og));
+            const og = params.og < -18 ? -18 : (params.og > 18 ? 18 : params.og);
+            this.og = og;
         }
         if (params.enabled !== undefined) {
             this.enabled = params.enabled;
@@ -225,23 +246,23 @@ class DynamicSaturationPlugin extends PluginBase {
 
         // Use base helper to create controls
         container.appendChild(this.createParameterControl(
-            'Speaker Damping', 0.1, 2.0, 0.01, this.sd,
+            'Speaker Drive', 0, 10, 0.1, this.sd,
             this.setSd.bind(this)
         ));
         container.appendChild(this.createParameterControl(
-            'Speaker Stiffness', 1, 10000, 1, this.ss,
+            'Speaker Stiffness', 0, 10, 0.1, this.ss,
             this.setSs.bind(this)
         ));
         container.appendChild(this.createParameterControl(
-            'Speaker Position', -1, 1, 0.02, this.sp,
+            'Speaker Damping', 0.1, 10, 0.1, this.sp,
             this.setSp.bind(this)
         ));
         container.appendChild(this.createParameterControl(
-            'Speaker Mass', 0.001, 0.1, 0.001, this.sm,
+            'Speaker Mass', 0.1, 5, 0.05, this.sm,
             this.setSm.bind(this)
         ));
         container.appendChild(this.createParameterControl(
-            'Distortion Drive', 0, 1, 0.01, this.dd,
+            'Distortion Drive', 0, 10, 0.1, this.dd,
             this.setDd.bind(this)
         ));
         container.appendChild(this.createParameterControl(

@@ -88,6 +88,7 @@
   "ui.title.close": "Fechar",
   "ui.title.expand": "Clique para expandir",
   "ui.title.collapse": "Clique para recolher",
+  "ui.title.presetSelect": "Entrada e carregamento de nome de preset do usuário\nPressione ESC para limpar texto e mostrar todos os itens",
 
   // Interface de processamento de arquivos
   "ui.dropAudioFiles": "Arraste os arquivos de áudio aqui para processá-los com os efeitos atuais",

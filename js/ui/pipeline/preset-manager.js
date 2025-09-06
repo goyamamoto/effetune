@@ -61,14 +61,15 @@ export class PresetManager {
     
     /**
      * Load the preset list from storage
+     * @param {string} preserveValue - Optional value to preserve in the select
      */
-    async loadPresetList() {
+    async loadPresetList(preserveValue = null) {
         // Get datalist element
         const datalist = document.getElementById('presetList');
         if (!datalist) return;
         
-        // Get current value
-        const currentValue = this.presetSelect.value;
+        // Get current value or use preserveValue if provided
+        const currentValue = preserveValue !== null ? preserveValue : this.presetSelect.value;
         
         // Clear existing options
         datalist.innerHTML = '';
@@ -311,7 +312,9 @@ export class PresetManager {
             this.pipelineManager.core.updateWorkletPlugins();
             
             // Update preset list to ensure all presets are available
-            this.loadPresetList();
+            // Pass the preset name to preserve it in the select
+            const presetNameToPreserve = typeof nameOrPreset === 'string' ? nameOrPreset : null;
+            await this.loadPresetList(presetNameToPreserve);
             
             // Ensure master bypass is OFF after loading preset
             this.pipelineManager.core.enabled = true;

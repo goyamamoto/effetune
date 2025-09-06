@@ -88,6 +88,7 @@
   "ui.title.close": "닫기",
   "ui.title.expand": "클릭하여 확장",
   "ui.title.collapse": "클릭하여 축소",
+  "ui.title.presetSelect": "사용자 프리셋 이름 입력 및 로드\nESC 키로 텍스트 지우고 전체 항목 표시",
 
   // 파일 처리 UI
   "ui.dropAudioFiles": "현재 효과로 처리할 오디오 파일을 여기에 드롭하세요",
