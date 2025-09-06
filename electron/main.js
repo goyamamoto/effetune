@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, Tray, Menu, powerMonitor } = require('electron');
+const { app, BrowserWindow, screen, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -293,20 +293,6 @@ function createWindow() {
   
   // Load the app's HTML file
   mainWindow.loadFile('effetune.html');
-
-  // Notify renderer on OS sleep/resume to recover audio
-  try {
-    powerMonitor.on('resume', () => {
-      const win = constants.getMainWindow();
-      if (win && win.webContents) win.webContents.send('system-resume');
-    });
-    powerMonitor.on('suspend', () => {
-      const win = constants.getMainWindow();
-      if (win && win.webContents) win.webContents.send('system-suspend');
-    });
-  } catch (e) {
-    console.warn('powerMonitor hooks failed:', e?.message || String(e));
-  }
 
   // Combined event handler for page load
   mainWindow.webContents.on('did-finish-load', () => {

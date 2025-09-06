@@ -86,17 +86,6 @@ export class AudioContextManager {
                 this.audioContext = new AudioContext(audioContextOptions);
                 console.log('AudioContext created with options:', audioContextOptions);
                 window.audioContext = this.audioContext; // Global reference
-
-                // Attach statechange handler to help recover from system sleep
-                try {
-                    this.audioContext.onstatechange = async () => {
-                        const ctx = this.audioContext;
-                        if (!ctx) return;
-                        if (ctx.state === 'suspended') {
-                            try { await ctx.resume(); } catch (_) { /* ignore */ }
-                        }
-                    };
-                } catch (_) { /* ignore */ }
                 
                 // Set audio context destination channel count based on preferences
                 if (window.electronAPI && window.electronIntegration) {
