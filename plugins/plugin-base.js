@@ -396,6 +396,100 @@ class PluginBase {
         return row;
     }
 
+    // Helper function to create logarithmic slider/number input parameter controls
+    // The slider displays logarithmically but the actual value remains linear
+    createLogarithmicParameterControl(label, min, max, step, value, setter, unit = '') {
+        const row = document.createElement('div');
+        row.className = 'parameter-row';
+
+        const paramName = label.toLowerCase().replace(/\s+/g, '-');
+        const sliderId = `${this.id}-${this.name}-${paramName}-slider`;
+        const valueId = `${this.id}-${this.name}-${paramName}-value`;
+
+        const labelEl = document.createElement('label');
+        labelEl.textContent = `${label}${unit ? ' (' + unit + ')' : ''}:`;
+        labelEl.htmlFor = sliderId;
+
+        // Logarithmic conversion functions
+        const logMin = Math.log10(min);
+        const logMax = Math.log10(max);
+        const logRange = logMax - logMin;
+
+        // Convert linear value to logarithmic slider position (0-100)
+        const linearToLogSlider = (linearValue) => {
+            const logValue = Math.log10(linearValue);
+            return ((logValue - logMin) / logRange) * 100;
+        };
+
+        // Convert logarithmic slider position (0-100) to linear value
+        const logSliderToLinear = (sliderPos) => {
+            const logValue = logMin + (sliderPos / 100) * logRange;
+            return Math.pow(10, logValue);
+        };
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = sliderId;
+        slider.name = sliderId;
+        slider.min = 0;
+        slider.max = 100;
+        slider.step = 0.1;
+        slider.value = linearToLogSlider(value);
+        slider.autocomplete = "off";
+
+        const valueInput = document.createElement('input');
+        valueInput.type = 'number';
+        valueInput.id = valueId;
+        valueInput.name = valueId;
+        valueInput.min = min;
+        valueInput.max = max;
+        valueInput.step = step;
+        valueInput.value = value.toFixed(step < 0.1 ? 2 : (step < 1 ? 1 : 0));
+        valueInput.autocomplete = "off";
+
+        slider.addEventListener('input', (e) => {
+            const linearValue = logSliderToLinear(parseFloat(e.target.value));
+            setter(linearValue);
+            valueInput.value = linearValue.toFixed(step < 0.1 ? 2 : (step < 1 ? 1 : 0));
+        });
+
+        valueInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value) || min;
+            const clampedVal = Math.max(min, Math.min(max, val));
+            setter(clampedVal);
+            e.target.value = clampedVal.toFixed(step < 0.1 ? 2 : (step < 1 ? 1 : 0));
+            slider.value = linearToLogSlider(clampedVal);
+        });
+
+        // Clamp value on blur or Enter key press for the number input
+        const clampAndUpdate = (e) => {
+            const val = parseFloat(e.target.value) || min;
+            const clampedVal = Math.max(min, Math.min(max, val));
+            if (clampedVal !== val) {
+                setter(clampedVal);
+                e.target.value = clampedVal.toFixed(step < 0.1 ? 2 : (step < 1 ? 1 : 0));
+                slider.value = linearToLogSlider(clampedVal);
+            } else if (isNaN(val)) {
+                setter(min);
+                e.target.value = min.toFixed(step < 0.1 ? 2 : (step < 1 ? 1 : 0));
+                slider.value = linearToLogSlider(min);
+            }
+        };
+        valueInput.addEventListener('blur', clampAndUpdate);
+        valueInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clampAndUpdate(e);
+                e.preventDefault();
+            }
+        });
+
+        row.appendChild(labelEl);
+        row.appendChild(slider);
+        row.appendChild(valueInput);
+
+        return row;
+    }
+
     // Create UI elements for the plugin (must be implemented by subclasses).
     createUI() {
         // Default implementation returns an empty container

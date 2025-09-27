@@ -1,14 +1,14 @@
-class CompressorPlugin extends PluginBase {
+class ExpanderPlugin extends PluginBase {
     constructor() {
-        super('Compressor', 'Dynamic range compression with threshold, ratio, and knee control');
+        super('Expander', 'Dynamic range expansion below threshold with ratio and knee control');
 
         this.th = -24;  // th: Threshold (-60 to 0 dB)
-        this.rt = 2;    // rt: Ratio (0.5:1 to 20:1)
+        this.rt = 2;    // rt: Ratio (0.05:1 to 20:1)
         this.at = 10;   // at: Attack Time (0.1 to 100 ms)
         this.rl = 100;  // rl: Release Time (10 to 1000 ms)
         this.kn = 3;    // kn: Knee (0 to 12 dB)
         this.gn = 0;    // gn: Gain (-12 to +12 dB)
-        this.gr = 0;    // gr: Current gain reduction value
+        this.gb = 0;    // gb: Current gain boost value (instead of gain reduction)
         this.enabled = true; // Plugin is enabled by default
         this.lastProcessTime = performance.now() / 1000;
         this.animationFrameId = null;
@@ -22,12 +22,12 @@ class CompressorPlugin extends PluginBase {
     // Returns the processor code string with optimized processing
     getProcessorCode() {
         return `
-            // If compression is disabled, return the input immediately without processing
+            // If expansion is disabled, return the input immediately without processing
             if (!parameters.enabled) {
                 // Attach measurements object even when disabled for consistent return type
                 data.measurements = {
                     time: parameters.time, // Pass time through
-                    gainReduction: 0.0     // No gain reduction when disabled
+                    gainBoost: 0.0     // No gain boost when disabled
                 };
                 return data;
             }
@@ -49,10 +49,17 @@ class CompressorPlugin extends PluginBase {
             const channelCount = parameters.channelCount;
             const sampleRate = parameters.sampleRate;
 
-            // Calculate derived parameters (kept from original logic)
+            // Calculate derived parameters
             const halfKnee = kn * 0.5;
-            // Ensure float division; prevent ratio=1 causing division by zero or invRatio=0
-            const invRatio = (rt === 1.0) ? 0.0 : (1.0 - 1.0 / rt); // Original calculation for slope: 1 - 1/ratio
+            // For expander: when signal is below threshold, apply expansion
+            // Expansion ratio calculation based on requirements:
+            // - Ratio 2.0: input at threshold-12dB should output at threshold-24dB (relative -24dB)
+            // - Ratio 0.5: input at threshold-12dB should output at threshold-6dB (relative -6dB)
+            // Formula: output = threshold + (input - threshold) * ratio
+            // Test: threshold=-12dB, input=-24dB, diff=-12dB
+            // Ratio 2.0: output = -12 + (-12) * 2 = -12 - 24 = -36dB (threshold-24dB) ✓
+            // Ratio 0.5: output = -12 + (-12) * 0.5 = -12 - 6 = -18dB (threshold-6dB) ✓
+            const expansionSlope = rt - 1; // Expansion slope for below-threshold signals (match graph logic)
 
             // Calculate filter coefficients for attack and release
             const attackSamplesRaw = (parameters.at * sampleRate) / 1000.0;
@@ -153,16 +160,16 @@ class CompressorPlugin extends PluginBase {
             // Create or reuse work buffer for intermediate envelope calculations per block
              if (!context.workBuffer || context.workBuffer.length !== blockSize) {
                  if (blockSize <= 0) { // Basic check added previously, good safeguard
-                    console.error("CompressorPlugin: Invalid blockSize received:", blockSize);
+                    console.error("ExpanderPlugin: Invalid blockSize received:", blockSize);
                     result.set(data);
-                    result.measurements = { time: parameters.time, gainReduction: 0.0 };
+                    result.measurements = { time: parameters.time, gainBoost: 0.0 };
                     return result;
                  }
                  context.workBuffer = new Float32Array(blockSize);
              }
             const workBuffer = context.workBuffer;
 
-            let maxGainReduction = 0.0; // Track max GR within this block
+            let maxGainBoost = 0.0; // Track max GB within this block
 
             // Process each audio channel
             for (let ch = 0; ch < channelCount; ch++) {
@@ -184,7 +191,7 @@ class CompressorPlugin extends PluginBase {
                 // Store the final envelope state for the next block
                 context.envelopeStates[ch] = envelope;
 
-                // --- Optimization: Check if compression is needed (Functionally identical to original) ---
+                // --- Optimization: Check if expansion is needed ---
                 let maxEnvelope = MIN_ENVELOPE;
                  for (let i = 0; i < blockSize; i++) {
                      if (workBuffer[i] > maxEnvelope) maxEnvelope = workBuffer[i];
@@ -192,8 +199,8 @@ class CompressorPlugin extends PluginBase {
                 const maxEnvelopeDb = fastDb(maxEnvelope);
                 const maxDiff = maxEnvelopeDb - th;
 
-                // Original condition: If max level is below the start of the knee, skip detailed processing
-                if (maxDiff <= -halfKnee) {
+                // For expander: If max level is above the start of the knee, skip detailed processing
+                if (maxDiff >= halfKnee) {
                     // Apply ONLY makeup gain if needed. Calculate makeup gain multiplier.
                     const makeupGainMultiplier = fastExpDb(gn);
                     if (makeupGainMultiplier !== 1.0) {
@@ -201,15 +208,15 @@ class CompressorPlugin extends PluginBase {
                             result[offset + i] = data[offset + i] * makeupGainMultiplier;
                         }
                     } else {
-                        // Fastest path: No compression, no makeup gain. Copy data.
-                        result.set(data.subarray(offset, offset + blockSize), offset); // Potentially faster copy
+                        // Fastest path: No expansion, no makeup gain. Copy data.
+                        result.set(data.subarray(offset, offset + blockSize), offset);
                     }
                     continue; // Skip to next channel
                 }
                 // --- End Optimization Check ---
 
 
-                // Second pass: Calculate gain reduction and apply gain. Loop unrolling maintained.
+                // Second pass: Calculate gain boost and apply gain. Loop unrolling maintained.
                 const blockSizeMod4 = blockSize - (blockSize % 4);
                 let i = 0;
 
@@ -218,84 +225,84 @@ class CompressorPlugin extends PluginBase {
                     // --- Sample 1 ---
                     const envDb1 = fastDb(workBuffer[i]);
                     const diff1 = envDb1 - th;
-                    let gr1 = 0.0; // Gain Reduction in dB (non-negative)
-                    // Original gain reduction logic:
+                    let gb1 = 0.0; // Gain Boost in dB (non-negative)
+                    // Expander gain reduction logic:
                     if (diff1 <= -halfKnee) {
-                        gr1 = 0.0;
+                        gb1 = diff1 * expansionSlope; // Linear reduction below threshold
                     } else if (diff1 >= halfKnee) {
-                        gr1 = diff1 * invRatio; // Linear reduction above knee (Original Formula) - Error in original code, should be (diff - knee/2) * invRatio + knee_reduction ? Let's stick to original for now. Revisit if behavior differs. Correction: Original WAS diff * invRatio. It implicitly includes the knee region's reduction.
+                        gb1 = 0.0; // No reduction above threshold
                     } else { // Within knee
                         const t1 = (diff1 + halfKnee) / kn;
-                        // Original quadratic knee formula
-                        gr1 = invRatio * kn * t1 * t1 * 0.5; // Error in original: knee*t*t/2 should be multiplied by slope invRatio for smooth transition
-                        // Reverting STRICTLY to original formula: gainReduction = slope * kneeDb * t * t / 2; slope = (1 - 1/ratio) = invRatio;
-                        // Original code had: gainReduction = invRatio * kn * t * t * 0.5; This seems correct.
+                        // Quadratic knee with value continuity at boundaries
+                        const linearBelow = (-halfKnee) * expansionSlope;
+                        gb1 = linearBelow * (1 - t1) * (1 - t1);
                     }
-                    const finalDbGain1 = gn - gr1; // Total gain = Makeup Gain - Gain Reduction
+                    const finalDbGain1 = gn + gb1; // Total gain = Makeup Gain + Gain Boost
                     const linearGain1 = fastExpDb(finalDbGain1); // Convert total dB gain to linear multiplier
                     result[offset + i] = data[offset + i] * linearGain1;
-                    const absGr1 = gr1 >= 0 ? gr1 : -gr1;
-                    if (absGr1 > maxGainReduction) maxGainReduction = absGr1; // Update max GR
+                    const absGb1 = gb1 >= 0 ? gb1 : -gb1;
+                    if (absGb1 > maxGainBoost) maxGainBoost = absGb1; // Update max GB
 
                     // --- Sample 2 ---
                     const envDb2 = fastDb(workBuffer[i + 1]);
                     const diff2 = envDb2 - th;
-                    let gr2 = 0.0;
-                    if (diff2 <= -halfKnee) { gr2 = 0.0; }
-                    else if (diff2 >= halfKnee) { gr2 = diff2 * invRatio; }
-                    else { const t2 = (diff2 + halfKnee) / kn; gr2 = invRatio * kn * t2 * t2 * 0.5; }
-                    const finalDbGain2 = gn - gr2;
+                    let gb2 = 0.0;
+                    if (diff2 <= -halfKnee) { gb2 = diff2 * expansionSlope; }
+                    else if (diff2 >= halfKnee) { gb2 = 0.0; }
+                    else { const t2 = (diff2 + halfKnee) / kn; const linearBelow2 = (-halfKnee) * expansionSlope; gb2 = linearBelow2 * (1 - t2) * (1 - t2); }
+                    const finalDbGain2 = gn + gb2;
                     const linearGain2 = fastExpDb(finalDbGain2);
                     result[offset + i + 1] = data[offset + i + 1] * linearGain2;
-                    const absGr2 = gr2 >= 0 ? gr2 : -gr2;
-                    if (absGr2 > maxGainReduction) maxGainReduction = absGr2;
+                    const absGb2 = gb2 >= 0 ? gb2 : -gb2;
+                    if (absGb2 > maxGainBoost) maxGainBoost = absGb2;
 
                     // --- Sample 3 ---
                     const envDb3 = fastDb(workBuffer[i + 2]);
                     const diff3 = envDb3 - th;
-                    let gr3 = 0.0;
-                    if (diff3 <= -halfKnee) { gr3 = 0.0; }
-                    else if (diff3 >= halfKnee) { gr3 = diff3 * invRatio; }
-                    else { const t3 = (diff3 + halfKnee) / kn; gr3 = invRatio * kn * t3 * t3 * 0.5; }
-                    const finalDbGain3 = gn - gr3;
+                    let gb3 = 0.0;
+                    if (diff3 <= -halfKnee) { gb3 = diff3 * expansionSlope; }
+                    else if (diff3 >= halfKnee) { gb3 = 0.0; }
+                    else { const t3 = (diff3 + halfKnee) / kn; const linearBelow3 = (-halfKnee) * expansionSlope; gb3 = linearBelow3 * (1 - t3) * (1 - t3); }
+                    const finalDbGain3 = gn + gb3;
                     const linearGain3 = fastExpDb(finalDbGain3);
                     result[offset + i + 2] = data[offset + i + 2] * linearGain3;
-                    const absGr3 = gr3 >= 0 ? gr3 : -gr3;
-                    if (absGr3 > maxGainReduction) maxGainReduction = absGr3;
+                    const absGb3 = gb3 >= 0 ? gb3 : -gb3;
+                    if (absGb3 > maxGainBoost) maxGainBoost = absGb3;
 
                     // --- Sample 4 ---
                     const envDb4 = fastDb(workBuffer[i + 3]);
                     const diff4 = envDb4 - th;
-                    let gr4 = 0.0;
-                    if (diff4 <= -halfKnee) { gr4 = 0.0; }
-                    else if (diff4 >= halfKnee) { gr4 = diff4 * invRatio; }
-                    else { const t4 = (diff4 + halfKnee) / kn; gr4 = invRatio * kn * t4 * t4 * 0.5; }
-                    const finalDbGain4 = gn - gr4;
+                    let gb4 = 0.0;
+                    if (diff4 <= -halfKnee) { gb4 = diff4 * expansionSlope; }
+                    else if (diff4 >= halfKnee) { gb4 = 0.0; }
+                    else { const t4 = (diff4 + halfKnee) / kn; const linearBelow4 = (-halfKnee) * expansionSlope; gb4 = linearBelow4 * (1 - t4) * (1 - t4); }
+                    const finalDbGain4 = gn + gb4;
                     const linearGain4 = fastExpDb(finalDbGain4);
                     result[offset + i + 3] = data[offset + i + 3] * linearGain4;
-                    const absGr4 = gr4 >= 0 ? gr4 : -gr4;
-                    if (absGr4 > maxGainReduction) maxGainReduction = absGr4;
+                    const absGb4 = gb4 >= 0 ? gb4 : -gb4;
+                    if (absGb4 > maxGainBoost) maxGainBoost = absGb4;
                 }
 
                 // Handle remaining samples (if blockSize is not a multiple of 4)
                 for (; i < blockSize; i++) {
                     const envelopeDb = fastDb(workBuffer[i]);
                     const diff = envelopeDb - th;
-                    let gainReduction = 0.0;
+                    let gainBoost = 0.0;
 
                     if (diff <= -halfKnee) {
-                        gainReduction = 0.0;
+                        gainBoost = diff * expansionSlope;
                     } else if (diff >= halfKnee) {
-                        gainReduction = diff * invRatio;
+                        gainBoost = 0.0;
                     } else {
                         const t = (diff + halfKnee) / kn;
-                        gainReduction = invRatio * kn * t * t * 0.5;
+                        const linearBelow = (-halfKnee) * expansionSlope;
+                        gainBoost = linearBelow * (1 - t) * (1 - t);
                     }
 
-                    const absGainReduction = gainReduction >= 0 ? gainReduction : -gainReduction;
-                    if (absGainReduction > maxGainReduction) maxGainReduction = absGainReduction;
+                    const absGainBoost = gainBoost >= 0 ? gainBoost : -gainBoost;
+                    if (absGainBoost > maxGainBoost) maxGainBoost = absGainBoost;
 
-                    const finalDbGain = gn - gainReduction; // Total dB gain
+                    const finalDbGain = gn + gainBoost; // Total dB gain
                     const linearGain = fastExpDb(finalDbGain); // Convert to linear
                     result[offset + i] = data[offset + i] * linearGain;
                 }
@@ -304,7 +311,7 @@ class CompressorPlugin extends PluginBase {
             // Attach measurements
             result.measurements = {
                 time: parameters.time,
-                gainReduction: maxGainReduction
+                gainBoost: maxGainBoost
             };
 
             return result;
@@ -315,11 +322,11 @@ class CompressorPlugin extends PluginBase {
         if (message.type === 'processBuffer') {
             const result = this.process(message);
             
-            // Only update graphs if there's significant gain reduction
-            const GR_THRESHOLD = 0.05; // 0.05 dB threshold for considering gain reduction significant
-            if (this.canvas && this.gr > GR_THRESHOLD) {
+            // Only update graphs if there's significant gain boost
+            const GB_THRESHOLD = 0.05; // 0.05 dB threshold for considering gain boost significant
+            if (this.canvas && this.gb > GB_THRESHOLD) {
                 this.updateTransferGraph();
-                this.updateReductionMeter();
+                this.updateBoostMeter();
             }
             
             return result;
@@ -341,27 +348,26 @@ class CompressorPlugin extends PluginBase {
         const deltaTime = time - this.lastProcessTime;
         this.lastProcessTime = time;
 
-        const targetGr = message.measurements.gainReduction || 0;
+        const targetGb = message.measurements.gainBoost || 0;
         const { attackTime, releaseTime } = this._timeConstants;
         
-        // Fast path: if gain reduction is very small, skip processing
-        const absTargetGr = targetGr >= 0 ? targetGr : -targetGr;
-        const absCurrentGr = this.gr >= 0 ? this.gr : -this.gr;
-        if (absTargetGr < 0.01 && absCurrentGr < 0.01) {
-            this.gr = 0;
+        // Fast path: if gain boost is very small, skip processing
+        const absTargetGb = targetGb >= 0 ? targetGb : -targetGb;
+        const absCurrentGb = this.gb >= 0 ? this.gb : -this.gb;
+        if (absTargetGb < 0.01 && absCurrentGb < 0.01) {
+            this.gb = 0;
             return;
         }
         
         // Smoothing calculation
         const attackFactor = deltaTime / attackTime;
         const releaseFactor = deltaTime / releaseTime;
-        const smoothingFactor = targetGr > this.gr ?
+        const smoothingFactor = targetGb > this.gb ?
             (attackFactor > 1 ? 1 : attackFactor) :
             (releaseFactor > 1 ? 1 : releaseFactor);
 
-        this.gr += (targetGr - this.gr) * smoothingFactor;
-        // Store absolute value for display
-        this.gr = this.gr >= 0 ? this.gr : -this.gr;
+        this.gb += (targetGb - this.gb) * smoothingFactor;
+        this.gb = this.gb < 0 ? 0 : this.gb;
 
         return;
     }
@@ -373,7 +379,7 @@ class CompressorPlugin extends PluginBase {
             graphNeedsUpdate = true;
         }
         if (params.rt !== undefined) {
-            this.rt = params.rt > 20 ? 20 : (params.rt < 0.5 ? 0.5 : params.rt);
+            this.rt = params.rt > 20 ? 20 : (params.rt < 0.05 ? 0.05 : params.rt);
             graphNeedsUpdate = true;
         }
         if (params.at !== undefined) {
@@ -468,17 +474,29 @@ class CompressorPlugin extends PluginBase {
         for (let i = 0; i < width; i++) {
             const inputDb = (i / width) * 60 - 60;
             const diff = inputDb - thresholdDb;
-            let gainReduction = 0;
+            let gainBoost = 0;
+            
+            // Expander logic: expand below threshold, no change above threshold
             if (diff <= -kneeDb / 2) {
-                gainReduction = 0;
+                // Below threshold: apply expansion ratio
+                // For expander: output = threshold + (input - threshold) * ratio
+                // gainBoost = output - input = threshold + (input - threshold) * ratio - input
+                // gainBoost = threshold - input + (input - threshold) * ratio
+                // gainBoost = (threshold - input) + (input - threshold) * ratio
+                // gainBoost = (input - threshold) * (ratio - 1)
+                gainBoost = diff * (ratio - 1);
             } else if (diff >= kneeDb / 2) {
-                gainReduction = diff * (1 - 1 / ratio);
+                // Above threshold: no change (1:1 ratio)
+                gainBoost = 0;
             } else {
+                // Within knee: smooth transition
                 const t = (diff + kneeDb / 2) / kneeDb;
-                const slope = (1 - 1 / ratio);
-                gainReduction = slope * kneeDb * t * t / 2;
+                const slope = (ratio - 1);
+                const linearBelow = (-kneeDb / 2) * slope;
+                gainBoost = linearBelow * (1 - t) * (1 - t);
             }
-            const outputDb = inputDb - gainReduction + gainDb;
+            
+            const outputDb = inputDb + gainBoost + gainDb;
             const x = i;
             const y = ((outputDb + 60) / 60) * height;
             if (i === 0) {
@@ -503,7 +521,7 @@ class CompressorPlugin extends PluginBase {
         ctx.restore();
     }
 
-    updateReductionMeter() {
+    updateBoostMeter() {
         const canvas = this.canvas;
         if (!canvas) return;
 
@@ -511,40 +529,31 @@ class CompressorPlugin extends PluginBase {
         const width = canvas.width;
         const height = canvas.height;
 
-        ctx.save();
-
-        const meterX = width - 32;
         const meterWidth = 32;
-        ctx.beginPath();
-        ctx.rect(meterX, 0, meterWidth, height);
-        ctx.clip();
 
-        ctx.fillStyle = '#222';
-        ctx.fillRect(meterX, 0, meterWidth, height);
-
-        const reductionHeight = Math.min(height, (this.gr / 60) * height);
-        if (reductionHeight > 0) {
-            ctx.fillStyle = '#008000';
-            // Draw direction based on ratio: boost (ratio < 1) from bottom up, reduction (ratio > 1) from top down
+        const absGb = this.gb >= 0 ? this.gb : -this.gb;
+        const boostHeight = Math.min(height, (absGb / 60) * height);
+        if (boostHeight > 0) {
+            ctx.fillStyle = '#008000'; // Green color for boost (same as compressor)
+            
+            // Draw direction based on ratio: boost (ratio > 1) from bottom up, reduction (ratio < 1) from top down
             if (this.rt < 1.0) {
-                // Boost: draw from bottom up
-                ctx.fillRect(meterX, height - reductionHeight, meterWidth, reductionHeight);
+                // Boost: draw from bottom up (current behavior)
+                ctx.fillRect(0, height - boostHeight, meterWidth, boostHeight);
             } else {
-                // Reduction: draw from top down (original behavior)
-                ctx.fillRect(meterX, 0, meterWidth, reductionHeight);
+                // Reduction: draw from top down (same as compressor)
+                ctx.fillRect(0, 0, meterWidth, boostHeight);
             }
         }
-
-        ctx.restore();
     }
 
     createUI() {
         const container = document.createElement('div');
-        container.className = 'compressor-plugin-ui plugin-parameter-ui';
+        container.className = 'expander-plugin-ui plugin-parameter-ui';
 
         // Use inherited createParameterControl
         container.appendChild(this.createParameterControl('Threshold', -60, 0, 1, this.th, this.setTh.bind(this), 'dB'));
-        container.appendChild(this.createLogarithmicParameterControl('Ratio', 0.5, 20, 0.01, this.rt, this.setRt.bind(this), '1:'));
+        container.appendChild(this.createLogarithmicParameterControl('Ratio', 0.05, 20, 0.01, this.rt, this.setRt.bind(this), '1:')); // Logarithmic scale for ratio
         container.appendChild(this.createParameterControl('Attack', 0.1, 100, 0.1, this.at, this.setAt.bind(this), 'ms'));
         container.appendChild(this.createParameterControl('Release', 1, 1000, 1, this.rl, this.setRl.bind(this), 'ms'));
         container.appendChild(this.createParameterControl('Knee', 0, 12, 1, this.kn, this.setKn.bind(this), 'dB'));
@@ -602,7 +611,7 @@ class CompressorPlugin extends PluginBase {
                     const ctx = this.canvas.getContext('2d');
                     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     
-                    this.updateReductionMeter();
+                    this.updateBoostMeter();
                     this.updateTransferGraph();
                     
                     // Store current state for future comparison
@@ -621,14 +630,14 @@ class CompressorPlugin extends PluginBase {
         // Always update if no previous state exists
         if (!lastState) return true;
         
-        // Use a threshold to determine significant gain reduction
-        const GR_THRESHOLD = 0.05; // 0.05 dB threshold for considering gain reduction significant
+        // Use a threshold to determine significant gain boost
+        const GB_THRESHOLD = 0.05; // 0.05 dB threshold for considering gain boost significant
         
-        // Check if there's significant gain reduction
-        const hasActiveReduction = this.gr > GR_THRESHOLD;
+        // Check if there's significant gain boost
+        const hasActiveBoost = this.gb > GB_THRESHOLD;
         
-        // If there's significant gain reduction, we should update
-        if (hasActiveReduction) return true;
+        // If there's significant gain boost, we should update
+        if (hasActiveBoost) return true;
         
         // Compare current state with last state
         const currentState = this.getCurrentGraphState();
@@ -644,7 +653,7 @@ class CompressorPlugin extends PluginBase {
             ratio: this.rt,
             knee: this.kn,
             gain: this.gn,
-            gainReduction: this.gr
+            gainBoost: this.gb
         };
     }
 
@@ -653,9 +662,9 @@ class CompressorPlugin extends PluginBase {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
-        this.gr = 0;
+        this.gb = 0;
         this.lastProcessTime = performance.now() / 1000;
     }
 }
 
-window.CompressorPlugin = CompressorPlugin;
+window.ExpanderPlugin = ExpanderPlugin;
