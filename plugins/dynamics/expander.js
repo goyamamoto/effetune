@@ -496,7 +496,10 @@ class ExpanderPlugin extends PluginBase {
                 gainBoost = linearBelow * (1 - t) * (1 - t);
             }
             
-            const outputDb = inputDb + gainBoost + gainDb;
+            const totalGain = gainBoost + gainDb; // Total gain before clamping
+            // Clamp total gain to match actual audio processing: -60dB to +20dB
+            const clampedTotalGain = Math.max(-60, Math.min(20, totalGain));
+            const outputDb = inputDb + clampedTotalGain;
             const x = i;
             const y = ((outputDb + 60) / 60) * height;
             if (i === 0) {
@@ -531,8 +534,16 @@ class ExpanderPlugin extends PluginBase {
 
         const meterWidth = 32;
 
-        const absGb = this.gb >= 0 ? this.gb : -this.gb;
-        const boostHeight = Math.min(height, (absGb / 60) * height);
+        // Clamp based on ratio: expansion (ratio > 1) or boost (ratio < 1)
+        let clampedGb;
+        if (this.rt > 1.0) {
+            // Expansion mode: clamp to -60dB range
+            clampedGb = Math.max(-60, this.gb);
+        } else {
+            // Boost mode: clamp to +20dB range
+            clampedGb = Math.min(20, this.gb);
+        }
+        const boostHeight = Math.min(height, (Math.abs(clampedGb) / 60) * height);
         if (boostHeight > 0) {
             ctx.fillStyle = '#008000'; // Green color for boost (same as compressor)
             

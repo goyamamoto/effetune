@@ -478,7 +478,11 @@ class CompressorPlugin extends PluginBase {
                 const slope = (1 - 1 / ratio);
                 gainReduction = slope * kneeDb * t * t / 2;
             }
-            const outputDb = inputDb - gainReduction + gainDb;
+            
+            const totalGain = gainDb - gainReduction; // Total gain before clamping
+            // Clamp total gain to match actual audio processing: -60dB to +20dB
+            const clampedTotalGain = Math.max(-60, Math.min(20, totalGain));
+            const outputDb = inputDb + clampedTotalGain;
             const x = i;
             const y = ((outputDb + 60) / 60) * height;
             if (i === 0) {
@@ -522,7 +526,16 @@ class CompressorPlugin extends PluginBase {
         ctx.fillStyle = '#222';
         ctx.fillRect(meterX, 0, meterWidth, height);
 
-        const reductionHeight = Math.min(height, (this.gr / 60) * height);
+        // Clamp based on ratio: boost (ratio < 1) or reduction (ratio > 1)
+        let clampedGr;
+        if (this.rt < 1.0) {
+            // Boost mode: clamp to +20dB range
+            clampedGr = Math.min(20, this.gr);
+        } else {
+            // Reduction mode: clamp to -60dB range
+            clampedGr = Math.max(-60, this.gr);
+        }
+        const reductionHeight = Math.min(height, (Math.abs(clampedGr) / 60) * height);
         if (reductionHeight > 0) {
             ctx.fillStyle = '#008000';
             // Draw direction based on ratio: boost (ratio < 1) from bottom up, reduction (ratio > 1) from top down
