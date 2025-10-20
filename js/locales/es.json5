@@ -145,6 +145,7 @@
   "menu.settings.audioDevices": "Dispositivos de audio...",
   "menu.settings.performanceBenchmark": "Prueba de rendimiento",
   "menu.settings.frequencyResponseMeasurement": "Medición de respuesta en frecuencia",
+  "menu.settings.hornResonatorPlusResponse": "Respuesta de frecuencia de HornResonatorPlus",
 
   "menu.help": "Ayuda",
   "menu.help.help": "Ayuda",

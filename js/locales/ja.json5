@@ -144,6 +144,7 @@
   "menu.settings.audioDevices": "オーディオデバイス...",
   "menu.settings.performanceBenchmark": "パフォーマンスベンチマーク",
   "menu.settings.frequencyResponseMeasurement": "周波数応答測定",
+  "menu.settings.hornResonatorPlusResponse": "HornResonatorPlus周波数特性",
 
   "menu.help": "ヘルプ",
   "menu.help.help": "ヘルプ",

@@ -145,6 +145,7 @@
   "menu.settings.audioDevices": "أجهزة الصوت...",
   "menu.settings.performanceBenchmark": "معيار الأداء",
   "menu.settings.frequencyResponseMeasurement": "قياس الاستجابة الترددية",
+  "menu.settings.hornResonatorPlusResponse": "استجابة التردد لـHornResonatorPlus",
 
   "menu.help": "مساعدة",
   "menu.help.help": "مساعدة",
