@@ -1,5 +1,9 @@
 # Version History
 
+### Version 1.63 (Nov 13, 2025)
+- Added Expander effect
+- Various minor improvements
+
 ### Version 1.62 (Aug 16, 2025)
 - Supports gapless playback
 - Independent scrolling of the plugin list
