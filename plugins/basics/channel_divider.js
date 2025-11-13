@@ -34,14 +34,10 @@ class ChannelDividerPlugin extends PluginBase {
       else if (channelCount === 6 && bandCount > 3) bandCount = 3;
     
       const frequencies = [parameters.f1, parameters.f2, parameters.f3];
-      // Number of biquad stages for each crossover, based on slope. Each stage is -12dB/oct.
-      const biquadStagesPerCrossover = [
-        Math.abs(parameters.s1) / 12,
-        Math.abs(parameters.s2) / 12,
-        Math.abs(parameters.s3) / 12
-      ];
+      const slopes = [parameters.s1, parameters.s2, parameters.s3];
     
-      // --- Filter State & Config Management ---
+      // --- Filter Coefficient Calculation (must be done first to determine section counts) ---
+      // Strict Linkwitz-Riley implementation: Butterworth_N cascaded twice
       let needsReset = !context.filterStates || !context.filterConfig ||
                        context.filterConfig.sampleRate !== sampleRate ||
                        context.filterConfig.channelCount !== channelCount ||
@@ -49,89 +45,171 @@ class ChannelDividerPlugin extends PluginBase {
                        context.filterConfig.frequencies[0] !== frequencies[0] ||
                        context.filterConfig.frequencies[1] !== frequencies[1] ||
                        context.filterConfig.frequencies[2] !== frequencies[2] ||
-                       context.filterConfig.biquadStages[0] !== biquadStagesPerCrossover[0] ||
-                       context.filterConfig.biquadStages[1] !== biquadStagesPerCrossover[1] ||
-                       context.filterConfig.biquadStages[2] !== biquadStagesPerCrossover[2];
+                       context.filterConfig.slopes[0] !== slopes[0] ||
+                       context.filterConfig.slopes[1] !== slopes[1] ||
+                       context.filterConfig.slopes[2] !== slopes[2];
     
-      if (needsReset) {
-        const dcOffset = 1e-25;
-    
-        const createSingleBiquadStateAndInit = () => {
-          const state = { x1: new Float32Array(2), x2: new Float32Array(2), y1: new Float32Array(2), y2: new Float32Array(2) };
-          for (let ch = 0; ch < 2; ch++) {
-            state.x1[ch] = dcOffset; state.x2[ch] = -dcOffset;
-            state.y1[ch] = dcOffset; state.y2[ch] = -dcOffset;
-          }
-          return state;
-        };
-        
-        const createAllBiquadStatesForOneCrossoverType = (numBiquads) => {
-            const biquadStatesArray = [];
-            for (let j = 0; j < numBiquads; j++) {
-                biquadStatesArray.push(createSingleBiquadStateAndInit());
-            }
-            return biquadStatesArray;
-        };
-    
-        context.filterStates = { lp: [], hp: [] };
-        for (let i = 0; i < 3; i++) { // For f1, f2, f3 crossovers
-            context.filterStates.lp.push(createAllBiquadStatesForOneCrossoverType(biquadStagesPerCrossover[i]));
-            context.filterStates.hp.push(createAllBiquadStatesForOneCrossoverType(biquadStagesPerCrossover[i]));
-        }
-    
-        context.filterConfig = {
-          sampleRate, channelCount, bandCount,
-          frequencies: [...frequencies],
-          biquadStages: [...biquadStagesPerCrossover] // Store the number of biquads per crossover
-        };
-    
-        context.fadeIn = {
-          counter: 0,
-          length: Math.min(blockSize, Math.ceil(sampleRate * 0.005))
-        };
-        
-        // Allocate pingPongBuffer for multi-stage filtering
-        // Stereo processing, so blockSize * 2
-        if (!context.pingPongBuffer || context.pingPongBuffer.length !== blockSize * 2) {
-            context.pingPongBuffer = new Float32Array(blockSize * 2);
-        }
-      }
-    
-      // --- Filter Coefficient Calculation ---
-      // Coefficients are for a single 2-pole Butterworth section (one biquad)
-      // These are cascaded 'biquadStagesPerCrossover[i]' times for the desired Linkwitz-Riley slope
       if (needsReset || !context.cachedCoeffs) {
-        const SQRT2 = Math.SQRT2;
+        // Helper functions for Linkwitz-Riley design
+        function computeButterworthQs(N) {
+          const Qs = [];
+          const pairs = Math.floor(N / 2);
+          for (let k = 1; k <= pairs; ++k) {
+            const theta = (2 * k - 1) * Math.PI / (2 * N);
+            const zeta = Math.sin(theta);
+            const Q = 1 / (2 * zeta);
+            Qs.push(Q);
+          }
+          return Qs;
+        }
+        
+        function designFirstOrderButterworth(fs, fc, type) {
+          if (fc <= 0 || fc >= fs * 0.5) return null;
+          const K = 2 * fs;
+          const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+          const Om = warped;
+          const a0 = K + Om;
+          const a1 = Om - K;
+          let b0, b1;
+          if (type === "lp") {
+            b0 = Om;
+            b1 = Om;
+          } else {
+            b0 = -K;
+            b1 = K;
+          }
+          return { b0: b0 / a0, b1: b1 / a0, b2: 0, a1: a1 / a0, a2: 0 };
+        }
+        
+        function designSecondOrderButterworth(fs, fc, Q, type) {
+          if (fc <= 0 || fc >= fs * 0.5) return null;
+          const K = 2 * fs;
+          const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+          const Om = warped;
+          const K2 = K * K;
+          const Om2 = Om * Om;
+          const K2Q = K2 * Q;
+          const Om2Q = Om2 * Q;
+          const a0 = K2Q + K * Om + Om2Q;
+          const a1 = -2 * K2Q + 2 * Om2Q;
+          const a2 = K2Q - K * Om + Om2Q;
+          let b0, b1, b2;
+          if (type === "lp") {
+            b0 = Om2Q;
+            b1 = 2 * Om2Q;
+            b2 = Om2Q;
+          } else {
+            b0 = K2Q;
+            b1 = -2 * K2Q;
+            b2 = K2Q;
+          }
+          return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+        }
+        
+        function designButterworthSections(fs, fc, N, type) {
+          if (!Number.isFinite(N) || N <= 0) return [];
+          const sections = [];
+          const isOdd = (N % 2) !== 0;
+          if (isOdd) {
+            const sec1 = designFirstOrderButterworth(fs, fc, type);
+            if (sec1) sections.push(sec1);
+          }
+          const Qs = computeButterworthQs(N);
+          for (const Q of Qs) {
+            const sec2 = designSecondOrderButterworth(fs, fc, Q, type);
+            if (sec2) sections.push(sec2);
+          }
+          return sections;
+        }
+        
+        function designLinkwitzRileySections(fs, fc, slope, type) {
+          if (slope === 0 || fc <= 0) return [];
+          const absSlope = Math.abs(slope);
+          if (absSlope % 12 !== 0) return [];
+          const N = absSlope / 12;
+          if (type !== "lp" && type !== "hp") return [];
+          const butter = designButterworthSections(fs, fc, N, type);
+          if (!butter.length) return [];
+          // LR: Butterworth_N cascaded twice
+          const lr = butter.slice();
+          for (let i = 0; i < butter.length; ++i) {
+            const s = butter[i];
+            lr.push({ b0: s.b0, b1: s.b1, b2: s.b2, a1: s.a1, a2: s.a2 });
+          }
+          return lr;
+        }
+        
         context.cachedCoeffs = [];
         for (let i = 0; i < 3; i++) {
-          if (i >= bandCount - 1) { // Only calculate for active crossovers
-              context.cachedCoeffs[i] = null; // Placeholder if not active
-              continue;
+          if (i >= bandCount - 1) {
+            context.cachedCoeffs[i] = null;
+            continue;
           }
-    
-          const freq = context.filterConfig.frequencies[i];
-          // Clamp frequency to avoid issues with tan, e.g., freq near 0 or Nyquist
-          const clampedFreq = Math.max(1.0, Math.min(freq, sampleRate * 0.499));
-          const omega = Math.tan(Math.PI * clampedFreq / sampleRate);
-          const omega2 = omega * omega;
-          // For Linkwitz-Riley, each biquad stage is a Butterworth with Q = 1/sqrt(2)
-          const norm = 1 / (omega2 + SQRT2 * omega + 1);
-    
-          const lp_b0 = omega2 * norm;
-          const lp_b1 = 2 * lp_b0;
-          const lp_b2 = lp_b0;
-    
-          const hp_b0 = norm;
-          const hp_b1 = -2 * hp_b0;
-          const hp_b2 = hp_b0;
-    
-          const a1 = 2 * (omega2 - 1) * norm;
-          const a2 = (omega2 - SQRT2 * omega + 1) * norm;
-    
+          
+          const freq = frequencies[i];
+          const clampedFreq = Math.max(10.0, Math.min(freq, sampleRate * 0.499));
+          const slope = slopes[i];
+          
+          const lpSections = designLinkwitzRileySections(sampleRate, clampedFreq, Math.abs(slope), "lp");
+          const hpSections = designLinkwitzRileySections(sampleRate, clampedFreq, Math.abs(slope), "hp");
+          
           context.cachedCoeffs[i] = {
-            lp: { b0: lp_b0, b1: lp_b1, b2: lp_b2, a1, a2 },
-            hp: { b0: hp_b0, b1: hp_b1, b2: hp_b2, a1, a2 }
+            lp: lpSections,
+            hp: hpSections
           };
+        }
+        
+        // Initialize filter states based on actual section counts
+        if (needsReset) {
+          const dcOffset = 1e-25;
+          
+          const createSingleBiquadStateAndInit = () => {
+            const state = { x1: new Float32Array(2), x2: new Float32Array(2), y1: new Float32Array(2), y2: new Float32Array(2) };
+            for (let ch = 0; ch < 2; ch++) {
+              state.x1[ch] = dcOffset; state.x2[ch] = -dcOffset;
+              state.y1[ch] = dcOffset; state.y2[ch] = -dcOffset;
+            }
+            return state;
+          };
+          
+          context.filterStates = { lp: [], hp: [] };
+          for (let i = 0; i < 3; i++) {
+            if (i >= bandCount - 1) {
+              context.filterStates.lp.push([]);
+              context.filterStates.hp.push([]);
+              continue;
+            }
+            
+            const lpStates = [];
+            const hpStates = [];
+            if (context.cachedCoeffs[i]) {
+              for (let j = 0; j < context.cachedCoeffs[i].lp.length; j++) {
+                lpStates.push(createSingleBiquadStateAndInit());
+              }
+              for (let j = 0; j < context.cachedCoeffs[i].hp.length; j++) {
+                hpStates.push(createSingleBiquadStateAndInit());
+              }
+            }
+            context.filterStates.lp.push(lpStates);
+            context.filterStates.hp.push(hpStates);
+          }
+          
+          context.filterConfig = {
+            sampleRate, channelCount, bandCount,
+            frequencies: [...frequencies],
+            slopes: [...slopes]
+          };
+          
+          context.fadeIn = {
+            counter: 0,
+            length: Math.min(blockSize, Math.ceil(sampleRate * 0.005))
+          };
+          
+          // Allocate pingPongBuffer for multi-stage filtering
+          // Stereo processing, so blockSize * 2
+          if (!context.pingPongBuffer || context.pingPongBuffer.length !== blockSize * 2) {
+            context.pingPongBuffer = new Float32Array(blockSize * 2);
+          }
         }
       }
     
@@ -178,53 +256,43 @@ class ChannelDividerPlugin extends PluginBase {
         }
       }
     
-      // Applies 'numBiquadsToApply' cascaded biquad filters.
-      // Result is in 'finalOutputStereoSignal'.
-      function applyMultiBiquadFilter(inputStereoSignal, finalOutputStereoSignal, coeffs, biquadStatesArray, numBiquadsToApply) {
-        if (numBiquadsToApply === 0) { // Should not happen with slopes -12dB and steeper
-            if (inputStereoSignal !== finalOutputStereoSignal) {
-                 finalOutputStereoSignal.set(inputStereoSignal);
-            }
-            return;
+      // Applies cascaded biquad filters with different coefficients for each section.
+      // coeffsArray: array of coefficient objects, one per section
+      // biquadStatesArray: array of state objects, one per section
+      function applyMultiBiquadFilter(inputStereoSignal, finalOutputStereoSignal, coeffsArray, biquadStatesArray) {
+        if (!coeffsArray || coeffsArray.length === 0) {
+          if (inputStereoSignal !== finalOutputStereoSignal) {
+            finalOutputStereoSignal.set(inputStereoSignal);
+          }
+          return;
         }
-        if (numBiquadsToApply < 0) { // Safety check
-            // console.error("numBiquadsToApply cannot be negative");
-            if (inputStereoSignal !== finalOutputStereoSignal) finalOutputStereoSignal.set(inputStereoSignal);
-            return;
+        
+        const numSections = coeffsArray.length;
+        if (numSections === 0) {
+          if (inputStereoSignal !== finalOutputStereoSignal) {
+            finalOutputStereoSignal.set(inputStereoSignal);
+          }
+          return;
         }
-    
-    
+        
         let bufferIn = inputStereoSignal;
-        let bufferOut = (numBiquadsToApply === 1) ? finalOutputStereoSignal : context.pingPongBuffer;
-    
-        for (let stageIdx = 0; stageIdx < numBiquadsToApply; ++stageIdx) {
-            if (stageIdx === numBiquadsToApply - 1) { // Last stage writes to the final output
-                bufferOut = finalOutputStereoSignal;
+        let bufferOut = (numSections === 1) ? finalOutputStereoSignal : context.pingPongBuffer;
+        
+        for (let stageIdx = 0; stageIdx < numSections; ++stageIdx) {
+          if (stageIdx === numSections - 1) {
+            bufferOut = finalOutputStereoSignal;
+          }
+          
+          applySingleBiquadStereo(bufferIn, bufferOut, blockSize, coeffsArray[stageIdx], biquadStatesArray[stageIdx]);
+          
+          if (stageIdx < numSections - 1) {
+            bufferIn = bufferOut;
+            if (stageIdx < numSections - 2) {
+              bufferOut = (bufferIn === finalOutputStereoSignal) ? context.pingPongBuffer : finalOutputStereoSignal;
+            } else {
+              bufferOut = finalOutputStereoSignal;
             }
-            
-            applySingleBiquadStereo(bufferIn, bufferOut, blockSize, coeffs, biquadStatesArray[stageIdx]);
-            
-            // Ping-pong: output of current stage is input to next.
-            // Only swap if not the last stage AND bufferOut was pingPongBuffer
-            if (stageIdx < numBiquadsToApply - 1) {
-                // If bufferOut was pingPongBuffer, next input is pingPongBuffer.
-                // If bufferOut was finalOutputStereoSignal (only if numBiquads=1), loop terminates.
-                // This logic simplifies: bufferIn is always the result of the previous stage.
-                // The next bufferIn should be what we just wrote to bufferOut.
-                bufferIn = bufferOut;
-                // And next bufferOut should be the alternate buffer, unless it's the very last stage.
-                if (stageIdx < numBiquadsToApply - 2) { // If there are at least two more stages
-                     bufferOut = (bufferIn === finalOutputStereoSignal) ? context.pingPongBuffer : finalOutputStereoSignal; // This logic is tricky.
-                                                                                                                            // Simpler:
-                                                                                                                            // bufferOut = (bufferIn === context.pingPongBuffer) ? finalOutputStereoSignal_potentially_if_its_an_intermediate_target : context.pingPongBuffer
-                }
-                 // Simplified ping-pong:
-                 // On all but the last iteration, bufferOut is pingPongBuffer.
-                 // On the last iteration, bufferOut is finalOutputStereoSignal.
-                 // So, bufferIn for the next stage is simply what bufferOut was.
-                 // If the next stage is NOT the last, the next bufferOut is pingPongBuffer again.
-                 // This is handled by the bufferOut assignment at the start of the loop.
-            }
+          }
         }
       }
     
@@ -235,46 +303,38 @@ class ChannelDividerPlugin extends PluginBase {
       }
     
       // --- Main Processing Logic ---
-      // Number of biquads for current crossover is context.filterConfig.biquadStages[crossoverIdx]
+      // Apply Linkwitz-Riley filters with multiple sections per crossover
       
       if (bandCount === 2) {
-        const numBiquadsF1 = context.filterConfig.biquadStages[0];
-        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0], numBiquadsF1);
-        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0], numBiquadsF1);
+        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0]);
+        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0]);
         
         copyToOutput(temp1, 0);
         copyToOutput(temp2, 2);
       } else if (bandCount === 3) {
-        const numBiquadsF1 = context.filterConfig.biquadStages[0];
-        const numBiquadsF2 = context.filterConfig.biquadStages[1];
-    
-        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0], numBiquadsF1); // Lows in temp1
-        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0], numBiquadsF1); // Mid+High in temp2
+        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0]); // Lows in temp1
+        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0]); // Mid+High in temp2
         copyToOutput(temp1, 0);
         
         // temp2 (Mid+High) is now input. Result for Mids in temp1.
-        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[1].lp, context.filterStates.lp[1], numBiquadsF2); // Mids in temp1
+        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[1].lp, context.filterStates.lp[1]); // Mids in temp1
         // temp2 (Mid+High input) is processed again for Highs. Result for Highs in temp2.
-        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[1].hp, context.filterStates.hp[1], numBiquadsF2); // Highs in temp2
+        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[1].hp, context.filterStates.hp[1]); // Highs in temp2
         copyToOutput(temp1, 2);
         copyToOutput(temp2, 4);
       } else if (bandCount === 4) {
-        const numBiquadsF1 = context.filterConfig.biquadStages[0];
-        const numBiquadsF2 = context.filterConfig.biquadStages[1];
-        const numBiquadsF3 = context.filterConfig.biquadStages[2];
-    
-        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0], numBiquadsF1); // Lows in temp1
-        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0], numBiquadsF1); // MidLow+MidHigh+High in temp2
+        applyMultiBiquadFilter(inputCopy, temp1, context.cachedCoeffs[0].lp, context.filterStates.lp[0]); // Lows in temp1
+        applyMultiBiquadFilter(inputCopy, temp2, context.cachedCoeffs[0].hp, context.filterStates.hp[0]); // MidLow+MidHigh+High in temp2
         copyToOutput(temp1, 0);
         
         // temp2 is input. MidLows in temp1. MidHigh+High overwrites temp2.
-        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[1].lp, context.filterStates.lp[1], numBiquadsF2); // MidLows in temp1
-        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[1].hp, context.filterStates.hp[1], numBiquadsF2); // MidHigh+High in temp2
+        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[1].lp, context.filterStates.lp[1]); // MidLows in temp1
+        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[1].hp, context.filterStates.hp[1]); // MidHigh+High in temp2
         copyToOutput(temp1, 2);
     
         // temp2 (MidHigh+High) is input. MidHighs in temp1. Highs overwrites temp2.
-        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[2].lp, context.filterStates.lp[2], numBiquadsF3); // MidHighs in temp1
-        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[2].hp, context.filterStates.hp[2], numBiquadsF3); // Highs in temp2
+        applyMultiBiquadFilter(temp2, temp1, context.cachedCoeffs[2].lp, context.filterStates.lp[2]); // MidHighs in temp1
+        applyMultiBiquadFilter(temp2, temp2, context.cachedCoeffs[2].hp, context.filterStates.hp[2]); // Highs in temp2
         copyToOutput(temp1, 4);
         copyToOutput(temp2, 6);
       }
@@ -328,15 +388,15 @@ class ChannelDividerPlugin extends PluginBase {
     let f1Changed = false, f2Changed = false, f3Changed = false;
 
     if (params.f1 !== undefined && params.f1 !== p.f1) {
-        const val = Math.max(1, Math.min(40000, parseFloat(params.f1)));
+        const val = Math.max(10, Math.min(40000, parseFloat(params.f1)));
         if (!isNaN(val)) { f1 = val; f1Changed = true; }
     }
     if (params.f2 !== undefined && params.f2 !== p.f2) {
-        const val = Math.max(1, Math.min(40000, parseFloat(params.f2)));
+        const val = Math.max(10, Math.min(40000, parseFloat(params.f2)));
         if (!isNaN(val)) { f2 = val; f2Changed = true; }
     }
     if (params.f3 !== undefined && params.f3 !== p.f3) {
-        const val = Math.max(1, Math.min(40000, parseFloat(params.f3)));
+        const val = Math.max(10, Math.min(40000, parseFloat(params.f3)));
         if (!isNaN(val)) { f3 = val; f3Changed = true; }
     }
 
@@ -358,9 +418,9 @@ class ChannelDividerPlugin extends PluginBase {
                 }
             }
         }
-        this.f1 = Math.max(1, Math.min(40000, f1));
-        this.f2 = Math.max(1, Math.min(40000, f2));
-        this.f3 = Math.max(1, Math.min(40000, f3));
+        this.f1 = Math.max(10, Math.min(40000, f1));
+        this.f2 = Math.max(10, Math.min(40000, f2));
+        this.f3 = Math.max(10, Math.min(40000, f3));
         needsUpdate = true;
     }
 
@@ -511,7 +571,7 @@ class ChannelDividerPlugin extends PluginBase {
   }
 
   _createFreqControl(parent, labelPrefix, index, freqSetter, slopeSetter, currentFreq, currentSlope) {
-    const minFreq = 1, maxFreq = 40000;
+    const minFreq = 10, maxFreq = 40000;
     const sliderContainer = document.createElement("div");
     sliderContainer.className = `channel-divider-frequency-slider channel-divider-freq-${index}`;
     Object.assign(sliderContainer.style, { marginBottom: "10px" });
@@ -591,7 +651,7 @@ class ChannelDividerPlugin extends PluginBase {
     if (!this.canvas) return;
     const ctx = this.canvas.getContext("2d");
     const { width, height } = this.canvas;
-    const minFreqLog = Math.log10(1); 
+    const minFreqLog = Math.log10(10); 
     const maxFreqLog = Math.log10(40000); 
 
     ctx.clearRect(0, 0, width, height);
@@ -599,7 +659,7 @@ class ChannelDividerPlugin extends PluginBase {
     ctx.lineWidth = 1;
     ctx.font = "20px Arial"; 
 
-    const gridFreqs = [2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+    const gridFreqs = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
     gridFreqs.forEach(freq => {
       const x = width * (Math.log10(freq) - minFreqLog) / (maxFreqLog - minFreqLog);
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
@@ -672,21 +732,138 @@ class ChannelDividerPlugin extends PluginBase {
   }
 
   calculateFilterMagnitudeDb(freq, cutoffFreq, slope, type) {
-    if (slope === 0 || cutoffFreq <=0) return 0; 
-
-    const absSlope = Math.abs(slope);
-    const n = absSlope / 6; 
-                            
-    const wRatio = freq / cutoffFreq;
-    let magnitudeSquared; 
-
-    if (type === "lp") {
-      magnitudeSquared = 1 / (1 + Math.pow(wRatio, n)); 
-    } else { 
-      magnitudeSquared = Math.pow(wRatio, n) / (1 + Math.pow(wRatio, n)); 
+    if (freq <= 0 || cutoffFreq <= 0 || slope === 0) return 0;
+    
+    const fs = 96000; // Default sample rate for graph calculation
+    const sections = this.designLinkwitzRileySectionsForGraph(fs, cutoffFreq, slope, type);
+    if (!sections.length) return 0;
+    
+    const w = 2 * Math.PI * freq / fs;
+    const cosw = Math.cos(w);
+    const sinw = Math.sin(w);
+    const cos2w = Math.cos(2 * w);
+    const sin2w = Math.sin(2 * w);
+    
+    const z1Re = cosw;
+    const z1Im = -sinw;
+    const z2Re = cos2w;
+    const z2Im = -sin2w;
+    
+    let mag2 = 1.0;
+    
+    for (const s of sections) {
+      const b0 = s.b0, b1 = s.b1, b2 = s.b2;
+      const a1 = s.a1, a2 = s.a2;
+      
+      // Numerator: b0 + b1 z^-1 + b2 z^-2
+      const numRe = b0 + b1 * z1Re + b2 * z2Re;
+      const numIm = b1 * z1Im + b2 * z2Im;
+      
+      // Denominator: 1 + a1 z^-1 + a2 z^-2
+      const denRe = 1 + a1 * z1Re + a2 * z2Re;
+      const denIm = a1 * z1Im + a2 * z2Im;
+      
+      const numMag2 = numRe * numRe + numIm * numIm;
+      const denMag2 = denRe * denRe + denIm * denIm;
+      
+      mag2 *= numMag2 / denMag2;
     }
     
-    return 10 * Math.log10(Math.max(magnitudeSquared, 1e-10)); 
+    const db = 10 * Math.log10(Math.max(mag2, 1e-20));
+    return db;
+  }
+  
+  designLinkwitzRileySectionsForGraph(fs, fc, slope, type) {
+    if (slope === 0 || fc <= 0) return [];
+    const absSlope = Math.abs(slope);
+    if (absSlope % 12 !== 0) return [];
+    const N = absSlope / 12;
+    if (type !== "lp" && type !== "hp") return [];
+    
+    const butter = this.designButterworthSectionsForGraph(fs, fc, N, type);
+    if (!butter.length) return [];
+    
+    // LR: Butterworth_N cascaded twice
+    const lr = butter.slice();
+    for (let i = 0; i < butter.length; ++i) {
+      const s = butter[i];
+      lr.push({ b0: s.b0, b1: s.b1, b2: s.b2, a1: s.a1, a2: s.a2 });
+    }
+    return lr;
+  }
+  
+  designButterworthSectionsForGraph(fs, fc, N, type) {
+    if (!Number.isFinite(N) || N <= 0) return [];
+    const sections = [];
+    const isOdd = (N % 2) !== 0;
+    
+    if (isOdd) {
+      const sec1 = this.designFirstOrderButterworthForGraph(fs, fc, type);
+      if (sec1) sections.push(sec1);
+    }
+    
+    const Qs = this.computeButterworthQsForGraph(N);
+    for (const Q of Qs) {
+      const sec2 = this.designSecondOrderButterworthForGraph(fs, fc, Q, type);
+      if (sec2) sections.push(sec2);
+    }
+    
+    return sections;
+  }
+  
+  computeButterworthQsForGraph(N) {
+    const Qs = [];
+    const pairs = Math.floor(N / 2);
+    for (let k = 1; k <= pairs; ++k) {
+      const theta = (2 * k - 1) * Math.PI / (2 * N);
+      const zeta = Math.sin(theta);
+      const Q = 1 / (2 * zeta);
+      Qs.push(Q);
+    }
+    return Qs;
+  }
+  
+  designFirstOrderButterworthForGraph(fs, fc, type) {
+    if (fc <= 0 || fc >= fs * 0.5) return null;
+    const K = 2 * fs;
+    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+    const Om = warped;
+    const a0 = K + Om;
+    const a1 = Om - K;
+    let b0, b1;
+    if (type === "lp") {
+      b0 = Om;
+      b1 = Om;
+    } else {
+      b0 = -K;
+      b1 = K;
+    }
+    return { b0: b0 / a0, b1: b1 / a0, b2: 0, a1: a1 / a0, a2: 0 };
+  }
+  
+  designSecondOrderButterworthForGraph(fs, fc, Q, type) {
+    if (fc <= 0 || fc >= fs * 0.5) return null;
+    const K = 2 * fs;
+    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+    const Om = warped;
+    const K2 = K * K;
+    const Om2 = Om * Om;
+    const K2Q = K2 * Q;
+    const Om2Q = Om2 * Q;
+    const a0 = K2Q + K * Om + Om2Q;
+    const a1 = -2 * K2Q + 2 * Om2Q;
+    const a2 = K2Q - K * Om + Om2Q;
+    let b0, b1, b2;
+    if (type === "lp") {
+      b0 = Om2Q;
+      b1 = 2 * Om2Q;
+      b2 = Om2Q;
+    } else {
+      b0 = K2Q;
+      b1 = -2 * K2Q;
+      b2 = K2Q;
+    }
+    return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
   }
 
   onMessage(message) {

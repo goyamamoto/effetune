@@ -129,34 +129,109 @@ class MultibandCompressorPlugin extends PluginBase {
       // --- Filter Coefficient Calculation & Caching ---
       // Cache filter coefficients if frequencies have changed since last calculation
       if (!context.cachedFilters || context.cachedFilters.configFrequencies !== context.filterConfig.frequencies) {
-        const sampleRateHalf = sampleRate * 0.5;
-        const invSampleRate = 1.0 / sampleRate;
+        function computeButterworthQs(N) {
+          const Qs = [];
+          const pairs = Math.floor(N / 2);
+          for (let k = 1; k <= pairs; ++k) {
+            const theta = (2 * k - 1) * Math.PI / (2 * N);
+            const zeta = Math.sin(theta);
+            const Q = 1 / (2 * zeta);
+            Qs.push(Q);
+          }
+          return Qs;
+        }
+
+        function designFirstOrderButterworth(fs, fc, type) {
+          if (fc <= 0 || fc >= fs * 0.5) return null;
+          const K = 2 * fs;
+          const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+          const Om = warped;
+          const a0 = K + Om;
+          const a1 = Om - K;
+          let b0, b1;
+          if (type === "lp") {
+            b0 = Om;
+            b1 = Om;
+          } else {
+            b0 = -K;
+            b1 = K;
+          }
+          return { b0: b0 / a0, b1: b1 / a0, b2: 0, a1: a1 / a0, a2: 0 };
+        }
+
+        function designSecondOrderButterworth(fs, fc, Q, type) {
+          if (fc <= 0 || fc >= fs * 0.5) return null;
+          const K = 2 * fs;
+          const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+          const Om = warped;
+          const K2 = K * K;
+          const Om2 = Om * Om;
+          const K2Q = K2 * Q;
+          const Om2Q = Om2 * Q;
+          const a0 = K2Q + K * Om + Om2Q;
+          const a1 = -2 * K2Q + 2 * Om2Q;
+          const a2 = K2Q - K * Om + Om2Q;
+          let b0, b1, b2;
+          if (type === "lp") {
+            b0 = Om2Q;
+            b1 = 2 * Om2Q;
+            b2 = Om2Q;
+          } else {
+            b0 = K2Q;
+            b1 = -2 * K2Q;
+            b2 = K2Q;
+          }
+          return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+        }
+
+        function designButterworthSections(fs, fc, N, type) {
+          if (!Number.isFinite(N) || N <= 0) return [];
+          const sections = [];
+          const isOdd = (N % 2) !== 0;
+          if (isOdd) {
+            const sec1 = designFirstOrderButterworth(fs, fc, type);
+            if (sec1) sections.push(sec1);
+          }
+          const Qs = computeButterworthQs(N);
+          for (const Q of Qs) {
+            const sec2 = designSecondOrderButterworth(fs, fc, Q, type);
+            if (sec2) sections.push(sec2);
+          }
+          return sections;
+        }
+
+        function designLinkwitzRileySections(fs, fc, slope, type) {
+          if (slope === 0 || fc <= 0) return [];
+          const absSlope = Math.abs(slope);
+          if (absSlope % 12 !== 0) return [];
+          const N = absSlope / 12;
+          if (type !== "lp" && type !== "hp") return [];
+          const butter = designButterworthSections(fs, fc, N, type);
+          if (!butter.length) return [];
+          const lr = butter.slice();
+          for (let i = 0; i < butter.length; ++i) {
+            const s = butter[i];
+            lr.push({ b0: s.b0, b1: s.b1, b2: s.b2, a1: s.a1, a2: s.a2 });
+          }
+          return lr;
+        }
+
         context.cachedFilters = new Array(4);
+        const sampleRateLocal = sampleRate;
+        const identityCoeffs = { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 };
 
         for (let i = 0; i < 4; i++) {
-          // Clamp frequency to valid range (avoid Nyquist and DC)
-          const freq = Math.max(20, Math.min(sampleRateHalf - 20, frequencies[i]));
-          const omega = Math.tan(freq * Math.PI * invSampleRate);
-          const omega2 = omega * omega;
-          const norm = 1 / (omega2 + SQRT2 * omega + 1); // Normalization factor
-
-          const lp_b0 = omega2 * norm;
-          const lp_b1 = 2 * lp_b0;
-          const lp_b2 = lp_b0;
-
-          const hp_b0 = norm;
-          const hp_b1 = -2 * hp_b0;
-          const hp_b2 = hp_b0;
-
-          const a1 = 2 * (omega2 - 1) * norm;
-          const a2 = (omega2 - SQRT2 * omega + 1) * norm;
+          const freq = Math.max(10.0, Math.min(frequencies[i], sampleRateLocal * 0.499));
+          const lpSections = designLinkwitzRileySections(sampleRateLocal, freq, 24, "lp");
+          const hpSections = designLinkwitzRileySections(sampleRateLocal, freq, 24, "hp");
 
           context.cachedFilters[i] = {
-            lowpass:  { b0: lp_b0, b1: lp_b1, b2: lp_b2, a1: a1, a2: a2 },
-            highpass: { b0: hp_b0, b1: hp_b1, b2: hp_b2, a1: a1, a2: a2 }
+            lowpassStage1: lpSections[0] || identityCoeffs,
+            lowpassStage2: lpSections[1] || identityCoeffs,
+            highpassStage1: hpSections[0] || identityCoeffs,
+            highpassStage2: hpSections[1] || identityCoeffs
           };
         }
-        // Mark frequencies used for this cache generation
         context.cachedFilters.configFrequencies = context.filterConfig.frequencies;
       }
       const cachedFilters = context.cachedFilters; // Local ref for faster access
@@ -205,8 +280,9 @@ class MultibandCompressorPlugin extends PluginBase {
 
       // --- Helper Function: Apply Biquad Filter Block (Linkwitz-Riley = 2 stages) ---
       // Highly optimized version from the original code
-      function applyFilterBlock(input, output, coeffs, state, ch, blockLen) {
-        const { b0, b1, b2, a1, a2 } = coeffs;
+      function applyFilterBlock(input, output, coeffsStage1, coeffsStage2, state, ch, blockLen) {
+        const { b0: b0_1, b1: b1_1, b2: b2_1, a1: a1_1, a2: a2_1 } = coeffsStage1;
+        const { b0: b0_2, b1: b1_2, b2: b2_2, a1: a1_2, a2: a2_2 } = coeffsStage2;
         const s1 = state.stage1, s2 = state.stage2;
 
         // Cache state variables locally for performance
@@ -221,33 +297,33 @@ class MultibandCompressorPlugin extends PluginBase {
         for (; i < blockLenMod4; i += 4) {
           // Sample 0
           let sample = input[i];
-          let stage1_out = b0 * sample + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+          let stage1_out = b0_1 * sample + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
           s1_x2 = s1_x1; s1_x1 = sample; s1_y2 = s1_y1; s1_y1 = stage1_out;
-          let stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+          let stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
           s2_x2 = s2_x1; s2_x1 = stage1_out; s2_y2 = s2_y1; s2_y1 = stage2_out;
           output[i] = stage2_out;
 
           // Sample 1
           sample = input[i+1];
-          stage1_out = b0 * sample + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+          stage1_out = b0_1 * sample + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
           s1_x2 = s1_x1; s1_x1 = sample; s1_y2 = s1_y1; s1_y1 = stage1_out;
-          stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+          stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
           s2_x2 = s2_x1; s2_x1 = stage1_out; s2_y2 = s2_y1; s2_y1 = stage2_out;
           output[i+1] = stage2_out;
 
           // Sample 2
           sample = input[i+2];
-          stage1_out = b0 * sample + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+          stage1_out = b0_1 * sample + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
           s1_x2 = s1_x1; s1_x1 = sample; s1_y2 = s1_y1; s1_y1 = stage1_out;
-          stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+          stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
           s2_x2 = s2_x1; s2_x1 = stage1_out; s2_y2 = s2_y1; s2_y1 = stage2_out;
           output[i+2] = stage2_out;
 
           // Sample 3
           sample = input[i+3];
-          stage1_out = b0 * sample + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+          stage1_out = b0_1 * sample + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
           s1_x2 = s1_x1; s1_x1 = sample; s1_y2 = s1_y1; s1_y1 = stage1_out;
-          stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+          stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
           s2_x2 = s2_x1; s2_x1 = stage1_out; s2_y2 = s2_y1; s2_y1 = stage2_out;
           output[i+3] = stage2_out;
         }
@@ -256,10 +332,10 @@ class MultibandCompressorPlugin extends PluginBase {
         for (; i < blockLen; i++) {
           const sample = input[i];
           // Stage 1
-          const stage1_out = b0 * sample + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+          const stage1_out = b0_1 * sample + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
           s1_x2 = s1_x1; s1_x1 = sample; s1_y2 = s1_y1; s1_y1 = stage1_out;
           // Stage 2
-          const stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+          const stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
           s2_x2 = s2_x1; s2_x1 = stage1_out; s2_y2 = s2_y1; s2_y1 = stage2_out;
           output[i] = stage2_out;
         }
@@ -294,29 +370,29 @@ class MultibandCompressorPlugin extends PluginBase {
 
         // 2. Apply filters sequentially using the temporary buffers
         // Band 0 (Low): Lowpass filter applied to the input signal
-        applyFilterBlock(inputBuffer, bandSignalsCh[0], cachedFilters[0].lowpass, filterStates.lowpass[0], ch, blockSize);
+        applyFilterBlock(inputBuffer, bandSignalsCh[0], cachedFilters[0].lowpassStage1, cachedFilters[0].lowpassStage2, filterStates.lowpass[0], ch, blockSize);
 
         // Calculate the high-pass complement for the remaining bands
-        applyFilterBlock(inputBuffer, hp1Buffer, cachedFilters[0].highpass, filterStates.highpass[0], ch, blockSize);
+        applyFilterBlock(inputBuffer, hp1Buffer, cachedFilters[0].highpassStage1, cachedFilters[0].highpassStage2, filterStates.highpass[0], ch, blockSize);
 
         // Band 1 (Low-Mid): Lowpass filter applied to the first high-pass result
-        applyFilterBlock(hp1Buffer, bandSignalsCh[1], cachedFilters[1].lowpass, filterStates.lowpass[1], ch, blockSize);
+        applyFilterBlock(hp1Buffer, bandSignalsCh[1], cachedFilters[1].lowpassStage1, cachedFilters[1].lowpassStage2, filterStates.lowpass[1], ch, blockSize);
 
         // Calculate the high-pass complement for the next bands
-        applyFilterBlock(hp1Buffer, hp2Buffer, cachedFilters[1].highpass, filterStates.highpass[1], ch, blockSize);
+        applyFilterBlock(hp1Buffer, hp2Buffer, cachedFilters[1].highpassStage1, cachedFilters[1].highpassStage2, filterStates.highpass[1], ch, blockSize);
 
         // Band 2 (Mid): Lowpass filter applied to the second high-pass result
-        applyFilterBlock(hp2Buffer, bandSignalsCh[2], cachedFilters[2].lowpass, filterStates.lowpass[2], ch, blockSize);
+        applyFilterBlock(hp2Buffer, bandSignalsCh[2], cachedFilters[2].lowpassStage1, cachedFilters[2].lowpassStage2, filterStates.lowpass[2], ch, blockSize);
 
         // Calculate the high-pass complement (reuse hp1Buffer as it's no longer needed)
-        applyFilterBlock(hp2Buffer, hp1Buffer, cachedFilters[2].highpass, filterStates.highpass[2], ch, blockSize);
+        applyFilterBlock(hp2Buffer, hp1Buffer, cachedFilters[2].highpassStage1, cachedFilters[2].highpassStage2, filterStates.highpass[2], ch, blockSize);
 
         // Band 3 (High-Mid): Lowpass filter applied to the third high-pass result
-        applyFilterBlock(hp1Buffer, bandSignalsCh[3], cachedFilters[3].lowpass, filterStates.lowpass[3], ch, blockSize);
+        applyFilterBlock(hp1Buffer, bandSignalsCh[3], cachedFilters[3].lowpassStage1, cachedFilters[3].lowpassStage2, filterStates.lowpass[3], ch, blockSize);
 
         // Band 4 (High): Highpass filter applied to the third high-pass result
         // This is the highest band, so it's the final high-pass residual.
-        applyFilterBlock(hp1Buffer, bandSignalsCh[4], cachedFilters[3].highpass, filterStates.highpass[3], ch, blockSize);
+        applyFilterBlock(hp1Buffer, bandSignalsCh[4], cachedFilters[3].highpassStage1, cachedFilters[3].highpassStage2, filterStates.highpass[3], ch, blockSize);
       }
 
       // --- Compressor Parameter Preparation ---
