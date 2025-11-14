@@ -91,43 +91,51 @@ class MultibandSaturationPlugin extends PluginBase {
     
             // --- Filter Coefficient Calculation ---
             // Calculate coefficients only if they haven't been cached for the current config
+            // Strict Linkwitz-Riley implementation: Butterworth_2 cascaded twice (LR4, -24dB/oct)
             if (!context.cachedFilters) {
-                const SQRT2 = Math.SQRT2; // Cache Math constant
                 const sampleRateHalf = pSampleRate * 0.5;
-                const invSampleRate = 1.0 / pSampleRate;
                 context.cachedFilters = new Array(2);
                 const minFreq = 20.0; // Minimum reasonable frequency
                 const maxFreq = sampleRateHalf - 1.0; // Nyquist - margin
+    
+                // Q factor for 2nd order Butterworth filter
+                const Q = 1.0 / (2.0 * Math.sin(Math.PI / 4.0)); // Q = 1/(2*sin(π/4)) = 1/√2
     
                 for (let i = 0; i < 2; i++) {
                     // Clamp frequency robustly, ensure it's within valid range
                     const rawFreq = pFrequencies[i];
                     const freq = rawFreq < minFreq ? minFreq : (rawFreq > maxFreq ? maxFreq : rawFreq);
                     
-                    // Prewarp frequency
-                    const omega = Math.tan(freq * Math.PI * invSampleRate);
-                    const omega2 = omega * omega;
-                    const k = SQRT2 * omega; // Intermediate term for Butterworth
-                    const den = omega2 + k + 1.0; // Denominator
-                    const invDen = 1.0 / den; // Calculate inverse denominator once for efficiency
+                    // Prewarp frequency (matching channel_divider.js implementation)
+                    const K = 2.0 * pSampleRate;
+                    const warped = 2.0 * pSampleRate * Math.tan(Math.PI * freq / pSampleRate);
+                    const Om = warped;
+                    const K2 = K * K;
+                    const Om2 = Om * Om;
+                    const K2Q = K2 * Q;
+                    const Om2Q = Om2 * Q;
+                    const a0 = K2Q + K * Om + Om2Q;
+                    const a1 = -2.0 * K2Q + 2.0 * Om2Q;
+                    const a2 = K2Q - K * Om + Om2Q;
     
-                    // Common denominator terms for a1, a2
-                    const a1_common = 2.0 * (omega2 - 1.0) * invDen;
-                    const a2_common = (omega2 - k + 1.0) * invDen;
-    
-                    // Lowpass coefficients (Transposed Direct Form II)
-                    const b0_lp = omega2 * invDen;
-                    const b1_lp = 2.0 * b0_lp; // b1 = 2 * b0
-                    // b2 = b0
+                    // Lowpass coefficients (2nd order Butterworth)
+                    const b0_lp = Om2Q / a0;
+                    const b1_lp = (2.0 * Om2Q) / a0;
+                    const b2_lp = Om2Q / a0;
+                    const a1_lp = a1 / a0;
+                    const a2_lp = a2 / a0;
                     
-                    // Highpass coefficients (Transposed Direct Form II)
-                    const b0_hp = invDen;
-                    const b1_hp = -2.0 * b0_hp; // b1 = -2 * b0
-                    // b2 = b0
+                    // Highpass coefficients (2nd order Butterworth)
+                    const b0_hp = K2Q / a0;
+                    const b1_hp = (-2.0 * K2Q) / a0;
+                    const b2_hp = K2Q / a0;
+                    const a1_hp = a1 / a0;
+                    const a2_hp = a2 / a0;
     
+                    // Store coefficients for cascaded application (LR4 = Butterworth_2 cascaded twice)
                     context.cachedFilters[i] = {
-                        lowpass:  { b0: b0_lp, b1: b1_lp, b2: b0_lp, a1: a1_common, a2: a2_common },
-                        highpass: { b0: b0_hp, b1: b1_hp, b2: b0_hp, a1: a1_common, a2: a2_common }
+                        lowpass:  { b0: b0_lp, b1: b1_lp, b2: b2_lp, a1: a1_lp, a2: a2_lp },
+                        highpass: { b0: b0_hp, b1: b1_hp, b2: b2_hp, a1: a1_hp, a2: a2_hp }
                     };
                 }
             }

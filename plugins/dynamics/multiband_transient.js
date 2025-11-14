@@ -114,43 +114,120 @@ class MultibandTransientPlugin extends PluginBase {
     
             // --- Filter Coefficient Calculation ---
             // Calculate coefficients only if they haven't been cached for the current config
-            if (!context.cachedFilters) {
-                const SQRT2 = Math.SQRT2; // Cache Math constant
-                const sampleRateHalf = pSampleRate * 0.5;
-                const invSampleRate = 1.0 / pSampleRate;
+        if (!context.cachedFilters) {
+                function computeButterworthQs(N) {
+                    const Qs = [];
+                    const pairs = Math.floor(N / 2);
+                    for (let k = 1; k <= pairs; ++k) {
+                        const theta = (2 * k - 1) * Math.PI / (2 * N);
+                        const zeta = Math.sin(theta);
+                        const Q = 1 / (2 * zeta);
+                        Qs.push(Q);
+                    }
+                    return Qs;
+                }
+
+                function designFirstOrderButterworth(fs, fc, type) {
+                    if (fc <= 0 || fc >= fs * 0.5) return null;
+                    const K = 2 * fs;
+                    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+                    const Om = warped;
+                    const a0 = K + Om;
+                    const a1 = Om - K;
+                    let b0, b1;
+                    if (type === "lp") {
+                        b0 = Om;
+                        b1 = Om;
+                    } else {
+                        b0 = -K;
+                        b1 = K;
+                    }
+                    return { b0: b0 / a0, b1: b1 / a0, b2: 0, a1: a1 / a0, a2: 0 };
+                }
+
+                function designSecondOrderButterworth(fs, fc, Q, type) {
+                    if (fc <= 0 || fc >= fs * 0.5) return null;
+                    const K = 2 * fs;
+                    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+                    const Om = warped;
+                    const K2 = K * K;
+                    const Om2 = Om * Om;
+                    const K2Q = K2 * Q;
+                    const Om2Q = Om2 * Q;
+                    const a0 = K2Q + K * Om + Om2Q;
+                    const a1 = -2 * K2Q + 2 * Om2Q;
+                    const a2 = K2Q - K * Om + Om2Q;
+                    let b0, b1, b2;
+                    if (type === "lp") {
+                        b0 = Om2Q;
+                        b1 = 2 * Om2Q;
+                        b2 = Om2Q;
+                    } else {
+                        b0 = K2Q;
+                        b1 = -2 * K2Q;
+                        b2 = K2Q;
+                    }
+                    return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+                }
+
+                function designButterworthSections(fs, fc, N, type) {
+                    if (!Number.isFinite(N) || N <= 0) return [];
+                    const sections = [];
+                    const isOdd = (N % 2) !== 0;
+                    if (isOdd) {
+                        const sec1 = designFirstOrderButterworth(fs, fc, type);
+                        if (sec1) sections.push(sec1);
+                    }
+                    const Qs = computeButterworthQs(N);
+                    for (const Q of Qs) {
+                        const sec2 = designSecondOrderButterworth(fs, fc, Q, type);
+                        if (sec2) sections.push(sec2);
+                    }
+                    return sections;
+                }
+
+                function designLinkwitzRileySections(fs, fc, slope, type) {
+                    if (slope === 0 || fc <= 0) return [];
+                    const absSlope = Math.abs(slope);
+                    if (absSlope % 12 !== 0) return [];
+                    const N = absSlope / 12;
+                    if (type !== "lp" && type !== "hp") return [];
+                    const butter = designButterworthSections(fs, fc, N, type);
+                    if (!butter.length) return [];
+                    const lr = butter.slice();
+                    for (let i = 0; i < butter.length; ++i) {
+                        const s = butter[i];
+                        lr.push({ b0: s.b0, b1: s.b1, b2: s.b2, a1: s.a1, a2: s.a2 });
+                    }
+                    return lr;
+                }
+
+                const sampleRateLocal = pSampleRate;
+                const identityCoeffs = { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 };
+
+                const pickStages = (sections) => {
+                    if (!sections || sections.length === 0) return [identityCoeffs, identityCoeffs];
+                    if (sections.length === 1) return [sections[0], sections[0]];
+                    return [sections[0], sections[1]];
+                };
+
                 context.cachedFilters = new Array(2);
-                const minFreq = 20.0; // Minimum reasonable frequency
-                const maxFreq = sampleRateHalf - 1.0; // Nyquist - margin
-    
+
                 for (let i = 0; i < 2; i++) {
-                    // Clamp frequency robustly, ensure it's within valid range
                     const rawFreq = pFrequencies[i];
-                    const freq = rawFreq < minFreq ? minFreq : (rawFreq > maxFreq ? maxFreq : rawFreq);
-                    
-                    // Prewarp frequency
-                    const omega = Math.tan(freq * Math.PI * invSampleRate);
-                    const omega2 = omega * omega;
-                    const k = SQRT2 * omega; // Intermediate term for Butterworth
-                    const den = omega2 + k + 1.0; // Denominator
-                    const invDen = 1.0 / den; // Calculate inverse denominator once for efficiency
-    
-                    // Common denominator terms for a1, a2
-                    const a1_common = 2.0 * (omega2 - 1.0) * invDen;
-                    const a2_common = (omega2 - k + 1.0) * invDen;
-    
-                    // Lowpass coefficients (Transposed Direct Form II)
-                    const b0_lp = omega2 * invDen;
-                    const b1_lp = 2.0 * b0_lp; // b1 = 2 * b0
-                    // b2 = b0
-                    
-                    // Highpass coefficients (Transposed Direct Form II)
-                    const b0_hp = invDen;
-                    const b1_hp = -2.0 * b0_hp; // b1 = -2 * b0
-                    // b2 = b0
-    
+                    const freq = Math.max(10.0, Math.min(rawFreq, sampleRateLocal * 0.499));
+
+                    const lpSections = designLinkwitzRileySections(sampleRateLocal, freq, 24, "lp");
+                    const hpSections = designLinkwitzRileySections(sampleRateLocal, freq, 24, "hp");
+
+                    const [lpStage1, lpStage2] = pickStages(lpSections);
+                    const [hpStage1, hpStage2] = pickStages(hpSections);
+
                     context.cachedFilters[i] = {
-                        lowpass:  { b0: b0_lp, b1: b1_lp, b2: b0_lp, a1: a1_common, a2: a2_common },
-                        highpass: { b0: b0_hp, b1: b1_hp, b2: b0_hp, a1: a1_common, a2: a2_common }
+                        lowpassStage1: lpStage1,
+                        lowpassStage2: lpStage2,
+                        highpassStage1: hpStage1,
+                        highpassStage2: hpStage2
                     };
                 }
             }
@@ -160,15 +237,20 @@ class MultibandTransientPlugin extends PluginBase {
             // --- Biquad Filter Application Function (Optimized) ---
             // Applies a cascaded (2 stages) biquad filter using Transposed Direct Form II.
             // stateArray: Array containing state objects for each channel.
-            function applyFilterBlock(input, output, coeffs, stateArray, ch, blockSize) {
+            function applyFilterBlock(input, output, coeffsStage1, coeffsStage2, stateArray, ch, blockSize) {
                 // Retrieve the state object for the current channel
                 const state = stateArray[ch]; 
                 const s1 = state.stage1; // State for the first stage
                 const s2 = state.stage2; // State for the second stage
-    
+
+                const stage1Coeffs = coeffsStage1 || { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 };
+                const stage2Coeffs = coeffsStage2 || { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 };
+
                 // Cache coefficients locally for faster access inside the loop
-                const b0 = coeffs.b0, b1 = coeffs.b1, b2 = coeffs.b2;
-                const a1 = coeffs.a1, a2 = coeffs.a2;
+                const b0_1 = stage1Coeffs.b0, b1_1 = stage1Coeffs.b1, b2_1 = stage1Coeffs.b2;
+                const a1_1 = stage1Coeffs.a1, a2_1 = stage1Coeffs.a2;
+                const b0_2 = stage2Coeffs.b0, b1_2 = stage2Coeffs.b1, b2_2 = stage2Coeffs.b2;
+                const a1_2 = stage2Coeffs.a1, a2_2 = stage2Coeffs.a2;
                 
                 // Local variables for filter state registers (critical for performance)
                 // These hold the state between samples within the block.
@@ -184,33 +266,33 @@ class MultibandTransientPlugin extends PluginBase {
                 for (; i < blockSizeMod4; i += 4) {
                     // --- Sample 1 ---
                     let x0_1 = input[i]; 
-                    let y1_1 = b0 * x0_1 + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+                    let y1_1 = b0_1 * x0_1 + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
                     s1_x2 = s1_x1; s1_x1 = x0_1; s1_y2 = s1_y1; s1_y1 = y1_1; // Update stage 1 state
-                    let y2_1 = b0 * y1_1 + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    let y2_1 = b0_2 * y1_1 + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1; s2_x1 = y1_1; s2_y2 = s2_y1; s2_y1 = y2_1; // Update stage 2 state
                     output[i] = y2_1;
     
                     // --- Sample 2 ---
                     let x0_2 = input[i + 1];
-                    let y1_2 = b0 * x0_2 + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+                    let y1_2 = b0_1 * x0_2 + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
                     s1_x2 = s1_x1; s1_x1 = x0_2; s1_y2 = s1_y1; s1_y1 = y1_2;
-                    let y2_2 = b0 * y1_2 + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    let y2_2 = b0_2 * y1_2 + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1; s2_x1 = y1_2; s2_y2 = s2_y1; s2_y1 = y2_2;
                     output[i + 1] = y2_2;
     
                     // --- Sample 3 ---
                     let x0_3 = input[i + 2];
-                    let y1_3 = b0 * x0_3 + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+                    let y1_3 = b0_1 * x0_3 + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
                     s1_x2 = s1_x1; s1_x1 = x0_3; s1_y2 = s1_y1; s1_y1 = y1_3;
-                    let y2_3 = b0 * y1_3 + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    let y2_3 = b0_2 * y1_3 + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1; s2_x1 = y1_3; s2_y2 = s2_y1; s2_y1 = y2_3;
                     output[i + 2] = y2_3;
     
                     // --- Sample 4 ---
                     let x0_4 = input[i + 3];
-                    let y1_4 = b0 * x0_4 + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+                    let y1_4 = b0_1 * x0_4 + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
                     s1_x2 = s1_x1; s1_x1 = x0_4; s1_y2 = s1_y1; s1_y1 = y1_4;
-                    let y2_4 = b0 * y1_4 + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    let y2_4 = b0_2 * y1_4 + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1; s2_x1 = y1_4; s2_y2 = s2_y1; s2_y1 = y2_4;
                     output[i + 3] = y2_4;
                 }
@@ -218,10 +300,10 @@ class MultibandTransientPlugin extends PluginBase {
                 // Handle remaining samples (if blockSize is not a multiple of 4)
                 for (; i < blockSize; i++) {
                     const x0 = input[i];
-                    const y1 = b0 * x0 + b1 * s1_x1 + b2 * s1_x2 - a1 * s1_y1 - a2 * s1_y2;
+                    const y1 = b0_1 * x0 + b1_1 * s1_x1 + b2_1 * s1_x2 - a1_1 * s1_y1 - a2_1 * s1_y2;
                     s1_x2 = s1_x1; s1_x1 = x0; s1_y2 = s1_y1; s1_y1 = y1;
                     
-                    const y2 = b0 * y1 + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    const y2 = b0_2 * y1 + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1; s2_x1 = y1; s2_y2 = s2_y1; s2_y1 = y2;
                     output[i] = y2;
                 }
@@ -249,7 +331,8 @@ class MultibandTransientPlugin extends PluginBase {
                 const outputChannel = lowBand.subarray(chOffset, chOffset + pBlockSize);
                 
                 applyFilterBlock(inputChannel, outputChannel, 
-                    context.cachedFilters[0].lowpass, 
+                    context.cachedFilters[0].lowpassStage1, 
+                    context.cachedFilters[0].lowpassStage2,
                     context.filterStates.lowpass[0], ch, pBlockSize);
             }
             
@@ -260,7 +343,8 @@ class MultibandTransientPlugin extends PluginBase {
                 const outputChannel = highBand.subarray(chOffset, chOffset + pBlockSize);
                 
                 applyFilterBlock(inputChannel, outputChannel, 
-                    context.cachedFilters[1].highpass, 
+                    context.cachedFilters[1].highpassStage1, 
+                    context.cachedFilters[1].highpassStage2,
                     context.filterStates.highpass[1], ch, pBlockSize);
             }
             
@@ -272,7 +356,8 @@ class MultibandTransientPlugin extends PluginBase {
                 const outputChannel = midBand.subarray(chOffset, chOffset + pBlockSize);
                 
                 applyFilterBlock(inputChannel, outputChannel, 
-                    context.cachedFilters[0].highpass, 
+                    context.cachedFilters[0].highpassStage1, 
+                    context.cachedFilters[0].highpassStage2,
                     context.filterStates.highpass[0], ch, pBlockSize);
             }
             // Then lowpass at f2
@@ -282,7 +367,8 @@ class MultibandTransientPlugin extends PluginBase {
                 const outputChannel = midBand.subarray(chOffset, chOffset + pBlockSize);
                 
                 applyFilterBlock(inputChannel, outputChannel, 
-                    context.cachedFilters[1].lowpass, 
+                    context.cachedFilters[1].lowpassStage1, 
+                    context.cachedFilters[1].lowpassStage2,
                     context.filterStates.lowpass[1], ch, pBlockSize);
             }
     

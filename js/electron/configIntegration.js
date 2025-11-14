@@ -30,6 +30,11 @@ export async function showConfigDialog(isElectron, currentConfig) {
   const presetNames = Object.keys(presets).sort();
   const t = window.uiManager.t.bind(window.uiManager);
 
+  // Fix for single preset case: auto-set startupPreset if pipelineStartup is 'preset' but startupPreset is empty
+  if (config.pipelineStartup === 'preset' && (!config.startupPreset || config.startupPreset === '') && presetNames.length > 0) {
+    config.startupPreset = presetNames[0];
+  }
+
   const dialogHTML = `
     <div class="config-dialog">
       <h2>${t('dialog.config.title')}</h2>

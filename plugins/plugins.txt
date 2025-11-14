@@ -37,6 +37,7 @@ delay/time_alignment: Time Alignment | Delay | TimeAlignmentPlugin
 dynamics/auto_leveler: Auto Leveler | Dynamics | AutoLevelerPlugin | css
 dynamics/brickwall_limiter: Brickwall Limiter | Dynamics | BrickwallLimiterPlugin
 dynamics/compressor: Compressor | Dynamics | CompressorPlugin | css
+dynamics/expander: Expander | Dynamics | ExpanderPlugin | css
 dynamics/gate: Gate | Dynamics | GatePlugin | css
 dynamics/multiband_compressor: Multiband Compressor | Dynamics | MultibandCompressorPlugin | css
 dynamics/multiband_transient: Multiband Transient | Dynamics | MultibandTransientPlugin | css

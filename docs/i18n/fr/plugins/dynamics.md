@@ -6,7 +6,8 @@ Une collection de plugins qui aident à équilibrer les parties fortes et douces
 
 - [Auto Leveler](#auto-leveler) - Contrôle automatique du volume pour une expérience d'écoute uniforme
 - [Brickwall Limiter](#brickwall-limiter) - Contrôle transparent des crêtes pour une écoute sûre et confortable
-- [Compressor](#compressor) - Équilibre automatiquement les niveaux de volume pour une écoute plus confortable
+- [Compressor](#compressor) - Équilibre automatiquement les niveaux de volume pour une écoute plus confortable (inclut l'expansion vers le haut)
+- [Expander](#expander) - Expansion de plage dynamique en dessous du seuil avec contrôle de ratio et knee (inclut la compression vers le haut)
 - [Gate](#gate) - Réduit les bruits de fond indésirables en atténuant les signaux sous un seuil
 - [Multiband Compressor](#multiband-compressor) - Processeur de dynamique professionnel à 5 bandes avec mise en forme du son style radio FM
 - [Multiband Transient](#multiband-transient) - Processeur avancé de mise en forme des transitoires 3 bandes pour un contrôle spécifique des attaques et sustains par fréquence
@@ -221,11 +222,12 @@ Un effet qui gère automatiquement les différences de volume dans votre musique
   - Réglages plus élevés : N'affecte que les parties les plus fortes de la musique
   - Réglages plus bas : Crée plus d'équilibre global
   - Commencez à -24dB pour un équilibrage doux
-- **Ratio** - Contrôle l'intensité de l'équilibrage du volume (1:1 à 20:1)
+- **Ratio** - Contrôle l'intensité de l'équilibrage du volume (1:0.5 à 1:20)
+  - 1:0.5 : Expansion vers le haut (amplifie les sons forts)
   - 1:1 : Pas d'effet (son original)
-  - 2:1 : Équilibrage doux
-  - 4:1 : Équilibrage modéré
-  - 8:1+ : Contrôle du volume fort
+  - 1:2 : Compression douce
+  - 1:4 : Compression modérée
+  - 1:8+ : Contrôle du volume fort
 - **Attack Time** - Rapidité de réaction de l'effet aux sons forts (0.1ms à 100ms)
   - Temps plus rapides : Contrôle du volume plus immédiat
   - Temps plus lents : Son plus naturel
@@ -253,22 +255,108 @@ Un effet qui gère automatiquement les différences de volume dans votre musique
 ### Réglages Recommandés pour Différents Scénarios d'Écoute
 - Écoute de Fond Décontractée :
   - Threshold : -24dB
-  - Ratio : 2:1
+  - Ratio : 1:2
   - Attack : 20ms
   - Release : 200ms
   - Knee : 6dB
 - Sessions d'Écoute Critique :
   - Threshold : -18dB
-  - Ratio : 1.5:1
+  - Ratio : 1:1.5
   - Attack : 30ms
   - Release : 300ms
   - Knee : 3dB
 - Écoute Nocturne :
   - Threshold : -30dB
-  - Ratio : 4:1
+  - Ratio : 1:4
   - Attack : 10ms
   - Release : 150ms
   - Knee : 9dB
+- Amélioration des Sons Forts :
+  - Threshold : -12dB
+  - Ratio : 1:0.5
+  - Attack : 5ms
+  - Release : 100ms
+  - Knee : 0dB
+
+## Expander
+
+Un processeur de plage dynamique qui étend la plage dynamique des signaux en dessous d'un seuil, rendant les sons doux encore plus doux tout en laissant les sons forts inchangés. Cela crée des dynamiques plus dramatiques et peut aider à restaurer les dynamiques naturelles du matériel sur-comprimé.
+
+### Guide d'Amélioration de l'Écoute
+- Musique Classique :
+  - Restaure les dynamiques naturelles des enregistrements sur-comprimés
+  - Améliore le contraste entre les passages doux et les crescendos forts
+  - Restaure le flux naturel des performances orchestrales
+- Musique Pop/Rock :
+  - Ajoute plus de punch et d'impact aux sections dynamiques
+  - Crée un contraste plus dramatique entre les couplets et les refrains
+  - Restaure les dynamiques naturelles des pistes fortement comprimées
+- Musique Jazz :
+  - Améliore les dynamiques naturelles entre les instruments
+  - Rend les solos doux plus intimes et les sections fortes plus puissantes
+  - Restaure la respiration naturelle des performances de jazz
+
+### Paramètres
+
+- **Threshold** - Définit le niveau de volume où commence l'expansion (-60dB à 0dB)
+  - Réglages plus élevés : N'affecte que les parties plus douces de la musique
+  - Réglages plus bas : Crée plus d'expansion dynamique globale
+  - Commencez à -24dB pour une expansion douce
+- **Ratio** - Contrôle l'intensité avec laquelle l'effet étend la plage dynamique (1:0.05 à 1:20)
+  - 1:0.5 : Compression vers le haut (amplifie les sons doux)
+  - 1:1 : Pas d'effet (son original)
+  - 1:2 : Expansion douce
+  - 1:4 : Expansion modérée
+  - 1:8+ : Expansion dynamique forte
+- **Attack Time** - Rapidité de réaction de l'effet aux sons doux (0.1ms à 100ms)
+  - Temps plus rapides : Contrôle dynamique plus immédiat
+  - Temps plus lents : Son plus naturel
+  - Essayez 10ms comme point de départ
+- **Release Time** - Rapidité de retour des dynamiques à la normale (10ms à 1000ms)
+  - Temps plus rapides : Son plus dynamique
+  - Temps plus lents : Transitions plus douces et naturelles
+  - Commencez avec 100ms pour l'écoute générale
+- **Knee** - Douceur de la transition de l'effet (0dB à 12dB)
+  - Valeurs plus basses : Contrôle plus précis
+  - Valeurs plus élevées : Son plus doux et naturel
+  - 3dB est un bon point de départ
+- **Gain** - Ajuste le volume global après traitement (-12dB à +12dB)
+  - Utilisez pour faire correspondre le volume avec le son original
+  - Augmentez si la musique semble trop douce
+  - Diminuez si elle est trop forte
+
+### Affichage Visuel
+
+- Graphique interactif montrant comment fonctionne l'expansion
+- Indicateurs de niveau de volume faciles à lire
+- Retour visuel pour tous les ajustements de paramètres
+- Lignes de référence pour guider vos réglages
+
+### Réglages Recommandés pour Différents Scénarios d'Écoute
+- Restauration de Dynamiques Naturelles :
+  - Threshold : -18dB
+  - Ratio : 1:2
+  - Attack : 10ms
+  - Release : 100ms
+  - Knee : 3dB
+- Amélioration Dynamique Dramatique :
+  - Threshold : -12dB
+  - Ratio : 1:4
+  - Attack : 5ms
+  - Release : 50ms
+  - Knee : 1dB
+- Amélioration des Sons Doux :
+  - Threshold : -30dB
+  - Ratio : 1:0.5
+  - Attack : 20ms
+  - Release : 200ms
+  - Knee : 6dB
+- Amélioration Dynamique Subtile :
+  - Threshold : -24dB
+  - Ratio : 1:1.5
+  - Attack : 15ms
+  - Release : 150ms
+  - Knee : 6dB
 
 ## Gate
 
@@ -363,6 +451,7 @@ Une porte de bruit qui aide à réduire les bruits de fond indésirables en att�
 - Ajoutez de la knee lors du traitement de matériel complexe
 - Surveillez le vumètre de réduction de gain pour assurer un gating approprié
 - Combinez avec d'autres processeurs de dynamique pour un contrôle complet
+
 
 ## Multiband Compressor
 

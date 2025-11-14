@@ -88,6 +88,7 @@
   "ui.title.close": "关闭",
   "ui.title.expand": "点击展开",
   "ui.title.collapse": "点击收起",
+  "ui.title.presetSelect": "用户预设名称输入和加载\n按ESC键清除文本并显示全部项目",
 
   // 文件处理界面
   "ui.dropAudioFiles": "将音频文件拖至此处，以使用当前效果处理",

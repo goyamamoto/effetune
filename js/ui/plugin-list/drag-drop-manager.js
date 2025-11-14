@@ -502,37 +502,54 @@ export class DragDropManager {
         });
 
         item.addEventListener('touchend', async (e) => {
+            this.dragMessage.style.display = 'none';
+            
             if (isDragging) {
-                isDragging = false;
-                item.classList.remove('dragging');
-                this.dragMessage.style.display = 'none';
+                e.preventDefault();
+                const touch = e.changedTouches[0];
+                const pipeline = document.getElementById('pipeline');
+                const pipelineRect = pipeline.getBoundingClientRect();
                 
-                if (clone) {
-                    document.body.removeChild(clone);
-                    clone = null;
+                // Check if touch position is within pipeline element
+                if (touch.clientX >= pipelineRect.left && 
+                    touch.clientX <= pipelineRect.right && 
+                    touch.clientY >= pipelineRect.top && 
+                    touch.clientY <= pipelineRect.bottom) {
+                    
+                    // Create and dispatch drop event (same as plugin touch events)
+                    const dropEvent = new Event('drop', { bubbles: true });
+                    dropEvent.clientX = touch.clientX;
+                    dropEvent.clientY = touch.clientY;
+                    dropEvent.preventDefault = () => {};
+                    dropEvent.dataTransfer = {
+                        getData: (type) => {
+                            if (type === 'text/plain') {
+                                return JSON.stringify({
+                                    type: isUserPreset ? 'userPreset' : 'preset',
+                                    name: presetName
+                                });
+                            }
+                            return '';
+                        },
+                        dropEffect: 'move'
+                    };
+                    
+                    pipeline.dispatchEvent(dropEvent);
+                    
+                    // Check window width and adjust plugin list collapse state after drop
+                    setTimeout(() => this.pluginListManager.collapseManager.checkWindowWidthAndAdjust(), 100);
                 }
 
-                // Try to drop the preset
-                const touch = e.changedTouches[0];
-                const insertionData = this.findPotentialInsertionTarget(touch.clientX, touch.clientY);
-                
-                if (insertionData) {
-                    try {
-                        if (isUserPreset) {
-                            await this.pluginListManager.presetManager.addUserPresetToPipeline(presetName, insertionData.index);
-                        } else {
-                            await this.pluginListManager.presetManager.addPresetToPipeline(presetName, insertionData.index);
-                        }
-                    } catch (error) {
-                        console.error('Error adding preset:', error);
-                        if (window.uiManager) {
-                            window.uiManager.setError(`Error adding preset: ${error.message}`, true);
-                        }
-                    }
+                // Cleanup
+                if (clone) {
+                    clone.remove();
+                    clone = null;
                 }
-                
+                item.classList.remove('dragging');
                 this.insertionIndicator.style.display = 'none';
             }
+            
+            isDragging = false;
         });
     }
 

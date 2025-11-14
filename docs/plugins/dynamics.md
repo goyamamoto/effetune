@@ -6,7 +6,8 @@ A collection of plugins that help balance the loud and quiet parts of your music
 
 - [Auto Leveler](#auto-leveler) - Automatic volume adjustment for consistent listening experience
 - [Brickwall Limiter](#brickwall-limiter) - Transparent peak control for safe and comfortable listening
-- [Compressor](#compressor) - Automatically balances volume levels for more comfortable listening
+- [Compressor](#compressor) - Automatically balances volume levels for more comfortable listening (includes upward expansion)
+- [Expander](#expander) - Dynamic range expansion below threshold with ratio and knee control (includes upward compression)
 - [Gate](#gate) - Reduces unwanted background noise by attenuating signals below a threshold
 - [Multiband Compressor](#multiband-compressor) - Professional 5-band dynamics processor with FM radio-style sound shaping
 - [Multiband Transient](#multiband-transient) - Advanced 3-band transient shaper for frequency-specific attack and sustain control
@@ -223,11 +224,12 @@ An effect that automatically manages volume differences in your music by gently 
   - Higher settings: Only affects the loudest parts of the music
   - Lower settings: Creates more overall balance
   - Start at -24dB for gentle balancing
-- **Ratio** - Controls how strongly the effect balances the volume (1:1 to 20:1)
+- **Ratio** - Controls how strongly the effect balances the volume (1:0.5 to 1:20)
+  - 1:0.5: Upward expansion (boosts loud sounds)
   - 1:1: No effect (original sound)
-  - 2:1: Gentle balancing
-  - 4:1: Moderate balancing
-  - 8:1+: Strong volume control
+  - 1:2: Gentle compression
+  - 1:4: Moderate compression
+  - 1:8+: Strong volume control
 - **Attack Time** - How quickly the effect responds to loud sounds (0.1ms to 100ms)
   - Faster times: More immediate volume control
   - Slower times: More natural sound
@@ -255,22 +257,108 @@ An effect that automatically manages volume differences in your music by gently 
 ### Recommended Settings for Different Listening Scenarios
 - Casual Background Listening:
   - Threshold: -24dB
-  - Ratio: 2:1
+  - Ratio: 1:2
   - Attack: 20ms
   - Release: 200ms
   - Knee: 6dB
 - Critical Listening Sessions:
   - Threshold: -18dB
-  - Ratio: 1.5:1
+  - Ratio: 1:1.5
   - Attack: 30ms
   - Release: 300ms
   - Knee: 3dB
 - Late Night Listening:
   - Threshold: -30dB
-  - Ratio: 4:1
+  - Ratio: 1:4
   - Attack: 10ms
   - Release: 150ms
   - Knee: 9dB
+- Loud Sound Enhancement:
+  - Threshold: -12dB
+  - Ratio: 1:0.5
+  - Attack: 50ms
+  - Release: 400ms
+  - Knee: 6dB
+
+## Expander
+
+A dynamic range processor that expands the dynamic range of signals below a threshold, making quiet sounds even quieter while leaving loud sounds unchanged. This creates more dramatic dynamics and can help restore natural dynamics to over-compressed material.
+
+### Listening Enhancement Guide
+- Classical Music:
+  - Restores natural dynamics to over-compressed recordings
+  - Enhances the contrast between quiet passages and loud crescendos
+  - Brings back the natural ebb and flow of orchestral performances
+- Pop/Rock Music:
+  - Adds more punch and impact to dynamic sections
+  - Creates more dramatic contrast between verses and choruses
+  - Restores natural dynamics to heavily compressed tracks
+- Jazz Music:
+  - Enhances the natural dynamics between instruments
+  - Makes quiet solos more intimate and loud sections more powerful
+  - Restores the natural breathing of jazz performances
+
+### Parameters
+
+- **Threshold** - Sets the volume level where expansion begins (-60dB to 0dB)
+  - Higher settings: Only affects quieter parts of the music
+  - Lower settings: Creates more overall dynamic expansion
+  - Start at -24dB for gentle expansion
+- **Ratio** - Controls how strongly the effect expands the dynamic range (1:0.05 to 1:20)
+  - 1:0.5: Upward compression (boosts quiet sounds)
+  - 1:1: No effect (original sound)
+  - 1:2: Gentle expansion
+  - 1:4: Moderate expansion
+  - 1:8+: Strong dynamic expansion
+- **Attack Time** - How quickly the effect responds to quiet sounds (0.1ms to 100ms)
+  - Faster times: More immediate dynamic control
+  - Slower times: More natural sound
+  - Try 10ms as a starting point
+- **Release Time** - How quickly the dynamics return to normal (10ms to 1000ms)
+  - Faster times: More dynamic sound
+  - Slower times: Smoother, more natural transitions
+  - Start with 100ms for general listening
+- **Knee** - How smoothly the effect transitions (0dB to 12dB)
+  - Lower values: More precise control
+  - Higher values: Gentler, more natural sound
+  - 3dB is a good starting point
+- **Gain** - Adjusts the overall volume after processing (-12dB to +12dB)
+  - Use this to match the volume with the original sound
+  - Increase if the music feels too quiet
+  - Decrease if it's too loud
+
+### Visual Display
+
+- Interactive graph showing how the expansion is working
+- Easy-to-read volume level indicators
+- Visual feedback for all parameter adjustments
+- Reference lines to help guide your settings
+
+### Recommended Settings for Different Listening Scenarios
+- Natural Dynamics Restoration:
+  - Threshold: -18dB
+  - Ratio: 1:2
+  - Attack: 10ms
+  - Release: 100ms
+  - Knee: 3dB
+- Dramatic Dynamic Enhancement:
+  - Threshold: -12dB
+  - Ratio: 1:4
+  - Attack: 5ms
+  - Release: 50ms
+  - Knee: 1dB
+- Quiet Sound Enhancement:
+  - Threshold: -30dB
+  - Ratio: 1:0.5
+  - Attack: 20ms
+  - Release: 200ms
+  - Knee: 6dB
+- Subtle Dynamic Enhancement:
+  - Threshold: -24dB
+  - Ratio: 1:1.5
+  - Attack: 15ms
+  - Release: 150ms
+  - Knee: 6dB
 
 ## Gate
 
