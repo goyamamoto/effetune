@@ -87,6 +87,7 @@
   "ui.title.close": "閉じる",
   "ui.title.expand": "クリックで展開",
   "ui.title.collapse": "クリックで折りたたむ",
+  "ui.title.presetSelect": "ユーザプリセットの名前の入力・読み込み\nESCキーで文字列をクリアし全件表示",
 
   // ファイル処理UI
   "ui.dropAudioFiles": "オーディオファイルをここにドロップして、現在のエフェクトで処理",

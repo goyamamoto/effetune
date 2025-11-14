@@ -6,7 +6,8 @@ Uma coleção de plugins que ajudam a equilibrar as partes altas e baixas da sua
 
 - [Auto Leveler](#auto-leveler) - Ajuste automático de volume para uma experiência de audição consistente
 - [Brickwall Limiter](#brickwall-limiter) - Controle transparente de picos para uma audição segura e confortável
-- [Compressor](#compressor) - Equilibra automaticamente os níveis de volume para uma audição mais confortável
+- [Compressor](#compressor) - Equilibra automaticamente os níveis de volume para uma audição mais confortável (inclui expansão para cima)
+- [Expander](#expander) - Expansão de faixa dinâmica abaixo do limite com controle de ratio e knee (inclui compressão para cima)
 - [Gate](#gate) - Reduz ruídos de fundo indesejados atenuando sinais abaixo de um limite
 - [Multiband Compressor](#multiband-compressor) - Processador de dinâmica profissional de 5 bandas com modelagem de som estilo rádio FM
 - [Multiband Transient](#multiband-transient) - Processador avançado de moldagem de transientes de 3 bandas para controle específico de ataques e sustentações por frequência
@@ -221,11 +222,12 @@ Um efeito que gerencia automaticamente as diferenças de volume em sua música, 
   - Configurações mais altas: Afeta apenas as partes mais altas da música
   - Configurações mais baixas: Cria mais equilíbrio geral
   - Comece em -24dB para um equilíbrio suave
-- **Ratio** - Controla quão fortemente o efeito equilibra o volume (1:1 a 20:1)
+- **Ratio** - Controla quão fortemente o efeito equilibra o volume (1:0.5 a 1:20)
+  - 1:0.5: Expansão para cima (potencia sons altos)
   - 1:1: Sem efeito (som original)
-  - 2:1: Equilíbrio suave
-  - 4:1: Equilíbrio moderado
-  - 8:1+: Controle de volume forte
+  - 1:2: Compressão suave
+  - 1:4: Compressão moderada
+  - 1:8+: Controle de volume forte
 - **Attack Time** - Quão rapidamente o efeito responde a sons altos (0.1ms a 100ms)
   - Tempos mais rápidos: Controle de volume mais imediato
   - Tempos mais lentos: Som mais natural
@@ -253,22 +255,108 @@ Um efeito que gerencia automaticamente as diferenças de volume em sua música, 
 ### Configurações Recomendadas para Diferentes Cenários de Audição
 - Audição Casual em Segundo Plano:
   - Threshold: -24dB
-  - Ratio: 2:1
+  - Ratio: 1:2
   - Attack: 20ms
   - Release: 200ms
   - Knee: 6dB
 - Sessões de Audição Crítica:
   - Threshold: -18dB
-  - Ratio: 1.5:1
+  - Ratio: 1:1.5
   - Attack: 30ms
   - Release: 300ms
   - Knee: 3dB
 - Audição Noturna:
   - Threshold: -30dB
-  - Ratio: 4:1
+  - Ratio: 1:4
   - Attack: 10ms
   - Release: 150ms
   - Knee: 9dB
+- Melhoria de Sons Altos:
+  - Threshold: -12dB
+  - Ratio: 1:0.5
+  - Attack: 5ms
+  - Release: 100ms
+  - Knee: 0dB
+
+## Expander
+
+Um processador de faixa dinâmica que expande a faixa dinâmica de sinais abaixo de um limite, tornando sons suaves ainda mais suaves enquanto deixa sons altos inalterados. Isso cria dinâmicas mais dramáticas e pode ajudar a restaurar dinâmicas naturais a material sobre-comprimido.
+
+### Guia de Aprimoramento da Audição
+- Música Clássica:
+  - Restaura dinâmicas naturais a gravações sobre-comprimidas
+  - Melhora o contraste entre passagens suaves e crescendos altos
+  - Traz de volta o fluxo natural das performances orquestrais
+- Música Pop/Rock:
+  - Adiciona mais punch e impacto a seções dinâmicas
+  - Cria contraste mais dramático entre versos e refrões
+  - Restaura dinâmicas naturais a faixas fortemente comprimidas
+- Música Jazz:
+  - Melhora as dinâmicas naturais entre instrumentos
+  - Torna solos suaves mais íntimos e seções altas mais poderosas
+  - Restaura a respiração natural das performances de jazz
+
+### Parâmetros
+
+- **Threshold** - Define o nível de volume onde a expansão começa (-60dB a 0dB)
+  - Configurações mais altas: Afeta apenas as partes mais suaves da música
+  - Configurações mais baixas: Cria mais expansão dinâmica geral
+  - Comece em -24dB para expansão suave
+- **Ratio** - Controla quão fortemente o efeito expande a faixa dinâmica (1:0.05 a 1:20)
+  - 1:0.5: Compressão para cima (potencia sons suaves)
+  - 1:1: Sem efeito (som original)
+  - 1:2: Expansão suave
+  - 1:4: Expansão moderada
+  - 1:8+: Expansão dinâmica forte
+- **Attack Time** - Quão rapidamente o efeito responde a sons suaves (0.1ms a 100ms)
+  - Tempos mais rápidos: Controle dinâmico mais imediato
+  - Tempos mais lentos: Som mais natural
+  - Tente 10ms como ponto de partida
+- **Release Time** - Quão rapidamente as dinâmicas retornam ao normal (10ms a 1000ms)
+  - Tempos mais rápidos: Som mais dinâmico
+  - Tempos mais lentos: Transições mais suaves e naturais
+  - Comece com 100ms para audição geral
+- **Knee** - Quão suavemente o efeito faz a transição (0dB a 12dB)
+  - Valores mais baixos: Controle mais preciso
+  - Valores mais altos: Som mais suave e natural
+  - 3dB é um bom ponto de partida
+- **Gain** - Ajusta o volume geral após o processamento (-12dB a +12dB)
+  - Use para equiparar o volume com o som original
+  - Aumente se a música parecer muito baixa
+  - Diminua se estiver muito alta
+
+### Display Visual
+
+- Gráfico interativo mostrando como a expansão está funcionando
+- Indicadores de nível de volume fáceis de ler
+- Feedback visual para todos os ajustes de parâmetros
+- Linhas de referência para ajudar a guiar suas configurações
+
+### Configurações Recomendadas para Diferentes Cenários de Audição
+- Restauração de Dinâmicas Naturais:
+  - Threshold: -18dB
+  - Ratio: 1:2
+  - Attack: 10ms
+  - Release: 100ms
+  - Knee: 3dB
+- Aprimoramento Dinâmico Dramático:
+  - Threshold: -12dB
+  - Ratio: 1:4
+  - Attack: 5ms
+  - Release: 50ms
+  - Knee: 1dB
+- Aprimoramento de Sons Suaves:
+  - Threshold: -30dB
+  - Ratio: 1:0.5
+  - Attack: 20ms
+  - Release: 200ms
+  - Knee: 6dB
+- Aprimoramento Dinâmico Sutil:
+  - Threshold: -24dB
+  - Ratio: 1:1.5
+  - Attack: 15ms
+  - Release: 150ms
+  - Knee: 6dB
 
 ## Gate
 
@@ -363,6 +451,7 @@ Um gate de ruído que ajuda a reduzir ruídos de fundo indesejados atenuando aut
 - Adicione algum knee ao processar material complexo
 - Monitore o medidor de redução de ganho para garantir gating adequado
 - Combine com outros processadores de dinâmica para controle abrangente
+
 
 ## Multiband Compressor
 

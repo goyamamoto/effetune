@@ -6,7 +6,8 @@ Una colección de plugins que ayudan a equilibrar las partes fuertes y suaves de
 
 - [Auto Leveler](#auto-leveler) - Ajuste automático de volumen para una experiencia de escucha consistente
 - [Brickwall Limiter](#brickwall-limiter) - Control transparente de picos para una escucha segura y cómoda
-- [Compressor](#compressor) - Equilibra automáticamente los niveles de volumen para una escucha más cómoda
+- [Compressor](#compressor) - Equilibra automáticamente los niveles de volumen para una escucha más cómoda (incluye expansión hacia arriba)
+- [Expander](#expander) - Expansión de rango dinámico por debajo del umbral con control de ratio y knee (incluye compresión hacia arriba)
 - [Gate](#gate) - Reduce el ruido de fondo no deseado atenuando señales por debajo de un umbral
 - [Multiband Compressor](#multiband-compressor) - Procesador de dinámica profesional de 5 bandas con modelado de sonido estilo radio FM
 - [Multiband Transient](#multiband-transient) - Procesador avanzado de modelado de transientes de 3 bandas para control específico de ataques y sostenimientos por frecuencia
@@ -221,11 +222,12 @@ Un efecto que gestiona automáticamente las diferencias de volumen en tu música
   - Ajustes más altos: Solo afecta las partes más fuertes de la música
   - Ajustes más bajos: Crea más balance general
   - Comienza en -24dB para un balance suave
-- **Ratio** - Controla qué tan fuertemente el efecto equilibra el volumen (1:1 a 20:1)
+- **Ratio** - Controla qué tan fuertemente el efecto equilibra el volumen (1:0.5 a 1:20)
+  - 1:0.5: Expansión hacia arriba (potencia sonidos fuertes)
   - 1:1: Sin efecto (sonido original)
-  - 2:1: Balance suave
-  - 4:1: Balance moderado
-  - 8:1+: Control de volumen fuerte
+  - 1:2: Compresión suave
+  - 1:4: Compresión moderada
+  - 1:8+: Control de volumen fuerte
 - **Attack Time** - Qué tan rápido responde el efecto a los sonidos fuertes (0.1ms a 100ms)
   - Tiempos más rápidos: Control de volumen más inmediato
   - Tiempos más lentos: Sonido más natural
@@ -253,22 +255,108 @@ Un efecto que gestiona automáticamente las diferencias de volumen en tu música
 ### Ajustes Recomendados para Diferentes Escenarios de Escucha
 - Escucha Casual de Fondo:
   - Threshold: -24dB
-  - Ratio: 2:1
+  - Ratio: 1:2
   - Attack: 20ms
   - Release: 200ms
   - Knee: 6dB
 - Sesiones de Escucha Crítica:
   - Threshold: -18dB
-  - Ratio: 1.5:1
+  - Ratio: 1:1.5
   - Attack: 30ms
   - Release: 300ms
   - Knee: 3dB
 - Escucha Nocturna:
   - Threshold: -30dB
-  - Ratio: 4:1
+  - Ratio: 1:4
   - Attack: 10ms
   - Release: 150ms
   - Knee: 9dB
+- Mejora de Sonidos Fuertes:
+  - Threshold: -12dB
+  - Ratio: 1:0.5
+  - Attack: 5ms
+  - Release: 100ms
+  - Knee: 0dB
+
+## Expander
+
+Un procesador de rango dinámico que expande el rango dinámico de señales por debajo de un umbral, haciendo que los sonidos suaves sean aún más suaves mientras deja los sonidos fuertes sin cambios. Esto crea dinámicas más dramáticas y puede ayudar a restaurar dinámicas naturales a material sobre-comprimido.
+
+### Guía de Mejora de Escucha
+- Música Clásica:
+  - Restaura dinámicas naturales a grabaciones sobre-comprimidas
+  - Mejora el contraste entre pasajes suaves y crescendos fuertes
+  - Devuelve el flujo natural de las interpretaciones orquestales
+- Música Pop/Rock:
+  - Añade más punch e impacto a secciones dinámicas
+  - Crea contraste más dramático entre versos y coros
+  - Restaura dinámicas naturales a pistas fuertemente comprimidas
+- Música Jazz:
+  - Mejora las dinámicas naturales entre instrumentos
+  - Hace que los solos suaves sean más íntimos y las secciones fuertes más poderosas
+  - Restaura la respiración natural de las interpretaciones de jazz
+
+### Parámetros
+
+- **Threshold** - Establece el nivel de volumen donde comienza la expansión (-60dB a 0dB)
+  - Ajustes más altos: Solo afecta las partes más suaves de la música
+  - Ajustes más bajos: Crea más expansión dinámica general
+  - Comienza en -24dB para expansión suave
+- **Ratio** - Controla qué tan fuertemente el efecto expande el rango dinámico (1:0.05 a 1:20)
+  - 1:0.5: Compresión hacia arriba (potencia sonidos suaves)
+  - 1:1: Sin efecto (sonido original)
+  - 1:2: Expansión suave
+  - 1:4: Expansión moderada
+  - 1:8+: Expansión dinámica fuerte
+- **Attack Time** - Qué tan rápido responde el efecto a los sonidos suaves (0.1ms a 100ms)
+  - Tiempos más rápidos: Control dinámico más inmediato
+  - Tiempos más lentos: Sonido más natural
+  - Prueba 10ms como punto de partida
+- **Release Time** - Qué tan rápido las dinámicas vuelven a la normalidad (10ms a 1000ms)
+  - Tiempos más rápidos: Sonido más dinámico
+  - Tiempos más lentos: Transiciones más suaves y naturales
+  - Comienza con 100ms para escucha general
+- **Knee** - Qué tan suavemente hace la transición el efecto (0dB a 12dB)
+  - Valores más bajos: Control más preciso
+  - Valores más altos: Sonido más suave y natural
+  - 3dB es un buen punto de partida
+- **Gain** - Ajusta el volumen general después del procesamiento (-12dB a +12dB)
+  - Úsalo para igualar el volumen con el sonido original
+  - Aumenta si la música se siente muy suave
+  - Disminuye si está muy fuerte
+
+### Visual Display
+
+- Gráfico interactivo mostrando cómo funciona la expansión
+- Indicadores de nivel de volumen fáciles de leer
+- Retroalimentación visual para todos los ajustes de parámetros
+- Líneas de referencia para ayudar a guiar tus ajustes
+
+### Ajustes Recomendados para Diferentes Escenarios de Escucha
+- Restauración de Dinámicas Naturales:
+  - Threshold: -18dB
+  - Ratio: 1:2
+  - Attack: 10ms
+  - Release: 100ms
+  - Knee: 3dB
+- Mejora Dinámica Dramática:
+  - Threshold: -12dB
+  - Ratio: 1:4
+  - Attack: 5ms
+  - Release: 50ms
+  - Knee: 1dB
+- Mejora de Sonidos Suaves:
+  - Threshold: -30dB
+  - Ratio: 1:0.5
+  - Attack: 20ms
+  - Release: 200ms
+  - Knee: 6dB
+- Mejora Dinámica Sutil:
+  - Threshold: -24dB
+  - Ratio: 1:1.5
+  - Attack: 15ms
+  - Release: 150ms
+  - Knee: 6dB
 
 ## Gate
 
@@ -363,6 +451,7 @@ Una puerta de ruido que ayuda a reducir el ruido de fondo no deseado atenuando a
 - Agrega algo de knee cuando proceses material complejo
 - Monitorea el medidor de reducción de ganancia para asegurar un gating apropiado
 - Combina con otros procesadores de dinámica para control integral
+
 
 ## Multiband Compressor
 

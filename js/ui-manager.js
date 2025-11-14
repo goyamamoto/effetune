@@ -590,6 +590,11 @@ export class UIManager {
             masterToggle.title = this.t('ui.title.masterToggle');
         }
 
+        const presetSelect = document.getElementById('presetSelect');
+        if (presetSelect) {
+            presetSelect.title = this.t('ui.title.presetSelect');
+        }
+
         const undoButton = document.getElementById('undoButton');
         if (undoButton) {
             undoButton.title = this.t('ui.title.undo');

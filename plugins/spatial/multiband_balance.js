@@ -32,12 +32,13 @@ class MultibandBalancePlugin extends PluginBase {
             const blockSize = parameters.blockSize;
 
             // Check if filter states need to be reset
+            const frequenciesChanged = !context.filterConfig || !context.filterConfig.frequencies ||
+                                     context.filterConfig.frequencies.some((f, i) => f !== frequencies[i]);
             const needsReset = !context.filterStates ||
                              !context.filterConfig ||
                              context.filterConfig.sampleRate !== parameters.sampleRate ||
                              context.filterConfig.channelCount !== parameters.channelCount ||
-                             !context.filterConfig.frequencies ||
-                             context.filterConfig.frequencies.some((f, i) => f !== frequencies[i]);
+                             frequenciesChanged;
 
             if (needsReset) {
                 // Create filter state with DC-blocking initialization
@@ -86,11 +87,16 @@ class MultibandBalancePlugin extends PluginBase {
                     counter: 0,
                     length: Math.min(parameters.blockSize, parameters.sampleRate * 0.005)
                 };
+            } else if (frequenciesChanged) {
+                // Update frequencies in filterConfig even if reset is not needed
+                context.filterConfig.frequencies = frequencies.slice();
             }
 
             // Helper function to apply cascaded Linkwitz-Riley filter to a block of samples (highly optimized)
-            function applyFilterBlock(input, output, coeffs, state, ch, blockSize) {
+            // For LR4, uses two different sections (Butterworth cascaded twice)
+            function applyFilterBlock(input, output, coeffs, coeffsStage2, state, ch, blockSize) {
                 const { b0, b1, b2, a1, a2 } = coeffs;
+                const { b0: b0_2, b1: b1_2, b2: b2_2, a1: a1_2, a2: a2_2 } = coeffsStage2;
                 const s1 = state.stage1, s2 = state.stage2;
                 
                 // Local variables for filter state (faster access)
@@ -112,7 +118,7 @@ class MultibandBalancePlugin extends PluginBase {
                     s1_y2 = s1_y1;
                     s1_y1 = stage1_out;
                     
-                    let stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    let stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1;
                     s2_x1 = stage1_out;
                     s2_y2 = s2_y1;
@@ -179,7 +185,7 @@ class MultibandBalancePlugin extends PluginBase {
                     s1_y1 = stage1_out;
                     
                     // Second stage filtering
-                    const stage2_out = b0 * stage1_out + b1 * s2_x1 + b2 * s2_x2 - a1 * s2_y1 - a2 * s2_y2;
+                    const stage2_out = b0_2 * stage1_out + b1_2 * s2_x1 + b2_2 * s2_x2 - a1_2 * s2_y1 - a2_2 * s2_y2;
                     s2_x2 = s2_x1;
                     s2_x1 = stage1_out;
                     s2_y2 = s2_y1;
@@ -194,22 +200,126 @@ class MultibandBalancePlugin extends PluginBase {
             }
 
             // Cache filter coefficients if frequencies have changed
-            if (!context.cachedFilters || !context.filterConfig || !context.filterConfig.frequencies ||
-                frequencies.some((f, i) => f !== context.filterConfig.frequencies[i])) {
-                const SQRT2 = Math.SQRT2;
-                const sampleRateHalf = parameters.sampleRate * 0.5;
-                const invSampleRate = 1 / parameters.sampleRate;
+            // Use strict Linkwitz-Riley implementation (24dB/oct = LR4: 2nd order Butterworth cascaded twice)
+            const frequenciesChangedForCoeffs = !context.cachedFilters || frequenciesChanged;
+            
+            if (frequenciesChangedForCoeffs) {
+                // Helper functions for Linkwitz-Riley design (matching channel_divider.js)
+                function computeButterworthQs(N) {
+                    const Qs = [];
+                    const pairs = Math.floor(N / 2);
+                    for (let k = 1; k <= pairs; ++k) {
+                        const theta = (2 * k - 1) * Math.PI / (2 * N);
+                        const zeta = Math.sin(theta);
+                        const Q = 1 / (2 * zeta);
+                        Qs.push(Q);
+                    }
+                    return Qs;
+                }
+                
+                function designFirstOrderButterworth(fs, fc, type) {
+                    if (fc <= 0 || fc >= fs * 0.5) return null;
+                    const K = 2 * fs;
+                    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+                    const Om = warped;
+                    const a0 = K + Om;
+                    const a1 = Om - K;
+                    let b0, b1;
+                    if (type === "lp") {
+                        b0 = Om;
+                        b1 = Om;
+                    } else {
+                        b0 = -K;
+                        b1 = K;
+                    }
+                    return { b0: b0 / a0, b1: b1 / a0, b2: 0, a1: a1 / a0, a2: 0 };
+                }
+                
+                function designSecondOrderButterworth(fs, fc, Q, type) {
+                    if (fc <= 0 || fc >= fs * 0.5) return null;
+                    const K = 2 * fs;
+                    const warped = 2 * fs * Math.tan(Math.PI * fc / fs);
+                    const Om = warped;
+                    const K2 = K * K;
+                    const Om2 = Om * Om;
+                    const K2Q = K2 * Q;
+                    const Om2Q = Om2 * Q;
+                    const a0 = K2Q + K * Om + Om2Q;
+                    const a1 = -2 * K2Q + 2 * Om2Q;
+                    const a2 = K2Q - K * Om + Om2Q;
+                    let b0, b1, b2;
+                    if (type === "lp") {
+                        b0 = Om2Q;
+                        b1 = 2 * Om2Q;
+                        b2 = Om2Q;
+                    } else {
+                        b0 = K2Q;
+                        b1 = -2 * K2Q;
+                        b2 = K2Q;
+                    }
+                    return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0 };
+                }
+                
+                function designButterworthSections(fs, fc, N, type) {
+                    if (!Number.isFinite(N) || N <= 0) return [];
+                    const sections = [];
+                    const isOdd = (N % 2) !== 0;
+                    if (isOdd) {
+                        const sec1 = designFirstOrderButterworth(fs, fc, type);
+                        if (sec1) sections.push(sec1);
+                    }
+                    const Qs = computeButterworthQs(N);
+                    for (const Q of Qs) {
+                        const sec2 = designSecondOrderButterworth(fs, fc, Q, type);
+                        if (sec2) sections.push(sec2);
+                    }
+                    return sections;
+                }
+                
+                function designLinkwitzRileySections(fs, fc, slope, type) {
+                    if (slope === 0 || fc <= 0) return [];
+                    const absSlope = Math.abs(slope);
+                    if (absSlope % 12 !== 0) return [];
+                    const N = absSlope / 12;
+                    if (type !== "lp" && type !== "hp") return [];
+                    const butter = designButterworthSections(fs, fc, N, type);
+                    if (!butter.length) return [];
+                    // LR: Butterworth_N cascaded twice
+                    const lr = butter.slice();
+                    for (let i = 0; i < butter.length; ++i) {
+                        const s = butter[i];
+                        lr.push({ b0: s.b0, b1: s.b1, b2: s.b2, a1: s.a1, a2: s.a2 });
+                    }
+                    return lr;
+                }
+                
+                const sampleRate = parameters.sampleRate;
                 context.cachedFilters = new Array(4);
                 for (let i = 0; i < 4; i++) {
-                    const freq = Math.max(20, Math.min(sampleRateHalf - 20, frequencies[i]));
-                    const omega = Math.tan(freq * Math.PI * invSampleRate);
-                    const omega2 = omega * omega;
-                    const n = 1 / (omega2 + SQRT2 * omega + 1);
-                    const b0_lp = omega2 * n;
-                    context.cachedFilters[i] = {
-                        lowpass: { b0: b0_lp, b1: 2 * b0_lp, b2: b0_lp, a1: 2 * (omega2 - 1) * n, a2: (omega2 - SQRT2 * omega + 1) * n },
-                        highpass: { b0: n, b1: -2 * n, b2: n, a1: 2 * (omega2 - 1) * n, a2: (omega2 - SQRT2 * omega + 1) * n }
-                    };
+                    const freq = Math.max(10.0, Math.min(frequencies[i], sampleRate * 0.499));
+                    const slope = -24; // 24dB/oct for multiband balance
+                    const lpSections = designLinkwitzRileySections(sampleRate, freq, Math.abs(slope), "lp");
+                    const hpSections = designLinkwitzRileySections(sampleRate, freq, Math.abs(slope), "hp");
+                    
+                    // For LR4 (24dB/oct), we have 2 sections (2nd order Butterworth cascaded twice)
+                    // applyFilterBlock uses 2 stages, so we use the first section for stage1 and second for stage2
+                    if (lpSections.length >= 2 && hpSections.length >= 2) {
+                        context.cachedFilters[i] = {
+                            lowpass: lpSections[0], // First Butterworth section
+                            highpass: hpSections[0] // First Butterworth section
+                        };
+                        // Store second section separately for stage2
+                        context.cachedFilters[i].lowpassStage2 = lpSections[1];
+                        context.cachedFilters[i].highpassStage2 = hpSections[1];
+                    } else {
+                        // Fallback (should not happen with valid parameters)
+                        context.cachedFilters[i] = {
+                            lowpass: { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 },
+                            highpass: { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 },
+                            lowpassStage2: { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 },
+                            highpassStage2: { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0 }
+                        };
+                    }
                 }
             }
 
@@ -257,28 +367,28 @@ class MultibandBalancePlugin extends PluginBase {
                 
                 // Apply filters in blocks for better cache locality
                 // Band 0 (Low) - direct lowpass on input
-                applyFilterBlock(inputBuffer, bandSignals[0], context.cachedFilters[0].lowpass, filterStates.lowpass[0], ch, parameters.blockSize);
+                applyFilterBlock(inputBuffer, bandSignals[0], context.cachedFilters[0].lowpass, context.cachedFilters[0].lowpassStage2, filterStates.lowpass[0], ch, parameters.blockSize);
                 
                 // Highpass branch for remaining bands
-                applyFilterBlock(inputBuffer, hp1Buffer, context.cachedFilters[0].highpass, filterStates.highpass[0], ch, parameters.blockSize);
+                applyFilterBlock(inputBuffer, hp1Buffer, context.cachedFilters[0].highpass, context.cachedFilters[0].highpassStage2, filterStates.highpass[0], ch, parameters.blockSize);
                 
                 // Band 1 (Low-Mid)
-                applyFilterBlock(hp1Buffer, bandSignals[1], context.cachedFilters[1].lowpass, filterStates.lowpass[1], ch, parameters.blockSize);
+                applyFilterBlock(hp1Buffer, bandSignals[1], context.cachedFilters[1].lowpass, context.cachedFilters[1].lowpassStage2, filterStates.lowpass[1], ch, parameters.blockSize);
                 
                 // Highpass for bands 2-4
-                applyFilterBlock(hp1Buffer, hp2Buffer, context.cachedFilters[1].highpass, filterStates.highpass[1], ch, parameters.blockSize);
+                applyFilterBlock(hp1Buffer, hp2Buffer, context.cachedFilters[1].highpass, context.cachedFilters[1].highpassStage2, filterStates.highpass[1], ch, parameters.blockSize);
                 
                 // Band 2 (Mid)
-                applyFilterBlock(hp2Buffer, bandSignals[2], context.cachedFilters[2].lowpass, filterStates.lowpass[2], ch, parameters.blockSize);
+                applyFilterBlock(hp2Buffer, bandSignals[2], context.cachedFilters[2].lowpass, context.cachedFilters[2].lowpassStage2, filterStates.lowpass[2], ch, parameters.blockSize);
                 
                 // Highpass for bands 3-4
-                applyFilterBlock(hp2Buffer, hp1Buffer, context.cachedFilters[2].highpass, filterStates.highpass[2], ch, parameters.blockSize); // Reuse hp1Buffer
+                applyFilterBlock(hp2Buffer, hp1Buffer, context.cachedFilters[2].highpass, context.cachedFilters[2].highpassStage2, filterStates.highpass[2], ch, parameters.blockSize); // Reuse hp1Buffer
                 
                 // Band 3 (High-Mid)
-                applyFilterBlock(hp1Buffer, bandSignals[3], context.cachedFilters[3].lowpass, filterStates.lowpass[3], ch, parameters.blockSize);
+                applyFilterBlock(hp1Buffer, bandSignals[3], context.cachedFilters[3].lowpass, context.cachedFilters[3].lowpassStage2, filterStates.lowpass[3], ch, parameters.blockSize);
                 
                 // Band 4 (High)
-                applyFilterBlock(hp1Buffer, bandSignals[4], context.cachedFilters[3].highpass, filterStates.highpass[3], ch, parameters.blockSize);
+                applyFilterBlock(hp1Buffer, bandSignals[4], context.cachedFilters[3].highpass, context.cachedFilters[3].highpassStage2, filterStates.highpass[3], ch, parameters.blockSize);
             }
 
             // Apply balance and sum bands

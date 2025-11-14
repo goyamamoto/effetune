@@ -88,6 +88,7 @@
   "ui.title.close": "Close",
   "ui.title.expand": "Click to expand",
   "ui.title.collapse": "Click to collapse",
+  "ui.title.presetSelect": "User preset name input and loading\nPress ESC to clear text and show all items",
 
   // File processing UI
   "ui.dropAudioFiles": "Drop audio files here to process with current effects",

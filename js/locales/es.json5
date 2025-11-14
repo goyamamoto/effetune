@@ -88,6 +88,7 @@
   "ui.title.close": "Cerrar",
   "ui.title.expand": "Haga clic para expandir",
   "ui.title.collapse": "Haga clic para contraer",
+  "ui.title.presetSelect": "Entrada y carga de nombre de preset de usuario\nPresione ESC para borrar texto y mostrar todos los elementos",
 
   // Interfaz de procesamiento de archivos
   "ui.dropAudioFiles": "Suelta los archivos de audio aquí para procesarlos con los efectos actuales",
