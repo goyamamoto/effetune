@@ -62,7 +62,7 @@ Horn Resonator Plus provides superior sound quality compared to the standard Hor
 
 ### Parameters and Usage
 
-Horn Resonator Plus uses the same parameters as [Horn Resonator](#horn-resonator). Please refer to the Horn Resonator section for parameter descriptions, settings, and recommended values.
+Horn Resonator Plus uses the same parameters as [Horn Resonator](#horn-resonator) and adds **Viscous Damp (Hz)**. This control simulates frequency-dependent losses by applying a low‑pass filter to each horn segment. Use values from **1000** to **20000 Hz**; lower settings damp high frequencies more strongly.
 
 ### Usage Guidelines
 
