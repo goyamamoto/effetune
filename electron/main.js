@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, protocol } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -678,6 +678,13 @@ function createSplashScreen() {
 function initializeApp() {
   // Set up file logging first to capture all logs
   setupFileLogging();
+
+  // Register custom protocol for local WebAssembly files so they can be
+  // fetched with the correct MIME type and used with instantiateStreaming()
+  protocol.registerFileProtocol('wasm', (request, cb) => {
+    const file = decodeURIComponent(new URL(request.url).pathname);
+    cb({ path: file, mimeType: 'application/wasm' });
+  });
   
   // Get user data path
   const userDataPath = fileHandlers.getUserDataPath();
