@@ -142,3 +142,24 @@ For each resonator:
    - Make small adjustments to frequencies and decay times.
    - Enable/disable individual resonators to find the perfect combination.
    - Remember that subtle changes can have a significant impact on the overall sound.
+
+## Building the Horn Resonator Plus WebAssembly Module
+
+The `Horn Resonator Plus` effect uses a WebAssembly module for optimal performance.
+If you modify `horn_resonator_plus.c`, rebuild the module as follows:
+
+1. Install the [WASI SDK](https://github.com/WebAssembly/wasi-sdk/) so that `wasm32-wasi-clang` is available.
+   On macOS you can use Homebrew:
+
+   ```bash
+   brew install wasi-sdk
+   ```
+
+2. Run the build script from the project root:
+
+   ```bash
+   cd plugins/resonator/wasm
+   ./build_wasm.sh
+   ```
+
+   The script automatically detects the `wasi-sdk` installation or falls back to the system `clang`.
