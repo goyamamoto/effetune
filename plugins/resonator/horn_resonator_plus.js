@@ -42,6 +42,11 @@ class HornResonatorPlusPlugin extends PluginBase {
             const chs = parameters.channelCount;
             const bs  = parameters.blockSize;
 
+            if (!context._timing) {
+                context._timing = { total: 0, count: 0, lastLog: performance.now() };
+            }
+            const _startTime = performance.now();
+
             // --- Determine if recalculation of internal state is needed ---
             const needsRecalc = !context.initialized ||
                                 context.sr  !== sr ||
@@ -375,6 +380,18 @@ class HornResonatorPlusPlugin extends PluginBase {
                 context.bufIdx[ch] = bufIndex; // Remember current buffer for next block
 
             } // --- End of Channel Loop ---
+
+            const _duration = performance.now() - _startTime;
+            context._timing.total += _duration;
+            context._timing.count += 1;
+            const _now = performance.now();
+            if (_now - context._timing.lastLog >= 10000) {
+                const _avg = context._timing.total / context._timing.count;
+                console.log(`[HornResonatorPlus] Avg process time: ${_avg.toFixed(3)} ms`);
+                context._timing.total = 0;
+                context._timing.count = 0;
+                context._timing.lastLog = _now;
+            }
 
             return data; // Return processed audio data
         `);
