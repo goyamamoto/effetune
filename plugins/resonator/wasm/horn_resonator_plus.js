@@ -106,6 +106,8 @@ export class HornResonatorPlus {
         var ptr1 = passArrayF32ToWasm0(output, wasm.__wbindgen_malloc);
         var len1 = WASM_VECTOR_LEN;
         wasm.hornresonatorplus_process(this.__wbg_ptr, ptr0, len0, ptr1, len1, output);
+        wasm.__wbindgen_free(ptr0, len0 * 4);
+        wasm.__wbindgen_free(ptr1, len1 * 4);
     }
 }
 
