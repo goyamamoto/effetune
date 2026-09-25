@@ -6,6 +6,7 @@ A collection of plugins that emphasize resonant characteristics to add unique to
 
 - [Horn Resonator](#horn-resonator) - Simulates the resonance of horn speaker systems
 - [Horn Resonator Plus](#horn-resonator-plus) - Enhanced horn model with advanced reflections
+- [Horn Resonator Plus (WASM)](#horn-resonator-plus-wasm) - WASM version of Horn Resonator Plus
 - [Modal Resonator](#modal-resonator) - Frequency resonance effect with up to 5 resonators
 
 ## Horn Resonator
@@ -49,6 +50,10 @@ An enhanced horn model that uses a 2nd-order mouth reflection filter and a frequ
 ### Quick Start Guide
 
 Use the same controls as the Horn Resonator.
+
+## Horn Resonator Plus (WASM)
+
+A WebAssembly version of the Horn Resonator Plus plugin for improved processing performance. The parameters and usage are identical to the JavaScript version. If the WASM module cannot be loaded, the plugin automatically falls back to the JavaScript implementation.
 
 ## Modal Resonator
 
