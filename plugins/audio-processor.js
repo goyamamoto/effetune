@@ -71,7 +71,7 @@ class PluginProcessor extends AudioWorkletProcessor {
                     }
                     break;
                 case 'registerProcessor':
-                    this.registerPluginProcessor(data.pluginType, data.processor);
+                    this.registerPluginProcessor(data.pluginType, data.processor, data.wasmPath);
                     break;
                 case 'userActivity':
                     { // Block scope for const time
@@ -106,10 +106,21 @@ class PluginProcessor extends AudioWorkletProcessor {
         };
     }
 
-    registerPluginProcessor(pluginType, processorFunction) {
+    async registerPluginProcessor(pluginType, processorFunction, wasmPath = null) {
+        let wasmInstance = null;
+        if (wasmPath) {
+            try {
+                const resp = await fetch(wasmPath);
+                const bytes = await resp.arrayBuffer();
+                const mod = await WebAssembly.instantiate(bytes, {});
+                wasmInstance = mod.instance;
+            } catch (e) {
+                console.error(`Failed to load wasm for ${pluginType}:`, e);
+            }
+        }
         try {
             // Compile function once during registration
-            const compiledFunction = new Function('context', 'data', 'parameters', 'time',
+            const compiledFunction = new Function('context', 'data', 'parameters', 'time', 'wasm',
                 // Use strict mode for potentially better optimization and error checking
                 `'use strict';
                  // Avoid 'with' statement as it's deprecated and hurts performance/optimization
@@ -126,12 +137,12 @@ class PluginProcessor extends AudioWorkletProcessor {
                      return data;
                  }`
             );
-            this.pluginProcessors.set(pluginType, compiledFunction);
+            this.pluginProcessors.set(pluginType, {func: compiledFunction, wasm: wasmInstance});
             // console.log(`Registered processor for type: ${pluginType}`);
         } catch (error) {
              console.error(`Failed to compile processor function for ${pluginType}:`, error);
              // Set a dummy processor to avoid errors later, or handle differently
-             this.pluginProcessors.set(pluginType, (context, data) => data); // Passthrough on error
+             this.pluginProcessors.set(pluginType, {func: (context, data)=>data, wasm: null});
         }
     }
 
@@ -540,7 +551,7 @@ class PluginProcessor extends AudioWorkletProcessor {
             // --- 9d. Execute Plugin Processor Function ---
             let result; // Can be the modified processingBuffer or a new buffer returned by processor
             try {
-                 result = processor.call(context, context, processingBuffer, processingParams, time);
+                 result = processor.func.call(context, context, processingBuffer, processingParams, time, processor.wasm);
                  // Update context state potentially modified by the processor
                  pluginContexts.set(plugin.id, context);
             } catch(e) {

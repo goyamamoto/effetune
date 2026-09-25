@@ -212,7 +212,8 @@ export class OfflineProcessor {
                                 pluginContext,
                                 processingBuffer, // single channel buffer
                                 singleChannelParams,
-                                pluginContext.currentTime
+                                pluginContext.currentTime,
+                                null
                             );
 
                             // Prepare the final result buffer (potentially multi-channel)
@@ -236,7 +237,8 @@ export class OfflineProcessor {
                                 pluginContext,
                                 processingBuffer, // multi-channel interleaved buffer
                                 parameters, // original parameters with correct channelCount
-                                pluginContext.currentTime
+                                pluginContext.currentTime,
+                                null
                             );
                         }
 
