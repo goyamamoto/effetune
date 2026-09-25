@@ -21,12 +21,23 @@ class HornResonatorPlusPlugin extends PluginBase {
         this.tr = 0.99; // Throat reflection coefficient
         this.wg = 30.0; // Output signal gain (dB)
 
+        // Load optional WebAssembly implementation
+        this.wasm = null;
+        if (typeof WebAssembly === 'object') {
+            import('./wasm/horn_resonator_plus.js')
+                .then(mod => { this.wasm = mod; })
+                .catch(() => {/* fall back to JS */});
+        }
+
         // Physical constants
         const C = 343;   // Speed of sound in air (m/s)
         const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
 
         this.registerProcessor(`
             // --- Define constants required within this processor's scope ---
+            if (globalThis.hrpWasm && globalThis.hrpWasm.process) {
+                return globalThis.hrpWasm.process(context, data, parameters);
+            }
             const C = 343;     // Speed of sound in air (m/s)
             const RHO_C = 413; // Characteristic impedance of air (Pa*s/m^3)
             const PI = Math.PI;
