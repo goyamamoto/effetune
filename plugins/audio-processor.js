@@ -46,6 +46,10 @@ class PluginProcessor extends AudioWorkletProcessor {
             _silenceThresholdAmplitude: Math.pow(10, -84 / 20)
         };
 
+        // Debug flag for temporary buffer monitoring controlled via environment variable
+        const env = globalThis.process?.env || {};
+        this.debugTempBuffer = env.TEMP_BUFFER_DEBUG === '1' || env.TEMP_BUFFER_DEBUG === 'true';
+
         this.tempBufferStats = {
             intervalCalls: 0,
             intervalReuses: 0,
@@ -189,21 +193,27 @@ class PluginProcessor extends AudioWorkletProcessor {
      * @returns {Float32Array}
      */
     getTempBuffer(context, size) {
-        this.tempBufferStats.intervalCalls++;
+        if (this.debugTempBuffer) {
+            this.tempBufferStats.intervalCalls++;
+        }
         let buf = context._tempBuffer;
         if (buf && buf.length === size) {
-            this.tempBufferStats.intervalReuses++;
+            if (this.debugTempBuffer) {
+                this.tempBufferStats.intervalReuses++;
+            }
         } else {
             buf = new Float32Array(size);
             context._tempBuffer = buf;
         }
 
-        const time = this.currentFrame / globalThis.sampleRate;
-        if (time - this.tempBufferStats.lastLogTime >= 10) {
-            console.log(`getTempBuffer: ${this.tempBufferStats.intervalCalls} calls, ${this.tempBufferStats.intervalReuses} reuses`);
-            this.tempBufferStats.intervalCalls = 0;
-            this.tempBufferStats.intervalReuses = 0;
-            this.tempBufferStats.lastLogTime = time;
+        if (this.debugTempBuffer) {
+            const time = this.currentFrame / globalThis.sampleRate;
+            if (time - this.tempBufferStats.lastLogTime >= 10) {
+                console.log(`getTempBuffer: ${this.tempBufferStats.intervalCalls} calls, ${this.tempBufferStats.intervalReuses} reuses`);
+                this.tempBufferStats.intervalCalls = 0;
+                this.tempBufferStats.intervalReuses = 0;
+                this.tempBufferStats.lastLogTime = time;
+            }
         }
 
         return buf;
